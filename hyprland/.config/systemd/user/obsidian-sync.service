@@ -1,0 +1,13 @@
+[Unit]
+Description=Sincronización total de Obsidian (Inicio y 20min)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Ejecución al inicio y cada 20 minutos
+ExecStart=/usr/bin/rclone bisync %h/Documents/Obsidian "gdrive:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer
+
+[Install]
+WantedBy=default.target

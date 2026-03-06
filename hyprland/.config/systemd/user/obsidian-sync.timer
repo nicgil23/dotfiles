@@ -1,0 +1,12 @@
+[Unit]
+Description=Temporizador para sincronizar Obsidian cada 20 minutos
+
+[Timer]
+# Se ejecuta 1 minuto después del arranque para no saturar el inicio
+OnBootSec=1min
+# Se ejecuta cada 20 minutos
+OnUnitActiveSec=20min
+Persistent=false
+
+[Install]
+WantedBy=timers.target

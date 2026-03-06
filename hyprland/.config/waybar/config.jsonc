@@ -1,0 +1,153 @@
+{
+    "position": "top",
+    "margin-top": 14,
+    "modules-left": [
+        "clock",
+        "group/izq"
+    ],
+    "modules-center": [
+        "hyprland/workspaces"
+    ],
+    "modules-right": [
+        "group/der1",
+        "group/der2"
+    ],
+
+
+    /* Elementos de la izquierda */
+    "clock": {
+        "format": "{:%a %d %B ~ %H:%M:%S}",
+        "format-alt": "{:%d %b %Y ~ %R}",
+        "tooltip-format": "<big>{:%Y}</big>\n<tt><small>{calendar}</small></tt>",
+        "calendar": {
+                    "mode"          : "year",
+                    "mode-mon-col"  : 3,
+                    "weeks-pos"     : "right",
+                    "on-scroll"     : 1,
+                    "format": {
+                              "months":     "<span color='#f9e2af' font='JetBrainsMono Nerd Font Propo'><b>{}</b></span>",
+                              "days":       "<span color='#cdd6f4' font='JetBrainsMono Nerd Font Propo'><b>{}</b></span>",
+                              "weeks":      "<span color='#bac2de' font='JetBrainsMono Nerd Font Propo'><b>W{}</b></span>",
+                              "weekdays":   "<span color='#89b4fa' font='JetBrainsMono Nerd Font Propo'><b>{}</b></span>",
+                              "today":      "<span color='#eba0ac' font='JetBrainsMono Nerd Font Propo'><b><u>{}</u></b></span>"
+                              }
+                    },
+        "actions":  {
+                    "on-click-right": "mode",
+                    "on-scroll-up": "tz_up",
+                    "on-scroll-down": "tz_down",
+                    "on-scroll-up": "shift_up",
+                    "on-scroll-down": "shift_down"
+                    },
+        "interval": 1
+    },
+    "group/izq": {
+        "orientation": "horizontal",
+        "modules": ["memory", "cpu", "temperature"]
+    },
+    "memory": {
+        "interval": 10,
+        "format": "󰾆 {used}GB"
+    },
+    "cpu": {
+        "interval": 10,
+        "format": "󰍛 {usage}%"
+    },
+    "temperature": {
+        "critical-threshold": 80,
+        "format": " {temperatureC}°C"
+    },
+
+
+
+    /* Elementos del centro */
+    "hyprland/workspaces": {
+        "format": "{name}"
+    },
+
+
+
+    /* Elementos de la derecha */
+    "group/der1": {
+        "orientation": "horizontal",
+        "modules": ["tray", "custom/logout", "custom/notification", "custom/keyboard"]
+    },
+    "tray": {
+    "icon-size": 15,
+    "spacing": 10,
+    "icons": {
+            "blueman": "bluetooth",
+            "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
+        }
+    },
+    "custom/logout": {
+        "format": "",
+        "on-click": "wlogout --buttons-per-row 5",
+        "tooltip": false
+    },
+    "custom/notification": {
+        "tooltip": true,
+        "format": "<span size='11pt'>{icon}</span>",
+        "format-icons": {
+            "notification": "󱅫",
+            "none": "󰂜",
+            "dnd-none": "󰪓",
+            "dnd-notification": "󰂠",
+            "inhibited-none": "󰪑",
+            "inhibited-notification": "󰂛",
+            "dnd-inhibited-none": "󰪑",
+            "dnd-inhibited-notification": "󰂛"
+        },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
+    },
+    "custom/keyboard": {
+        "format-icons": ["󰌌"],
+        "format": "<span size='12pt'>{icon}</span>",
+        "icon-size": 25,
+        "on-click": "pkill -9 wvkbd-mobintl || wvkbd-mobintl",
+        "tooltip": false
+    },
+    "group/der2": {
+        "orientation": "horizontal",
+        "modules": ["backlight", "pulseaudio", "battery"]
+    },
+    "backlight": {
+        "device": "intel_backlight",
+        "format": "{percent}% {icon}",
+        "format-icons": ["󰃞", "󰃟", "󰃠"],
+        "on-scroll-up": "brightnessctl set 1%+",
+        "on-scroll-down": "brightnessctl set 1%-"
+    },
+    "pulseaudio": {
+    "format": "{volume}% {icon}",
+    "format-bluetooth": "{volume}% {icon} ",
+    "format-muted": "",
+    "format-icons": {
+        "headphone": "",
+        "hands-free": "",
+        "headset": "",
+        "phone": "",
+        "phone-muted": "",
+        "portable": "",
+        "car": "",
+        "default": ["", ""]
+        },
+    "scroll-step": 1,
+    "on-click": "pavucontrol",
+    "ignored-sinks": ["Easy Effects Sink"]
+    },
+    "battery": {
+        "format": "{capacity}% {icon}",
+        "format-icons": ["󰂃","󰁺","󰁻","󰁼","󰁽","󰁾","󰁿","󰂀","󰂁","󰂂","󰁹"],
+        "format-charging": "{capacity}% 󰂄",
+        "states": {
+            "warning": 30,
+            "critical": 15
+        }
+    }
+}
