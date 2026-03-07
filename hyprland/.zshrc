@@ -112,3 +112,22 @@ load-env() {
     echo "Error: No se ha encontrado el archivo .env en este directorio."
   fi
 }
+
+backup_pkgs() {
+    local backup_dir="$HOME/dotfiles/"
+    mkdir -p "$backup_dir"
+
+    # 1. Lista de paquetes de repositorios oficiales (Pacman)
+    # -Qn lista paquetes instalados de bases de datos locales
+    pacman -Qnq > "$backup_dir/lista_pacman.txt"
+
+    # 2. Lista de paquetes de AUR (vía yay o pacman -Qm)
+    # -Qm lista paquetes que no están en los repositorios oficiales
+    pacman -Qmq > "$backup_dir/lista_aur.txt"
+
+    # 3. Lista de aplicaciones Flatpak
+    # --columns=application solo extrae el ID de la aplicación
+    flatpak list --app --columns=application > "$backup_dir/lista_flatpak.txt"
+
+    echo "Respaldo completado en $backup_dir"
+}
