@@ -1,0 +1,47 @@
+* {
+    primary: #cdd6f4; /* Cambiado al color 'Text' de Mocha para actuar como resaltado principal */
+    primary-fixed: #bac2de; /* Cambiado a 'Subtext1' para variaciones del resaltado */
+    primary-fixed-dim: #a6adc8; /* Cambiado a 'Subtext0' para un resaltado más tenue */
+    on-primary: #1e1e2e; /* Cambiado a 'Base' para generar contraste sobre el resaltado */
+    on-primary-fixed: #181825; /* Cambiado a 'Mantle' para contraste oscuro */
+    on-primary-fixed-variant: #313244; /* Cambiado a 'Surface0' */
+    primary-container: #45475a; /* Cambiado a 'Surface1' como contenedor del color primario */
+    on-primary-container: #cdd6f4; /* Cambiado a 'Text' para legibilidad dentro del contenedor */
+    secondary: #a6adc8; /* Cambiado a 'Subtext0' para elementos secundarios discretos */
+    secondary-fixed: #bac2de; /* Cambiado a 'Subtext1' */
+    secondary-fixed-dim: #9399b2; /* Cambiado a 'Overlay2' */
+    on-secondary: #1e1e2e; /* Cambiado a 'Base' */
+    on-secondary-fixed: #11111b; /* Cambiado a 'Crust' (el tono más oscuro de Mocha) */
+    on-secondary-fixed-variant: #313244; /* Cambiado a 'Surface0' */
+    secondary-container: #313244; /* Cambiado a 'Surface0' */
+    on-secondary-container: #bac2de; /* Cambiado a 'Subtext1' */
+    tertiary: #b4befe; /* Cambiado a 'Lavender' para acentos terciarios típicos de Mocha */
+    tertiary-fixed: #cba6f7; /* Cambiado a 'Mauve' */
+    tertiary-fixed-dim: #b4befe; /* Cambiado a 'Lavender' */
+    on-tertiary: #1e1e2e; /* Cambiado a 'Base' */
+    on-tertiary-fixed: #11111b; /* Cambiado a 'Crust' */
+    on-tertiary-fixed-variant: #313244; /* Cambiado a 'Surface0' */
+    tertiary-container: #45475a; /* Cambiado a 'Surface1' */
+    on-tertiary-container: #b4befe; /* Cambiado a 'Lavender' */
+    error: #f38ba8; /* Cambiado a 'Red' de Mocha para errores */
+    on-error: #11111b; /* Cambiado a 'Crust' para contraste en mensajes de error */
+    error-container: #eba0ac; /* Cambiado a 'Maroon' */
+    on-error-container: #181825; /* Cambiado a 'Mantle' */
+    surface: #1e1e2e; /* Cambiado a 'Base' como fondo principal de la superficie */
+    on-surface: #cdd6f4; /* Cambiado a 'Text' para el texto general sobre la superficie */
+    on-surface-variant: #a6adc8; /* Cambiado a 'Subtext0' para texto secundario */
+    outline: #6c7086; /* Cambiado a 'Overlay0' para bordes divisorios */
+    outline-variant: #45475a; /* Cambiado a 'Surface1' para bordes sutiles */
+    shadow: #11111b; /* Cambiado a 'Crust' (sombras puras no encajan bien en Mocha) */
+    scrim: #11111b; /* Cambiado a 'Crust' */
+    inverse-surface: #cdd6f4; /* Cambiado a 'Text' para inversiones de color */
+    inverse-on-surface: #1e1e2e; /* Cambiado a 'Base' */
+    inverse-primary: #585b70; /* Cambiado a 'Surface2' */
+    surface-dim: #11111b; /* Cambiado a 'Crust' */
+    surface-bright: #313244; /* Cambiado a 'Surface0' */
+    surface-container-lowest: #11111b; /* Cambiado a 'Crust' */
+    surface-container-low: #181825; /* Cambiado a 'Mantle' */
+    surface-container: #1e1e2e; /* Cambiado a 'Base' */
+    surface-container-high: #313244; /* Cambiado a 'Surface0' */
+    surface-container-highest: #45475a; /* Cambiado a 'Surface1' */
+}
