@@ -121,4 +121,10 @@ Las próximas veces se mantendrá la sincronización con el comando:
 rclone bisync ~/Documents/Obsidian "gdrive:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer
 ```
 
+## 8. Optimización de arranque
 
+Vamos a desactivar configuraciones que vienen por defecto para desencriptar discos que nosotros no vamos a usar:
+```bash
+sudo systemctl mask systemd-tpm2-setup-early.service systemd-tpm2-setup.service systemd-pcrproduct.service
+sudo systemctl mask systemd-pcrmachine.service systemd-pcrnvdone.service systemd-pcrphase-sysinit.service systemd-pcrphase.service
+```

@@ -81,9 +81,12 @@
         }
     },
     "custom/logout": {
-        "format": "",
+        "format-icons": [""],
+        "format": "<span size='10pt'>{icon}</span>",
+        "icon-size": 25,
         "on-click": "wlogout --buttons-per-row 5",
         "tooltip": false
+
     },
     "custom/notification": {
         "tooltip": true,
@@ -109,7 +112,7 @@
         "format-icons": ["󰌌"],
         "format": "<span size='12pt'>{icon}</span>",
         "icon-size": 25,
-        "on-click": "pkill -9 wvkbd-mobintl || wvkbd-mobintl",
+        "on-click": "pkill -9 wvkbd-mobintl || wvkbd-mobintl -L 300 -bg 11111b -fg-sp 181825 -fg 1e1e2e -press 313244 -press-sp 45475a -alpha 250 -fn 'JetBrainsMono Nerd Font Propo' -text cdd6f4 -text-sp cdd6f4 -R 10",
         "tooltip": false
     },
     "group/der2": {

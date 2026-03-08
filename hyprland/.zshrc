@@ -102,6 +102,7 @@ source $ZSH/oh-my-zsh.sh
 # Alias
 alias ls="exa -l"
 alias obsidian-sync='rclone bisync ~/Documents/Obsidian "gdrive:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer'
+alias ff='fastfetch'
 
 # Funciones
 load-env() {

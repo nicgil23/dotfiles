@@ -24,7 +24,7 @@ tooltip {
 }
 
 tooltip label {
-  color: @fg;
+  color: @text;
   padding: 6px;
 }
 
@@ -34,7 +34,7 @@ tooltip label {
   margin: 0 0 0 12px;
   border-radius: 18px;
   border: 1px solid @bg1;
-  color: @fg;
+  color: @text;
 }
 
 #workspaces button {

@@ -24,8 +24,8 @@ window {
 
     /* properties for all widgets */
     enabled:                     true;
-    border:			 2px solid;
-    border-color:		 @secondary-container;
+    border:			 1px solid;
+    border-color:		 @primary;
     border-radius:               15px;
     cursor:                      "default";
     background-color:            @on-primary-fixed;
@@ -42,7 +42,7 @@ mainbox {
 imagebox {
     padding:                     20px;
     background-color:            transparent;
-    background-image:            url("~/.config/hypr/current_wallpaper", height);
+    background-image:            url("~/Pictures/wallpapers/walls-catppuccin-mocha/horizon.jpg", height);
     orientation:                 vertical;
     children:                    [ "inputbar", "dummy", "mode-switcher" ];
 }
