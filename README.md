@@ -42,7 +42,9 @@ yay -S --needed - < lista_aur.txt
 Es necesario asegurarse de que las dependencias estéticas centrales formaban parte de esa lista. Si no estaban anotadas, se deben instalar manualmente especificando sus nombres exactos en el AUR para asegurar la tipografía y el estilo de las aplicaciones.
 
 ```bash
-yay -S ttf-jetbrains-mono-nerd catppuccin-gtk-theme-mocha
+yay -S ttf-jetbrains-mono-nerd catppuccin-gtk-theme-mocha ttf-apple-emoji
+sudo pacman -S noto-fonts-cjk
+fc-cache -fv
 ```
 
 Finalmente, se restauran las **aplicaciones aisladas** en formato flatpak. Se requiere añadir el repositorio Flathub si no se configuró previamente en el sistema base.
@@ -96,6 +98,8 @@ A continuación, se añade el repositorio de código, se habilita y se recarga e
 hyprpm add https://github.com/horriblename/hyprgrass
 hyprpm enable hyprgrass
 hyprpm reload
+# Si al ejecutar lo de arriba da un error en hyprgrass-pulse, vamos a deshabilitar esa parte del servicio
+# hyprpm disable hyprgrass-pulse
 ```
 
 ## 5. Restauración de recursos estéticos
