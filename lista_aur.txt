@@ -1,10 +1,10 @@
+auto-cpufreq
 catppuccin-gtk-theme-mocha
 catppuccin-sddm-theme-mocha
 cmatrix-git
 cmatrix-git-debug
 iio-hyprland-git
 iio-hyprland-git-debug
-lisgd-debug
 pipes-rs
 pipes-rs-debug
 visual-studio-code-bin
@@ -12,5 +12,5 @@ wlogout
 wlogout-debug
 wvkbd
 wvkbd-debug
-yay-bin
-yay-bin-debug
+yay
+yay-debug

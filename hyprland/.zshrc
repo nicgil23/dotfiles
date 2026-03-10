@@ -1,5 +1,5 @@
 # Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+export ZSH="$HOME/.config/ohmyzsh"
 
 # Themes
 ZSH_THEME="robbyrussell"
@@ -42,4 +42,11 @@ backup_pkgs() {
     flatpak list --app --columns=application > "$backup_dir/lista_flatpak.txt"
 
     echo "Respaldo completado en $backup_dir"
+}
+
+aura() {
+    kitty cava &
+    kitty cmatrix &
+    kitty pipes-rs &
+    btop
 }

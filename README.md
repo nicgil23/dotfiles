@@ -6,8 +6,7 @@ El primer paso es asegurar que el sistema está actualizado y dispone de las her
 Se deben instalar las utilidades básicas como `git` para el control de versiones, `stow` para la gestión de los enlaces simbólicos de los archivos de configuración, y utilidades adicionales de red y empaquetado. Además, se requiere el grupo `base-devel` para poder compilar paquetes del AUR.
 
 ```bash
-sudo pacman -Syu
-sudo pacman -S --needed git stow base-devel flatpak rclone
+sudo pacman -S --needed git stow base-devel flatpak rclone # Paquetes usados en esta guía
 ```
 
 Tras esto, es necesario compilar un **gestor de paquetes AUR**, como `yay` o `paru`. En este flujo de ejecución utilizaremos `yay` como referencia.
@@ -68,6 +67,20 @@ Se ejecuta `stow` indicando el nombre de los directorios internos que coinciden 
 stow hyprland # Contiene todas las subcarpetas de configuración de las aplicaciones individuales
 ```
 
+## 5. Habilitación de servicios
+
+Los servicios que vamos a habilitar en nuestra instalación limpia de Arch son:
+```bash
+# Hardware
+systemctl enable --now auto-cpufreq
+systemctl enable --now iio-sensor-proxy
+systemctl enable --now bluetooth
+systemctl enable --now NetworkManager
+
+# Audio
+systemctl --user enable --now pipewire pipewire-pulse wireplumber
+```
+
 ## 4. Configuración de plugins de Hyprland
 
 Para incorporar la interacción gestual en Hyprland de manera nativa, se debe inicializar el gestor de plugins oficial, `hyprpm`, y compilar el módulo correspondiente.
@@ -91,7 +104,8 @@ Los fondos de pantalla seleccionados se deben clonar directamente desde su repos
 
 ```bash
 mkdir -p ~/Pictures/wallpapers/
-git clone https://github.com/orangci/walls-catppuccin-mocha.git ~/Pictures/wallpapers/catppuccin-mocha
+git clone https://github.com/orangci/walls-catppuccin-mocha.git ~/Pictures/wallpapers
+swww img ~/Pictures/wallpapers/walls-catppuccin-mocha/horizon.jpg
 ```
 
 ## 6. Recuperación de documentos locales con Vorta
