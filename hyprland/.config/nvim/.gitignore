@@ -1,0 +1,5 @@
+# Directorios de plugins y estado
+/lua/config/lazy.lua.bak
+/lazy-lock.json
+/undo/
+/swp/
