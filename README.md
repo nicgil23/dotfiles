@@ -126,11 +126,16 @@ Se ejecuta la configuración interactiva de la herramienta para registrar las cr
 rclone config
 ```
 
-Se debe seleccionar **"New remote"** (pulsando `n`), asignarle un nombre identificativo (por ejemplo, `gdrive_app`), seleccionar el tipo de almacenamiento `drive` en la lista que aparecerá, y seguir las instrucciones que se abrirán en el navegador web para otorgar los permisos.
-Una vez autenticado, se puede sincronizar la carpeta remota hacia el almacenamiento local.
+Se debe seleccionar **"New remote"** (pulsando `n`), asignarle como nombre `Obsidian`, seleccionar el tipo de almacenamiento `drive` en la lista que aparecerá, y seguir las instrucciones que se abrirán en el navegador web para otorgar los permisos. Una vez autenticado, se puede sincronizar la carpeta remota hacia el almacenamiento local.
 
+La primera vez que se sincroniza:
 ```bash
-rclone sync "gdrive:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" ~/Documents/Obsidian
+rclone sync "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" ~/Documents/Obsidian
+```
+
+Apartir de la segunda vez:
+```bash
+rclone bysync "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" ~/Documents/Obsidian
 ```
 
 Las próximas veces se mantendrá la sincronización con el comando:
