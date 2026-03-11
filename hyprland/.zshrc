@@ -12,7 +12,7 @@ plugins=(git)
 
 # Alias
 alias ls="exa -l"
-alias obsidian-sync='rclone bisync ~/Documents/Obsidian "gdrive:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer'
+alias obsidian-sync='~/dotfiles/hyprland/.config/hypr/scripts/obsidian-sync.sh'
 alias ff='fastfetch'
 
 # Funciones

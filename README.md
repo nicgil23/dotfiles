@@ -129,19 +129,17 @@ rclone config
 Se debe seleccionar **"New remote"** (pulsando `n`), asignarle como nombre `Obsidian`, seleccionar el tipo de almacenamiento `drive` en la lista que aparecerá, y seguir las instrucciones que se abrirán en el navegador web para otorgar los permisos. Una vez autenticado, se puede sincronizar la carpeta remota hacia el almacenamiento local.
 
 La primera vez que se sincroniza:
+
 ```bash
 rclone sync "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" ~/Documents/Obsidian
-```
-
-Apartir de la segunda vez:
-```bash
-rclone bysync "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" ~/Documents/Obsidian
 ```
 
 Las próximas veces se mantendrá la sincronización con el comando:
 
 ```bash
-rclone bisync ~/Documents/Obsidian "gdrive:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer
+rclone bisync ~/Documents/Obsidian "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer
+# Comando si ocurre un error en la sincronización:
+# rclone bisync "/home/hypr/Documents/Obsidian/" "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal/" --resync
 ```
 
 ## 8. Optimización de arranque
@@ -150,4 +148,16 @@ Vamos a desactivar configuraciones que vienen por defecto para desencriptar disc
 ```bash
 sudo systemctl mask systemd-tpm2-setup-early.service systemd-tpm2-setup.service systemd-pcrproduct.service
 sudo systemctl mask systemd-pcrmachine.service systemd-pcrnvdone.service systemd-pcrphase-sysinit.service systemd-pcrphase.service
+```
+
+## 9. Ignorar paquetes
+
+Para que no ocurran catástrofes, vamos a cambiar los paquetes ignorados por Pacman:
+
+```bash
+sudo nano /etc/pacman.conf
+```
+
+```conf
+IgnorePkg = linux linux-headers linux-lts linux-lts-headers linux-zen linux-zen-headers
 ```
