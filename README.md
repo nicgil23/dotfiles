@@ -19,6 +19,20 @@ cd ..
 rm -rf yay
 ```
 
+Además, vamos a poner en nuestro .bash_profile (dentro de la carpeta del usuario) para que Hyprland se ejecute automaticamente:
+
+```bash
+#
+# ~/.bash_profile
+#
+
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+
+if [ -z "${WAYLAND_DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
+	start-hyprland
+fi
+```
+
 ## 2. Restauración de la paquetería
 
 Con los gestores listos, se procede a la instalación masiva de los programas utilizando las listas previamente guardadas. Es crucial tener los archivos de texto con las listas en el directorio actual, por lo que primero vamos a bajarnos la carpeta de dotfiles:
