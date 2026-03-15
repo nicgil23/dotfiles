@@ -1,92 +1,198 @@
 {
+    "reload_style_on_change": true,
+    "layer": "top",
     "position": "top",
-    "margin-top": 14,
+    "margin-top": 0,
+    "spacing": 0,
+    "height": 10,
     "modules-left": [
         "clock",
-        "group/izq"
+        "group/izq",
+        "group/expand"
     ],
     "modules-center": [
         "hyprland/workspaces"
     ],
     "modules-right": [
+        "group/expand-der",
+        "group/der3",
         "group/der1",
         "group/der2"
     ],
-
-
-    /* Elementos de la izquierda */
-    "clock": {
-        "format": "{:%a %d %B ~ %H:%M:%S}",
-        "format-alt": "{:%d %b %Y ~ %R}",
-        "tooltip-format": "<big>{:%Y}</big>\n<tt><small>{calendar}</small></tt>",
-        "calendar": {
-                    "mode"          : "year",
-                    "mode-mon-col"  : 3,
-                    "weeks-pos"     : "right",
-                    "on-scroll"     : 1,
-                    "format": {
-                              "months":     "<span color='#f9e2af' font='JetBrainsMono Nerd Font Propo'><b>{}</b></span>",
-                              "days":       "<span color='#cdd6f4' font='JetBrainsMono Nerd Font Propo'><b>{}</b></span>",
-                              "weeks":      "<span color='#bac2de' font='JetBrainsMono Nerd Font Propo'><b>W{}</b></span>",
-                              "weekdays":   "<span color='#89b4fa' font='JetBrainsMono Nerd Font Propo'><b>{}</b></span>",
-                              "today":      "<span color='#eba0ac' font='JetBrainsMono Nerd Font Propo'><b><u>{}</u></b></span>"
-                              }
-                    },
-        "actions":  {
-                    "on-click-right": "mode",
-                    "on-scroll-up": "tz_up",
-                    "on-scroll-down": "tz_down",
-                    "on-scroll-up": "shift_up",
-                    "on-scroll-down": "shift_down"
-                    },
-        "interval": 1
-    },
     "group/izq": {
         "orientation": "horizontal",
-        "modules": ["memory", "cpu", "temperature"]
+        "modules": [
+            "backlight",
+            "pulseaudio"
+        ]
+    },
+    "group/der1": {
+        "orientation": "horizontal",
+        "modules": [
+            "tray",
+            "network",
+            "bluetooth",
+            "custom/hypridle",
+            "custom/logout",
+            "custom/notification"
+        ]
+    },
+    "group/der2": {
+        "orientation": "horizontal",
+        "modules": [
+            "battery"
+        ]
+    },
+    "group/der3": {
+        "orientation": "horizontal",
+        "modules": [
+            "custom/screenrecord",
+            "custom/updates"
+        ]
+    },
+    "group/expand": {
+        "orientation": "horizontal",
+        "drawer": {
+            "transition-duration": 200,
+            "transition-to-left": true,
+            "click-to-reveal": true
+        },
+        "modules": [
+            "custom/expand",
+            "memory",
+            "cpu",
+            "temperature"
+        ]
+    },
+    "group/expand-der": {
+        "orientation": "horizontal",
+        "drawer": {
+            "transition-duration": 200,
+            "transition-to-left": false,
+            "click-to-reveal": true
+        },
+        "modules": [
+            "custom/expand-der",
+            "custom/filemanager",
+            "custom/terminal",
+            "custom/obsidian",
+            "custom/keyboard"
+        ]
+    },
+    "custom/expand": {
+        "format": "",
+        "tooltip": false
+    },
+    "custom/expand-der": {
+        "format": "",
+        "tooltip": false
+    },
+    "custom/filemanager": {
+        "format": "",
+        "on-click": "nautilus",
+        "tooltip-format": "Open Filemanager"
+    },
+    "custom/obsidian": {
+        "format": "󱓧",
+        "on-click": "obsidian",
+        "tooltip-format": "Open Obsidian Notes"
+    },
+    "custom/terminal": {
+        "format": "",
+        "on-click": "kitty",
+        "tooltip-format": "Open Kitty Terminal"
+    },
+    "custom/screenrecord": {
+        "exec": "screenrecord-status",
+        "return-type": "json",
+        "signal": 8,
+        "interval": 1,
+        "on-click": "screenrecord output"
+    },
+    "custom/hypridle": {
+        "format": "",
+        "return-type": "json",
+        "escape": true,
+        "exec-on-event": true,
+        "interval": 60,
+        "exec": "hypridle-toggle status",
+        "on-click": "hypridle-toggle toggle"
+    },
+    "bluetooth": {
+        "format": "",
+        "format-disabled": "󰂲",
+        "format-connected": "",
+        "tooltip-format": "Devices connected: {num_connections}",
+        "on-click": "kitty --class=local.bluetui bluetui"
+    },
+    "clock": {
+        "format": "{:%A %H:%M}",
+        "format-alt": "{:%d %B %Y}",
+        "tooltip": false
     },
     "memory": {
         "interval": 10,
-        "format": "󰾆 {used}GB"
+        "format": "󰾆 {used}GB",
+        "on-click": "kitty btop",
+        "tooltip": false
     },
     "cpu": {
         "interval": 10,
-        "format": "󰍛 {usage}%"
+        "format": "󰍛 {usage}%",
+        "on-click": "kitty --class=local.cpufreq auto-cpufreq --stats",
+        "tooltip": false
     },
     "temperature": {
         "critical-threshold": 80,
-        "format": " {temperatureC}°C"
+        "format": " {temperatureC}°C",
+        "tooltip": false
     },
-
-
-
-    /* Elementos del centro */
     "hyprland/workspaces": {
-        "format": "{name}"
-    },
-
-
-
-    /* Elementos de la derecha */
-    "group/der1": {
-        "orientation": "horizontal",
-        "modules": ["tray", "custom/logout", "custom/notification", "custom/keyboard"]
-    },
-    "tray": {
-    "icon-size": 15,
-    "spacing": 10,
-    "icons": {
-            "blueman": "bluetooth",
-            "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
+        "format": "{icon}",
+        "format-icons": {
+            "1": "〇",
+            "2": "一",
+            "3": "二",
+            "4": "三",
+            "5": "四",
+            "6": "五",
+            "7": "六",
+            "8": "七",
+            "9": "八",
+            "10": "九"
         }
     },
+    "tray": {
+        "icon-size": 15,
+        "spacing": 10
+    },
+    "network": {
+        "format-icons": [
+            "󰤯",
+            "󰤟",
+            "󰤢",
+            "󰤥",
+            "󰤨"
+        ],
+        "format": "<span size='10pt'>{icon}</span>",
+        "format-wifi": "<span size='10pt'>{icon}</span>",
+        "format-ethernet": "󰀂",
+        "format-disconnected": "󰤮",
+        "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
+        "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
+        "tooltip-format-disconnected": "Disconnected",
+        "interval": 3,
+        "spacing": 1,
+        "on-click": "kitty --class=local.impala impala"
+    },
     "custom/logout": {
-        "format-icons": [""],
+        "format-icons": [
+            ""
+        ],
         "format": "<span size='10pt'>{icon}</span>",
         "icon-size": 25,
         "on-click": "wlogout --buttons-per-row 5",
         "tooltip": false
-
     },
     "custom/notification": {
         "tooltip": true,
@@ -101,53 +207,84 @@
             "dnd-inhibited-none": "󰪑",
             "dnd-inhibited-notification": "󰂛"
         },
-    "return-type": "json",
-    "exec-if": "which swaync-client",
-    "exec": "swaync-client -swb",
-    "on-click": "swaync-client -t -sw",
-    "on-click-right": "swaync-client -d -sw",
-    "escape": true
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true
     },
     "custom/keyboard": {
-        "format-icons": ["󰌌"],
+        "format-icons": [
+            "󰌌"
+        ],
         "format": "<span size='12pt'>{icon}</span>",
         "icon-size": 25,
         "on-click": "pkill -9 wvkbd-mobintl || wvkbd-mobintl -L 300 -bg 11111b -fg-sp 181825 -fg 1e1e2e -press 313244 -press-sp 45475a -alpha 250 -fn 'JetBrainsMono Nerd Font Propo' -text cdd6f4 -text-sp cdd6f4 -R 10",
         "tooltip": false
     },
-    "group/der2": {
-        "orientation": "horizontal",
-        "modules": ["backlight", "pulseaudio", "battery"]
-    },
     "backlight": {
         "device": "intel_backlight",
         "format": "{percent}% {icon}",
-        "format-icons": ["󰃞", "󰃟", "󰃠"],
+        "format-icons": [
+            "󰃞",
+            "󰃟",
+            "󰃠"
+        ],
         "on-scroll-up": "brightnessctl set 1%+",
         "on-scroll-down": "brightnessctl set 1%-"
     },
     "pulseaudio": {
-    "format": "{volume}% {icon}",
-    "format-bluetooth": "{volume}% {icon} ",
-    "format-muted": "",
-    "format-icons": {
-        "headphone": "",
-        "hands-free": "",
-        "headset": "",
-        "phone": "",
-        "phone-muted": "",
-        "portable": "",
-        "car": "",
-        "default": ["", ""]
+        "format": "{volume}% {icon}",
+        "format-bluetooth": "{volume}% {icon} ",
+        "format-muted": "",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "phone-muted": "",
+            "portable": "",
+            "car": "",
+            "default": [
+                "",
+                ""
+            ]
         },
-    "scroll-step": 1,
-    "on-click": "pavucontrol",
-    "ignored-sinks": ["Easy Effects Sink"]
+        "scroll-step": 1,
+        "on-click": "pavucontrol",
+        "ignored-sinks": [
+            "Easy Effects Sink"
+        ]
     },
     "battery": {
         "format": "{capacity}% {icon}",
-        "format-icons": ["󰂃","󰁺","󰁻","󰁼","󰁽","󰁾","󰁿","󰂀","󰂁","󰂂","󰁹"],
-        "format-charging": "{capacity}% 󰂄",
+        "format-icons": {
+            "charging": [
+                "󰢜",
+                "󰂆",
+                "󰂇",
+                "󰂈",
+                "󰢝",
+                "󰂉",
+                "󰢞",
+                "󰂊",
+                "󰂋",
+                "󰂅"
+            ],
+            "default": [
+                "󰁺",
+                "󰁻",
+                "󰁼",
+                "󰁽",
+                "󰁾",
+                "󰁿",
+                "󰂀",
+                "󰂁",
+                "󰂂",
+                "󰁹"
+            ]
+        },
         "states": {
             "warning": 30,
             "critical": 15

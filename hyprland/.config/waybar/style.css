@@ -17,10 +17,35 @@ window#waybar {
   background: transparent;
 }
 
+.modules-left {
+  padding: 7px;
+  margin: 10px 0 2px 10px;
+  border-radius: 10px;
+  background: alpha(@bg0, 0.8);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
+}
+
+.modules-center {
+  padding: 7px;
+  margin: 10px 0 2px 0;
+  border-radius: 10px;
+  background: alpha(@bg0, 0.8);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
+}
+
+.modules-right {
+  padding: 7px;
+  margin: 10px 10px 2px 0;
+  border-radius: 10px;
+  background: alpha(@bg0, 0.8);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
+}
+
 tooltip {
-  background-color: @bg0;
-  border: 1px solid @bg3;
-  border-radius: 12px;
+  background: alpha(@bg0, 0.8);
+  border: 1px solid @bg1;
+  border-radius: 10px;
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
 }
 
 tooltip label {
@@ -29,11 +54,7 @@ tooltip label {
 }
 
 #workspaces {
-  background-color: @bg0;
-  padding: 5px 3px;
-  margin: 0 0 0 12px;
-  border-radius: 18px;
-  border: 1px solid @bg1;
+  padding: 3px 5px;
   color: @text;
 }
 
@@ -70,18 +91,10 @@ tooltip label {
   transition: all 0.3s ease-in-out;
 }
 
-#izq,
-#der1,
-#der2 {
-  background-color: @bg0;
-  border-radius: 50px;
-  border: 1px solid @bg1;
-  margin: 0 12px;
-  padding: 2px 15px;
-}
-
+/* Individual Module margins inside the groups so they are padded correctly */
 #custom-keyboard,
 #custom-logout,
+#network,
 #memory,
 #cpu,
 #temperature,
@@ -90,19 +103,67 @@ tooltip label {
 #backlight,
 #custom-notification,
 #pulseaudio,
-#battery {
+#battery,
+#custom-updates,
+#custom-screenrecord,
+#custom-hypridle,
+#bluetooth,
+#custom-expand,
+#custom-expand-der,
+#custom-filemanager,
+#custom-obsidian,
+#custom-terminal {
   background-color: transparent;
   color: @text;
   padding: 0 8px;
   margin: 0;
   border: none;
+  font-size: 13px; /* Ensure size matches nicely with the Eli themes */
 }
 
-#clock {
-  background-color: @bg0;
-  padding: 0 15px 0 15px;
-  margin: 0 0 0 12px;
-  border-radius: 50px;
-  border: 1px solid @bg1;
+/* Hover effects adapted for old colors */
+#clock:hover,
+#custom-updates:hover,
+#custom-hypridle:hover,
+#custom-keyboard:hover,
+#custom-filemanager:hover,
+#custom-screenrecord:hover,
+#battery:hover,
+#network:hover,
+#custom-logout:hover,
+#bluetooth:hover,
+#cpu:hover,
+#pulseaudio:hover,
+#memory:hover,
+#temperature:hover,
+#custom-notification:hover,
+#backlight:hover {
+  transition: all 0.3s ease;
+  color: @purple;
+}
+
+#custom-expand,
+#custom-expand-der {
   color: @text;
+  transition: all 0.3s ease;
+}
+
+#custom-expand:hover,
+#custom-expand-der:hover {
+  color: @purple;
+}
+
+/* Fix some spacing between left, center, right groups inside pill */
+#group-expand,
+#group-expand-der,
+#group-izq,
+#group-der1,
+#group-der2,
+#group-der3 {
+    padding: 0px 5px;
+    transition: all 0.3s ease;
+}
+
+#custom-hypridle.notactive {
+  color: @red;
 }

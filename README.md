@@ -1,6 +1,30 @@
 # Guía de Instalación de Entorno Hyprland
 
-## 1. Preparación del entorno base y gestores de paquetes
+## 1. Wifi con IWD e impala
+
+Instalación de herramientas de para la conexión Wifi:
+
+```bash
+sudo pacman -S iwd impala
+```
+
+Vamos a modificar la configuración de red interna del portátil usando `sudo nvim /etc/iwd/main.conf`:
+
+```main.conf
+[General]
+EnableNetworkConfiguration=true
+```
+
+Habilitamos el daemon de iwd y configuramos la resolución DNS:
+
+```bash
+sudo systemctl enable --now systemd-resolved.service
+sudo systemctl enable --now iwd.service
+```
+
+Por último, usando el CLI de `impala`, vamos a conectarnos a la red Wifi. 
+
+## 2. Preparación del entorno base y gestores de paquetes
 
 El primer paso es asegurar que el sistema está actualizado y dispone de las herramientas fundamentales para compilar y gestionar repositorios.
 Se deben instalar las utilidades básicas como `git` para el control de versiones, `stow` para la gestión de los enlaces simbólicos de los archivos de configuración, y utilidades adicionales de red y empaquetado. Además, se requiere el grupo `base-devel` para poder compilar paquetes del AUR.
@@ -33,7 +57,7 @@ if [ -z "${WAYLAND_DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
 fi
 ```
 
-## 2. Restauración de la paquetería
+## 3. Restauración de la paquetería
 
 Con los gestores listos, se procede a la instalación masiva de los programas utilizando las listas previamente guardadas. Es crucial tener los archivos de texto con las listas en el directorio actual, por lo que primero vamos a bajarnos la carpeta de dotfiles:
 
@@ -68,7 +92,7 @@ flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.f
 flatpak install $(cat lista_flatpak.txt)
 ```
 
-## 3. Despliegue de los Dotfiles con Stow
+## 4. Despliegue de los Dotfiles con Stow
 
 La configuración del entorno gráfico, el tema Catppuccin, las fuentes y las aplicaciones de terminal reside en el repositorio de GitHub. Al usar `stow`, se crean enlaces simbólicos limpios desde el directorio clonado hacia las rutas correspondientes del sistema operativo.
 Se clona el repositorio en una carpeta dedicada, habitualmente en la raíz del usuario.
@@ -97,7 +121,7 @@ systemctl enable --now NetworkManager
 systemctl --user enable --now pipewire pipewire-pulse wireplumber
 ```
 
-## 4. Configuración de plugins de Hyprland
+## 6. Configuración de plugins de Hyprland
 
 Para incorporar la interacción gestual en Hyprland de manera nativa, se debe inicializar el gestor de plugins oficial, `hyprpm`, y compilar el módulo correspondiente.
 Primero se actualizan las cabeceras de Hyprland para asegurar la **compatibilidad estricta de los plugins con la versión exacta** del compositor que se acaba de instalar.
@@ -116,7 +140,7 @@ hyprpm reload
 # hyprpm disable hyprgrass-pulse
 ```
 
-## 5. Restauración de recursos estéticos
+## 7. Restauración de recursos estéticos
 
 Los fondos de pantalla seleccionados se deben clonar directamente desde su repositorio de origen hacia el directorio local donde el gestor de fondos `swww` los vaya a buscar.
 
@@ -126,12 +150,12 @@ git clone https://github.com/orangci/walls-catppuccin-mocha.git ~/Pictures/wallp
 swww img ~/Pictures/wallpapers/walls-catppuccin-mocha/horizon.jpg
 ```
 
-## 6. Recuperación de documentos locales con Vorta
+## 8. Recuperación de documentos locales con Vorta
 
 Para restaurar la información personal documentada se va a usar Vorta, que ya se ha instalado mediante las listas de paquetes previas.
 Se debe ejecutar `vorta` desde el menú de aplicaciones o la terminal. En la interfaz principal, dentro de la pestaña de configuración del repositorio, se selecciona la opción de **Añadir repositorio existente**. Tras apuntar a la ruta del disco de copia e introducir la contraseña de cifrado de Borg, se accede a la pestaña de "Archivos" (Archives) para montar el último respaldo y extraer directamente los documentos necesarios de vuelta en el disco duro.
 
-## 7. Sincronización en la nube con Rclone
+## 9. Sincronización en la nube con Rclone
 
 El último paso garantiza el enlace con la aplicación remota y los archivos críticos alojados en Google Drive.
 Se ejecuta la configuración interactiva de la herramienta para registrar las credenciales de la cuenta de Google.
@@ -156,7 +180,7 @@ rclone bisync ~/Documents/Obsidian "Obsidian:Mi unidad/DriveSyncFiles/La Enciclo
 # rclone bisync "/home/hypr/Documents/Obsidian/" "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal/" --resync
 ```
 
-## 8. Optimización de arranque
+## 10. Optimización de arranque
 
 Vamos a desactivar configuraciones que vienen por defecto para desencriptar discos que nosotros no vamos a usar:
 ```bash
@@ -164,7 +188,7 @@ sudo systemctl mask systemd-tpm2-setup-early.service systemd-tpm2-setup.service 
 sudo systemctl mask systemd-pcrmachine.service systemd-pcrnvdone.service systemd-pcrphase-sysinit.service systemd-pcrphase.service
 ```
 
-## 9. Ignorar paquetes
+## 11. Ignorar paquetes
 
 Para que no ocurran catástrofes, vamos a cambiar los paquetes ignorados por Pacman:
 
