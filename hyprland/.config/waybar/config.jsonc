@@ -179,10 +179,10 @@
         "format": "<span size='10pt'>{icon}</span>",
         "icon-size": 25,
         "on-click": "wlogout --buttons-per-row 5",
-        "tooltip": false
+        "tooltip-format": "Log Out Menu"
     },
     "custom/notification": {
-        "tooltip": true,
+        "tooltip-format": "Notification Center",
         "format": "<span size='11pt'>{icon}</span>",
         "format-icons": {
             "notification": "󱅫",
