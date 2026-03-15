@@ -22,8 +22,7 @@
     "group/izq": {
         "orientation": "horizontal",
         "modules": [
-            "backlight",
-            "pulseaudio"
+            
         ]
     },
     "group/der1": {
@@ -32,7 +31,6 @@
             "tray",
             "network",
             "bluetooth",
-            "custom/hypridle",
             "custom/logout",
             "custom/notification"
         ]
@@ -41,13 +39,6 @@
         "orientation": "horizontal",
         "modules": [
             "battery"
-        ]
-    },
-    "group/der3": {
-        "orientation": "horizontal",
-        "modules": [
-            "custom/screenrecord",
-            "custom/updates"
         ]
     },
     "group/expand": {
@@ -59,6 +50,8 @@
         },
         "modules": [
             "custom/expand",
+            "backlight",
+            "pulseaudio",
             "memory",
             "cpu",
             "temperature"
@@ -76,7 +69,8 @@
             "custom/filemanager",
             "custom/terminal",
             "custom/obsidian",
-            "custom/keyboard"
+            "custom/keyboard",
+            "custom/hypridle"
         ]
     },
     "custom/expand": {
@@ -102,21 +96,14 @@
         "on-click": "kitty",
         "tooltip-format": "Open Kitty Terminal"
     },
-    "custom/screenrecord": {
-        "exec": "screenrecord-status",
-        "return-type": "json",
-        "signal": 8,
-        "interval": 1,
-        "on-click": "screenrecord output"
-    },
     "custom/hypridle": {
         "format": "",
         "return-type": "json",
         "escape": true,
         "exec-on-event": true,
         "interval": 60,
-        "exec": "hypridle-toggle status",
-        "on-click": "hypridle-toggle toggle"
+        "exec": "~/dotfiles/hyprland/.config/hypr/scripts/hypridle-toogle.sh status",
+        "on-click": "~/dotfiles/hyprland/.config/hypr/scripts/hypridle-toogle.sh toggle"
     },
     "bluetooth": {
         "format": "",
@@ -221,7 +208,7 @@
         "format": "<span size='12pt'>{icon}</span>",
         "icon-size": 25,
         "on-click": "pkill -9 wvkbd-mobintl || wvkbd-mobintl -L 300 -bg 11111b -fg-sp 181825 -fg 1e1e2e -press 313244 -press-sp 45475a -alpha 250 -fn 'JetBrainsMono Nerd Font Propo' -text cdd6f4 -text-sp cdd6f4 -R 10",
-        "tooltip": false
+        "tooltip-format": "Open Keyboard"
     },
     "backlight": {
         "device": "intel_backlight",

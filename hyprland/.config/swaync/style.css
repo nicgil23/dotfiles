@@ -1,2 +1,342 @@
-@import '../../dotfiles/hyprland/.config/waybar/colors/catppuccino-mocha.css';
-@import "themes/theme.css"
+@import url(/home/hypr/dotfiles/hyprland/.config/waybar/colors/catppuccino-mocha.css);
+
+/* ========================================================================
+   GLOBAL STYLES
+======================================================================== */
+* {
+  outline: none;
+  font-family: "JetBrainsMono Nerd Font Propo";
+  font-size: 18px;
+  text-shadow: none;
+  color: @text;
+  border-radius: 0px;
+}
+
+/* ========================================================================
+   CONTROL CENTER - Main notification panel
+======================================================================== */
+.control-center {
+  background-color: alpha(@bg0, 0.85);
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.65);
+  border: 1px solid alpha(@text, 0.1);
+  padding: 20px;
+  border-radius: 14px;
+}
+
+.control-center .notification-row .notification-background {
+  border-radius: 4px;
+  margin-top: 5px;
+  max-height: 100px;
+}
+
+.control-center .notification-row .notification-background .notification {
+  border-radius: 4px;
+}
+
+.control-center .notification-row .notification-background .close-button {
+  border-radius: 4px;
+}
+
+/* ========================================================================
+   NOTIFICATION STYLES
+======================================================================== */
+.notification {
+  background-color: @bg0;
+  border: 1px solid @bg0;
+  margin: 5px 0 0px 0;
+  border-radius: 14px;
+}
+
+.notification>*:last-child>* {
+  margin: 5px;
+}
+
+/* Notification Content */
+.notification-content {
+  padding: 15px 10px 10px 20px;
+}
+
+/* Text Elements */
+.summary {
+  font-size: 1.1rem;
+}
+
+/* Notification Actions */
+.notification-action>button {
+  padding: unset;
+  margin: unset;
+}
+
+.notification-action>label {
+  font-weight: normal;
+}
+
+/* Notification Priority Styles */
+.notification.critical {
+  background-color: @bg0;
+  border: 1px solid @purple;
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.65);
+}
+
+.notification.low,
+.notification.normal {
+  background-color: @bg0;
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.65);
+}
+
+/* Close Button */
+.close-button {
+  background-color: transparent;
+}
+
+.close-button:hover {
+  color: @bg2;
+}
+
+/* ========================================================================
+   NOTIFICATION GROUPS
+======================================================================== */
+
+.notification-group-collapse-button,
+.notification-group-close-all-button {
+  box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.35);
+  background-color: @bg2;
+}
+
+.notification-group-collapse-button:hover {
+  background-color: @purple;
+}
+
+.notification-group-close-all-button:hover {
+  background-color: @purple;
+}
+
+/* ========================================================================
+   SCROLLBARS & SLIDERS
+======================================================================== */
+scrollbar {
+  min-width: 0px;
+  min-height: 0px;
+  background: transparent;
+  opacity: 0;
+}
+
+scrollbar slider {
+  min-width: 0px;
+  min-height: 0px;
+  background: transparent;
+  opacity: 0;
+}
+
+trough highlight {
+  background: @text;
+  border-radius: 8px;
+}
+
+scale trough {
+  margin: 0rem 1rem;
+  background-color: @bg2;
+  min-height: 8px;
+  min-width: 70px;
+  border-radius: 8px;
+}
+
+slider {
+  background-color: @text;
+  border-radius: 50%;
+  min-width: 16px;
+  min-height: 16px;
+  box-shadow: none;
+}
+
+tooltip {
+  background-color: @bg2;
+  border-radius: 4px;
+}
+
+/* ========================================================================
+   WIDGET STYLES
+======================================================================== */
+
+/* ========================================================================
+   BUTTONS GRID WIDGET - Quick action buttons
+======================================================================== */
+.widget-buttons-grid {
+  padding: 0px;
+  margin: 0px;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button {
+  background: @bg2;
+  border: none;
+  box-shadow: none;
+  border-radius: 16px;
+  min-width: 140px;
+  min-height: 40px;
+  padding: 5px;
+  margin: 5px;
+  transition: all .3s ease;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button:hover {
+  background: alpha(@text, 0.1);
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button.toggle:checked {
+  background: @purple;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button.toggle:checked:hover {
+  background: alpha(@purple, 0.8);
+}
+
+/* ========================================================================
+   MPRIS WIDGET - Media player controls
+======================================================================== */
+
+.widget-mpris { margin: 6px 6px 4px 6px; }
+.widget-mpris > box > box {
+  background: @bg0;
+  border-radius: 14px;
+  border: 1px solid @text;
+  padding: 10px;
+}
+.mpris-album-art {
+  border-radius: 6px;
+  margin-right: 10px;
+  min-width: 56px;
+  min-height: 56px;
+}
+.mpris-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: @text;
+  margin-bottom: 2px;
+}
+.mpris-artist {
+  font-size: 13px;
+  color: @text;
+  margin-bottom: 6px;
+}
+.mpris-controls button {
+  background: @bg2;
+  border: none;
+  border-radius: 6px;
+  color: @text;
+  min-width: 32px;
+  min-height: 32px;
+  margin: 0 3px;
+}
+.mpris-controls button:hover {
+  background: @bg2;
+  transform: scale(1.05);
+}
+.mpris-controls button:active {
+  background: @text;
+  transform: scale(0.98);
+}
+
+/* ========================================================================
+   VOLUME WIDGET - Audio controls
+======================================================================== */
+.widget-volume {
+  padding: 5px 15px 5px 15px;
+  margin: unset;
+}
+
+.widget-volume>box>button {
+  border: none;
+  background-color: transparent;
+}
+
+.widget-volume>box>button:hover {
+  color: @purple;
+}
+
+.widget-volume>box>button:active {
+  color: @purple;
+}
+
+.per-app-volume {
+  padding: 4px 8px 8px 8px;
+  margin: 0px 8px 8px 8px;
+}
+
+/* ========================================================================
+   BACKLIGHT WIDGET - Brightness controls
+======================================================================== */
+
+.widget-backlight {
+  padding: 5px 15px 5px 15px;
+  margin: unset;
+}
+
+.widget-backlight > label {
+  font-size: 17px; /* Cambie este valor por uno menor a los 18px globales */
+}
+
+/* ========================================================================
+   DND WIDGET - Do Not Disturb toggle
+======================================================================== */
+
+/* DND text */
+.widget-dnd>label {
+  color: @text;
+}
+
+.widget-dnd {
+  font-weight: bold;
+  margin: unset;
+  padding: 5px 15px 15px 15px;
+}
+
+.widget-dnd>switch {
+  font-size: initial;
+  border-radius: 4px;
+  background: @bg2;
+  border: none;
+  box-shadow: none;
+  padding: 3px;
+}
+
+.widget-dnd>switch:checked {
+  background: @text;
+}
+
+.widget-dnd>switch slider {
+  background: @bg0;
+  border-radius: 4px;
+  min-width: 18px;
+  min-height: 18px;
+}
+
+/* ========================================================================
+   TITLE WIDGET - Header with clear all button
+======================================================================== */
+.widget-title {
+  padding: 10px 15px;
+  margin: 0px 5px;
+  background-color: @bg2;
+  border-radius: 18px;
+  font-weight: bold;
+}
+
+.widget-title>label {
+  font-size: 1.2rem;
+}
+
+.widget-title>button {
+  padding: 5px 10px;
+  margin: unset;
+  text-shadow: none;
+  background: transparent;
+  color: @red;
+  border: none;
+  box-shadow: none;
+  border-radius: 10px;
+  transition: all .3s ease;
+}
+
+.widget-title>button:hover {
+  background: alpha(@red, 0.2);
+}

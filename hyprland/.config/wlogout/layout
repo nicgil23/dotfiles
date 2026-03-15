@@ -24,7 +24,7 @@
 }
 {
     "label" : "lock",
-    "action" : "swaylock -f -c 1e1e2e",
+    "action" : hyprlock,
     "text" : "Lock",
     "keybind" : "l"
 }

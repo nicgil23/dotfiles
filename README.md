@@ -80,7 +80,7 @@ yay -S --needed - < lista_aur.txt
 Es necesario asegurarse de que las dependencias estéticas centrales formaban parte de esa lista. Si no estaban anotadas, se deben instalar manualmente especificando sus nombres exactos en el AUR para asegurar la tipografía y el estilo de las aplicaciones.
 
 ```bash
-yay -S ttf-jetbrains-mono-nerd catppuccin-gtk-theme-mocha ttf-apple-emoji
+yay -S ttf-jetbrains-mono-nerd catppuccin-gtk-theme-mocha ttf-apple-emoji apple-fonts
 sudo pacman -S noto-fonts-cjk
 fc-cache -fv
 ```

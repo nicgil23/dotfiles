@@ -1,3 +1,6 @@
+ani-cli
+antigravity
+apple-fonts
 auto-cpufreq
 catppuccin-gtk-theme-mocha
 catppuccin-sddm-theme-mocha
@@ -7,7 +10,9 @@ iio-hyprland-git
 iio-hyprland-git-debug
 pipes-rs
 pipes-rs-debug
+ttf-apple-emoji
 visual-studio-code-bin
+walker-debug
 wlogout
 wlogout-debug
 wvkbd
