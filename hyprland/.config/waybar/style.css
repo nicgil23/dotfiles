@@ -112,6 +112,7 @@ tooltip label {
 #custom-expand-der,
 #custom-filemanager,
 #custom-obsidian,
+#custom-wallpaper,
 #custom-terminal {
   background-color: transparent;
   color: @text;
@@ -137,6 +138,9 @@ tooltip label {
 #memory:hover,
 #temperature:hover,
 #custom-notification:hover,
+#custom-wallpaper:hover,
+#custom-obsidian:hover,
+#custom-terminal:hover,
 #backlight:hover {
   transition: all 0.3s ease;
   color: @purple;

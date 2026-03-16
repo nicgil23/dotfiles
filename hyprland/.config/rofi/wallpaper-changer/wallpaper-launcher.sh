@@ -53,10 +53,19 @@ wall_selection=$(find "${wall_dir}"  -maxdepth 1  -type f \( -iname "*.jpg" -o -
 
 # Set the wallpaper
 [[ -n "$wall_selection" ]] || exit 1
+
+# Random transition
+transitions=("outer" "wipe" "wave" "outer" "left" "right" "top" "bottom" "any")
+selected_transition=${transitions[$RANDOM % ${#transitions[@]}]}
+
+# Wallpaper command
 swww img "${wall_dir}/${wall_selection}" \
     --transition-fps 60 \
-    --transition-type wipe \
+    --transition-type ${selected_transition} \
     --transition-duration 2 \
     --transition-pos center
+
+# Current wallpaper to .cache
+ln -sf "$(realpath "${wall_dir}/${wall_selection}")" "${HOME}/.cache/jp/current_wallpaper.png"
 
 exit 0

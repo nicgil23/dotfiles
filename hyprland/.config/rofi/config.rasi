@@ -25,7 +25,7 @@ window {
     /* properties for all widgets */
     enabled:                     true;
     border:			 1px solid;
-    border-color:		 @primary;
+    border-color:		 @on-primary-fixed-variant;
     border-radius:               15px;
     cursor:                      "default";
     background-color:            @on-primary-fixed;
@@ -42,7 +42,7 @@ mainbox {
 imagebox {
     padding:                     20px;
     background-color:            transparent;
-    background-image:            url("~/Pictures/wallpapers/walls-catppuccin-mocha/horizon.jpg", height);
+    background-image:            url("~/.cache/jp/current_wallpaper.png", height);
     orientation:                 vertical;
     children:                    [ "inputbar", "dummy", "mode-switcher" ];
 }

@@ -70,6 +70,7 @@
             "custom/terminal",
             "custom/obsidian",
             "custom/keyboard",
+            "custom/wallpaper",
             "custom/hypridle"
         ]
     },
@@ -85,6 +86,11 @@
         "format": "",
         "on-click": "nautilus",
         "tooltip-format": "Open Filemanager"
+    },
+    "custom/wallpaper": {
+        "format": "",
+        "on-click": "~/dotfiles/hyprland/.config/rofi/wallpaper-changer/wallpaper-launcher.sh || pkill rofi",
+        "tooltip-format": "Change Wallpaper"
     },
     "custom/obsidian": {
         "format": "󱓧",
