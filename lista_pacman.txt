@@ -33,6 +33,7 @@ avisynthplus
 base
 base-devel
 bash
+bc
 binutils
 bison
 blas
@@ -86,6 +87,7 @@ device-mapper
 diffutils
 dmidecode
 double-conversion
+doxygen
 duktape
 dunst
 e2fsprogs
@@ -219,6 +221,7 @@ hyprwire
 iana-etc
 icu
 iio-sensor-proxy
+imagemagick
 imlib2
 impala
 iniparser
@@ -384,6 +387,7 @@ liblc3
 libldac
 libldap
 libliftoff
+liblqr
 liblsan
 libluv
 libmad
@@ -547,6 +551,7 @@ libxt
 libxtst
 libxv
 libxxf86vm
+libyaml
 libyuv
 libzip
 libzmf
@@ -694,6 +699,7 @@ python-argcomplete
 python-asttokens
 python-attrs
 python-autocommand
+python-blinker
 python-build
 python-cachecontrol
 python-cachy
@@ -719,13 +725,16 @@ python-executing
 python-fastjsonschema
 python-filelock
 python-findpython
+python-flask
 python-fonttools
 python-gobject
 python-html5lib
 python-idna
+python-importlib-metadata
 python-installer
 python-ipykernel
 python-ipython-pygments-lexers
+python-itsdangerous
 python-jaraco.classes
 python-jaraco.collections
 python-jaraco.context
@@ -790,6 +799,7 @@ python-rapidfuzz
 python-referencing
 python-requests
 python-requests-toolbelt
+python-retrying
 python-rpds-py
 python-scipy
 python-secretstorage
@@ -811,7 +821,10 @@ python-urwid
 python-virtualenv
 python-wcwidth
 python-webencodings
+python-werkzeug
 python-wheel
+python-yaml
+python-zipp
 qbittorrent
 qhull
 qqc2-desktop-style

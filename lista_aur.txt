@@ -10,6 +10,7 @@ iio-hyprland-git
 iio-hyprland-git-debug
 pipes-rs
 pipes-rs-debug
+python-dash
 ttf-apple-emoji
 visual-studio-code-bin
 walker-debug
