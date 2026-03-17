@@ -22,7 +22,7 @@
     "group/izq": {
         "orientation": "horizontal",
         "modules": [
-            
+            "pulseaudio"
         ]
     },
     "group/der1": {
@@ -51,7 +51,6 @@
         "modules": [
             "custom/expand",
             "backlight",
-            "pulseaudio",
             "memory",
             "cpu",
             "temperature"
@@ -69,6 +68,7 @@
             "custom/filemanager",
             "custom/terminal",
             "custom/obsidian",
+            "custom/calculator",
             "custom/keyboard",
             "custom/wallpaper",
             "custom/hypridle"
@@ -85,22 +85,27 @@
     "custom/filemanager": {
         "format": "",
         "on-click": "nautilus",
-        "tooltip-format": "Open Filemanager"
+        "tooltip-format": "Filemanager"
     },
     "custom/wallpaper": {
         "format": "",
         "on-click": "~/dotfiles/hyprland/.config/rofi/wallpaper-changer/wallpaper-launcher.sh || pkill rofi",
-        "tooltip-format": "Change Wallpaper"
+        "tooltip-format": "Wallpaper Changer"
     },
     "custom/obsidian": {
         "format": "󱓧",
         "on-click": "obsidian",
-        "tooltip-format": "Open Obsidian Notes"
+        "tooltip-format": "Obsidian"
     },
     "custom/terminal": {
         "format": "",
         "on-click": "kitty",
-        "tooltip-format": "Open Kitty Terminal"
+        "tooltip-format": "Kitty Terminal"
+    },
+    "custom/calculator": {
+        "format": "",
+        "on-click": "org.gnome.Calculator",
+        "tooltip-format": "Calculator"
     },
     "custom/hypridle": {
         "format": "",
@@ -143,16 +148,16 @@
     "hyprland/workspaces": {
         "format": "{icon}",
         "format-icons": {
-            "1": "〇",
-            "2": "一",
-            "3": "二",
-            "4": "三",
-            "5": "四",
-            "6": "五",
-            "7": "六",
-            "8": "七",
-            "9": "八",
-            "10": "九"
+            "1": "一",
+            "2": "二",
+            "3": "三",
+            "4": "四",
+            "5": "五",
+            "6": "六",
+            "7": "七",
+            "8": "八",
+            "9": "九",
+            "10": "〇"
         }
     },
     "tray": {
@@ -214,7 +219,7 @@
         "format": "<span size='12pt'>{icon}</span>",
         "icon-size": 25,
         "on-click": "pkill -9 wvkbd-mobintl || wvkbd-mobintl -L 300 -bg 11111b -fg-sp 181825 -fg 1e1e2e -press 313244 -press-sp 45475a -alpha 250 -fn 'JetBrainsMono Nerd Font Propo' -text cdd6f4 -text-sp cdd6f4 -R 10",
-        "tooltip-format": "Open Keyboard"
+        "tooltip-format": "Keyboard"
     },
     "backlight": {
         "device": "intel_backlight",
@@ -225,7 +230,8 @@
             "󰃠"
         ],
         "on-scroll-up": "brightnessctl set 1%+",
-        "on-scroll-down": "brightnessctl set 1%-"
+        "on-scroll-down": "brightnessctl set 1%-",
+        "tooltip": false
     },
     "pulseaudio": {
         "format": "{volume}% {icon}",
