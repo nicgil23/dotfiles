@@ -6,8 +6,10 @@ catppuccin-gtk-theme-mocha
 catppuccin-sddm-theme-mocha
 cmatrix-git
 cmatrix-git-debug
+gp-saml-gui-git
 iio-hyprland-git
 iio-hyprland-git-debug
+neovim-symlinks
 pipes-rs
 pipes-rs-debug
 python-dash
