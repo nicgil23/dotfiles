@@ -14,6 +14,7 @@ plugins=(git)
 alias ls="exa -l"
 alias obsidian-sync='~/dotfiles/hyprland/.config/hypr/scripts/obsidian-sync.sh'
 alias ff='fastfetch'
+alias vpn-ucm='~/dotfiles/hyprland/.config/hypr/scripts/vpn-ucm.sh'
 
 # Funciones
 load-env() {
@@ -49,4 +50,14 @@ aura() {
     kitty cmatrix &
     kitty pipes-rs &
     btop
+}
+
+# Función de yazi 
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
 }
