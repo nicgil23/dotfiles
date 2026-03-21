@@ -27,6 +27,7 @@ atkmm
 attr
 audit
 autoconf
+autoconf-archive
 automake
 avahi
 avisynthplus
@@ -57,6 +58,7 @@ ca-certificates-utils
 cairo
 cairomm
 cairomm-1.16
+catch2
 cava
 cblas
 cdparanoia
@@ -104,6 +106,7 @@ eza
 faad2
 fakeroot
 fastfetch
+fd
 ffmpeg
 ffmpeg4.4
 ffnvcodec-headers
@@ -870,6 +873,7 @@ re2
 readline
 redland
 rhash
+ripgrep
 rnnoise
 rofi
 rofimoji
@@ -936,6 +940,7 @@ tinysparql
 tomlplusplus
 tor
 tpm2-tss
+trash-cli
 tree
 tree-sitter
 tree-sitter-c
@@ -1066,6 +1071,7 @@ zita-convolver
 zix
 zlib
 zlib-ng
+zoxide
 zram-generator
 zsh
 zstd

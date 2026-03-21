@@ -22,7 +22,6 @@
     "group/izq": {
         "orientation": "horizontal",
         "modules": [
-            "pulseaudio"
         ]
     },
     "group/der1": {
@@ -30,14 +29,13 @@
         "modules": [
             "tray",
             "network",
-            "bluetooth",
-            "custom/logout",
-            "custom/notification"
+            "bluetooth"
         ]
     },
     "group/der2": {
         "orientation": "horizontal",
         "modules": [
+            "pulseaudio",
             "battery"
         ]
     },
@@ -71,7 +69,9 @@
             "custom/calculator",
             "custom/keyboard",
             "custom/wallpaper",
-            "custom/hypridle"
+            "custom/hypridle",
+            "custom/notification",
+            "custom/logout"
         ]
     },
     "custom/expand": {
@@ -84,9 +84,18 @@
     },
     "custom/filemanager": {
         "format": "",
-        "on-click": "nautilus",
+        "on-click": "kitty ~/dotfiles/hyprland/.config/hypr/scripts/yazi.sh",
         "tooltip-format": "Filemanager"
     },
+    /*"custom/music": {
+        "format": {},
+        "interval": 10,
+        "exec": "~/dotfiles/hyprland/.config/hypr/scripts/songdetail.sh",
+        "on-click": "playerctl play-pause",
+        "on-scroll-up": "playerctl next",
+        "on-scroll-down": "playerctl previous",
+        "tooltip": false
+    },*/
     "custom/wallpaper": {
         "format": "",
         "on-click": "~/dotfiles/hyprland/.config/rofi/wallpaper-changer/wallpaper-launcher.sh || pkill rofi",
