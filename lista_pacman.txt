@@ -123,7 +123,6 @@ fmt
 fontconfig
 freeglut
 freetype2
-frei0r-plugins
 fribidi
 ftgl
 fuse-common
@@ -274,7 +273,6 @@ ksvg
 kwidgetsaddons
 kwindowsystem
 l-smash
-ladspa
 lame
 lapack
 lcms2
@@ -609,6 +607,7 @@ nodejs-nopt
 noto-fonts-cjk
 npm
 npth
+nsjail
 nspr
 nss
 ntfs-3g
@@ -710,6 +709,7 @@ python-decorator
 python-defusedxml
 python-distlib
 python-distro
+python-dnspython
 python-dulwich
 python-dunamai
 python-executing
@@ -790,6 +790,7 @@ python-pycparser
 python-pyfuse3
 python-pygments
 python-pyinotify
+python-pymongo
 python-pyparsing
 python-pyproject-hooks
 python-pyqt6
@@ -1012,6 +1013,7 @@ waybar
 wayland
 wayland-protocols
 webkit2gtk
+webkit2gtk-4.1
 webrtc-audio-processing
 webrtc-audio-processing-1
 websocketpp

@@ -115,6 +115,7 @@ tooltip label {
 #custom-obsidian,
 #custom-wallpaper,
 #custom-music,
+#custom-menu,
 #custom-terminal {
   background-color: transparent;
   color: @text;
@@ -145,6 +146,7 @@ tooltip label {
 #custom-obsidian:hover,
 #custom-terminal:hover,
 #custom-music:hover,
+#custom-menu:hover,
 #backlight:hover {
   transition: all 0.3s ease;
   color: @purple;

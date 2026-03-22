@@ -71,7 +71,8 @@
             "custom/wallpaper",
             "custom/hypridle",
             "custom/notification",
-            "custom/logout"
+            "custom/logout",
+            "custom/menu"
         ]
     },
     "custom/expand": {
@@ -115,6 +116,10 @@
         "format": "",
         "on-click": "org.gnome.Calculator",
         "tooltip-format": "Calculator"
+    },
+    "custom/menu": {
+        "format": "\uf002",
+        "on-click": "rofi -show drun -config ~/dotfiles/hyprland/.config/rofi/config.rasi || pkill rofi",
     },
     "custom/hypridle": {
         "format": "",

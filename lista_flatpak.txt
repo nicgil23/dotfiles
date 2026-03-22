@@ -3,4 +3,5 @@ com.github.flxzt.rnote
 com.github.tchx84.Flatseal
 org.gnome.Calculator
 org.gnome.Loupe
+org.kde.kdenlive
 org.keepassxc.KeePassXC
