@@ -62,6 +62,7 @@ catch2
 cava
 cblas
 cdparanoia
+chrpath
 cifs-utils
 cjson
 clang
@@ -138,6 +139,7 @@ gdbm
 gdk-pixbuf2
 gettext
 giflib
+girara
 git
 github-cli
 glew
@@ -191,6 +193,7 @@ gtk4-layer-shell
 gtkmm-4.0
 gtkmm3
 guile
+gumbo-parser
 gupnp
 gupnp-igd
 gzip
@@ -232,8 +235,10 @@ iwd
 jansson
 java-environment-common
 java-runtime-common
+jbig2dec
 jbigkit
 jdk-openjdk
+jemalloc
 jq
 json-c
 json-glib
@@ -278,6 +283,7 @@ lapack
 lcms2
 ldb
 leancrypto
+leptonica
 libabw
 libadwaita
 libappindicator
@@ -395,6 +401,7 @@ libmpdclient
 libmpeg2
 libmspub
 libmtp
+libmupdf
 libmwaw
 libmysofa
 libndp
@@ -464,6 +471,7 @@ libssh2
 libstaroffice
 libstdc++
 libstemmer
+libsynctex
 libsysprof-capture
 libtasn1
 libtatsu
@@ -591,6 +599,7 @@ msgpack-c
 mtdev
 mujs
 muparser
+mupdf
 nasm
 ncurses
 neon
@@ -640,6 +649,7 @@ pango
 pangomm
 pangomm-2.48
 papirus-icon-theme
+parallel
 patch
 pavucontrol
 pciutils
@@ -664,6 +674,7 @@ polkit
 polkit-kde-agent
 polkit-qt6
 poppler
+poppler-glib
 popt
 portaudio
 power-profiles-daemon
@@ -707,11 +718,13 @@ python-dateutil
 python-dbus
 python-decorator
 python-defusedxml
+python-deprecation
 python-distlib
 python-distro
 python-dnspython
 python-dulwich
 python-dunamai
+python-editables
 python-executing
 python-fastjsonschema
 python-filelock
@@ -720,6 +733,8 @@ python-flask
 python-fonttools
 python-gobject
 python-h11
+python-hatch-jupyter-builder
+python-hatchling
 python-html5lib
 python-httpcore
 python-httpx
@@ -744,6 +759,7 @@ python-jsonschema-specifications
 python-jupyter-client
 python-jupyter-core
 python-jupyter-events
+python-jupyter-packaging
 python-jupyterlab-server
 python-keyring
 python-kiwisolver
@@ -754,6 +770,7 @@ python-markdown-it-py
 python-markupsafe
 python-matplotlib
 python-matplotlib-inline
+python-mdit_py_plugins
 python-mdurl
 python-mistune
 python-more-itertools
@@ -766,6 +783,7 @@ python-packaging
 python-pandas
 python-pandocfilters
 python-parso
+python-pathspec
 python-pbs-installer
 python-peewee
 python-pexpect
@@ -775,6 +793,7 @@ python-pkg_resources
 python-pkginfo
 python-platformdirs
 python-plotly
+python-pluggy
 python-poetry
 python-poetry-core
 python-poetry-dynamic-versioning
@@ -820,6 +839,7 @@ python-sortedcontainers
 python-soupsieve
 python-stack-data
 python-tinycss2
+python-toml
 python-tomlkit
 python-tornado
 python-tqdm
@@ -866,6 +886,7 @@ qt6-svg
 qt6-translations
 qt6-wayland
 qt6ct
+quickshell
 raptor
 rasqal
 rav1e
@@ -935,6 +956,9 @@ taglib
 talloc
 tar
 tdb
+tesseract
+tesseract-data-afr
+tesseract-data-osd
 tevent
 texinfo
 tinysparql
@@ -955,6 +979,7 @@ ttf-jetbrains-mono-nerd
 ttf-montserrat
 ttf-nerd-fonts-symbols
 ttf-nerd-fonts-symbols-common
+ttf-roboto
 twolame
 tzdata
 uchardet
@@ -1066,6 +1091,9 @@ xxhash
 xz
 yazi
 yyjson
+zathura
+zathura-cb
+zathura-pdf-poppler
 zeromq
 zimg
 zint

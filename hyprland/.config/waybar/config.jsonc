@@ -71,8 +71,8 @@
             "custom/wallpaper",
             "custom/hypridle",
             "custom/notification",
-            "custom/logout",
-            "custom/menu"
+            "custom/logout"
+            /*"custom/menu"*/
         ]
     },
     "custom/expand": {
@@ -99,7 +99,7 @@
     },*/
     "custom/wallpaper": {
         "format": "",
-        "on-click": "~/dotfiles/hyprland/.config/rofi/wallpaper-changer/wallpaper-launcher.sh || pkill rofi",
+        "on-click": "~/.local/bin/wallpaper-selector.sh",
         "tooltip-format": "Wallpaper Changer"
     },
     "custom/obsidian": {
