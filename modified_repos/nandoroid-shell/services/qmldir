@@ -1,0 +1,36 @@
+singleton Audio Audio.qml
+singleton Battery Battery.qml
+singleton BluetoothStatus BluetoothStatus.qml
+singleton Brightness Brightness.qml
+singleton CavaService 1.0 CavaService.qml
+singleton ConservationMode 1.0 ConservationMode.qml
+singleton DateTime DateTime.qml
+singleton DisplayService DisplayService.qml
+singleton EasyEffects EasyEffects.qml
+singleton GameMode 1.0 GameMode.qml
+singleton HyprlandData HyprlandData.qml
+singleton Hyprsunset Hyprsunset.qml
+singleton Idle Idle.qml
+singleton MaterialThemeLoader MaterialThemeLoader.qml
+singleton MprisController MprisController.qml
+singleton Network Network.qml
+singleton Notifications Notifications.qml
+singleton PowerProfileService 1.0 PowerProfileService.qml
+singleton Privacy Privacy.qml
+singleton RegionManager RegionManager.qml
+singleton RegionService 1.0 RegionService.qml
+singleton ScreenRecord 1.0 ScreenRecord.qml
+singleton SongRec SongRec.qml
+singleton SystemData SystemData.qml
+singleton SystemInfo SystemInfo.qml
+singleton TaskbarApps TaskbarApps.qml
+singleton Wallpapers Wallpapers.qml
+singleton Weather 1.0 Weather.qml
+singleton AppSearch 1.0 AppSearch.qml
+singleton LauncherSearch 1.0 LauncherSearch.qml
+singleton SearchRegistry 1.0 SearchRegistry.qml
+singleton Session 1.0 Session.qml
+# singleton PolkitService 1.0 PolkitService.qml
+singleton PomodoroService 1.0 PomodoroService.qml
+singleton ScheduleService 1.0 ScheduleService.qml
+singleton VpnUcmService VpnUcmService.qml

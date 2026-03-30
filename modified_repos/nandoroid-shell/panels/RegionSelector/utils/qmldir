@@ -1,0 +1,2 @@
+singleton ScreenshotAction ScreenshotAction.qml
+TempScreenshotProcess TempScreenshotProcess.qml
