@@ -88,6 +88,7 @@ debugedit
 default-cursors
 desktop-file-utils
 device-mapper
+dgop
 diffutils
 dmidecode
 double-conversion
@@ -161,6 +162,7 @@ gnutls
 go
 gobject-introspection
 gobject-introspection-runtime
+gparted
 gperf
 gperftools
 gpgme
@@ -214,7 +216,9 @@ hyprland
 hyprland-guiutils
 hyprlang
 hyprlock
+hyprpicker
 hyprshot
+hyprsunset
 hyprtoolkit
 hyprutils
 hyprwayland-scanner
@@ -226,6 +230,7 @@ imagemagick
 imlib2
 impala
 iniparser
+inotify-tools
 iproute2
 iptables
 iputils
@@ -439,6 +444,7 @@ libpng
 libproxy
 libpsl
 libpulse
+libqalculate
 libqmi
 libqrtr-glib
 libquadmath
@@ -650,6 +656,7 @@ pangomm
 pangomm-2.48
 papirus-icon-theme
 parallel
+parted
 patch
 pavucontrol
 pciutils
@@ -864,7 +871,6 @@ qrcodegencpp-cmake
 qt5-base
 qt5-declarative
 qt5-graphicaleffects
-qt5-location
 qt5-quickcontrols
 qt5-quickcontrols2
 qt5-sensors
@@ -879,6 +885,7 @@ qt6-declarative
 qt6-graphs
 qt6-multimedia
 qt6-multimedia-ffmpeg
+qt6-positioning
 qt6-quick3d
 qt6-quicktimeline
 qt6-shadertools
@@ -929,6 +936,7 @@ smbclient
 snappy
 sndio
 sof-firmware
+songrec
 sonnet
 sord
 sound-theme-freedesktop
@@ -948,7 +956,6 @@ sudo
 svt-av1
 swaync
 swig
-swww
 systemd
 systemd-libs
 systemd-sysvcompat
@@ -1094,6 +1101,7 @@ yyjson
 zathura
 zathura-cb
 zathura-pdf-poppler
+zbar
 zeromq
 zimg
 zint
