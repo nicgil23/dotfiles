@@ -1,0 +1,374 @@
+{
+    "appearance": {
+        "autoScale": true,
+        "background": {
+            "autoCycleDirectory": "file:///home/hypr/Pictures/wallpapers",
+            "autoCycleEnabled": false,
+            "autoCycleInterval": 30,
+            "darkmode": true,
+            "favorites": [
+            ],
+            "matugen": true,
+            "matugenCustomColor": "#cdd6f4",
+            "matugenScheme": "scheme-content",
+            "matugenSource": "desktop",
+            "matugenThemeFile": "",
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/knights-radiant.jpg"
+        },
+        "clock": {
+            "analog": {
+                "backgroundShape": "Circle",
+                "backgroundStyle": "shape",
+                "constantlyRotate": false,
+                "dateStyle": "bubble",
+                "dialStyle": "dots",
+                "handStyle": "modern",
+                "hourHandStyle": "fill",
+                "hourMarks": false,
+                "minuteHandStyle": "bold",
+                "secondHandStyle": "dot",
+                "shape": "Circle",
+                "showMarks": true,
+                "sides": 12,
+                "size": 240,
+                "timeIndicators": false
+            },
+            "analogLocked": {
+                "backgroundShape": "Circle",
+                "backgroundStyle": "shape",
+                "constantlyRotate": false,
+                "dateStyle": "bubble",
+                "dialStyle": "dots",
+                "handStyle": "modern",
+                "hourHandStyle": "fill",
+                "hourMarks": false,
+                "minuteHandStyle": "bold",
+                "secondHandStyle": "dot",
+                "shape": "Circle",
+                "showMarks": true,
+                "sides": 12,
+                "size": 240,
+                "timeIndicators": false
+            },
+            "code": {
+                "blockColorStyle": "primary",
+                "blockType": "js",
+                "fontFamily": "JetBrainsMono Nerd Font",
+                "fontSize": 18,
+                "keywordColorStyle": "tertiary",
+                "valueColorStyle": "primary"
+            },
+            "codeLocked": {
+                "blockColorStyle": "primary",
+                "blockType": "js",
+                "fontFamily": "JetBrainsMono Nerd Font",
+                "fontSize": 18,
+                "keywordColorStyle": "tertiary",
+                "valueColorStyle": "primary"
+            },
+            "digital": {
+                "colorStyle": "primary",
+                "fontSize": 84,
+                "hideAmPm": false,
+                "isVertical": false
+            },
+            "digitalLocked": {
+                "colorStyle": "primary",
+                "fontSize": 84,
+                "hideAmPm": false,
+                "isVertical": false
+            },
+            "locked": false,
+            "offsetX": 0,
+            "offsetY": -50,
+            "showDate": true,
+            "showOnDesktop": true,
+            "stacked": {
+                "alignment": "left",
+                "colorStyle": "error",
+                "fontFamily": "JetBrainsMono Nerd Font Propo",
+                "fontSize": 84,
+                "fontWeight": "Medium",
+                "labelFontSize": 42,
+                "labelFontWeight": "Light",
+                "textColorStyle": "onSurface"
+            },
+            "stackedLocked": {
+                "alignment": "left",
+                "colorStyle": "error",
+                "fontFamily": "JetBrainsMono Nerd Font Propo",
+                "fontSize": 84,
+                "fontWeight": "Medium",
+                "labelFontSize": 42,
+                "labelFontWeight": "Light",
+                "textColorStyle": "onSurface"
+            },
+            "style": "digital",
+            "styleLocked": "digital",
+            "useSameStyle": true
+        },
+        "fonts": {
+            "main": "JetBrainsMono Nerd Font Propo",
+            "monospace": "JetBrains Mono NF",
+            "numbers": "JetBrainsMono Nerd Font Propo",
+            "title": "JetBrainsMono Nerd Font Propo"
+        },
+        "globalScale": 1,
+        "screenCorners": {
+            "mode": 1,
+            "radius": 20
+        }
+    },
+    "bar": {
+        "avatar_path": "",
+        "distroIcon": "",
+        "network_speed_unit": "KB",
+        "show_distro_icon": true,
+        "show_network_speed": false
+    },
+    "battery": {
+        "critical": 10,
+        "low": 20
+    },
+    "dock": {
+        "autoHide": true,
+        "autoHideMode": 1,
+        "backgroundStyle": 1,
+        "enable": true,
+        "hoverRegionHeight": 5,
+        "ignoredAppRegexes": [
+            "^xwaylandvideobridge$"
+        ],
+        "monochromeIcons": true,
+        "pinnedApps": [
+            "kitty",
+            "firefox",
+            "code"
+        ],
+        "pinnedOnStartup": false,
+        "scale": 1,
+        "showLauncher": true,
+        "showOnlyInDesktop": true,
+        "showOverview": true
+    },
+    "github": {
+        "githubToken": "",
+        "githubUsername": "nicgil23"
+    },
+    "lock": {
+        "launchOnStartup": false,
+        "security": {
+            "requirePasswordToPower": true
+        },
+        "showCava": true,
+        "showMediaCard": true,
+        "useHyprlock": true,
+        "useSeparateWallpaper": false,
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/knights-radiant.jpg",
+        "weather": {
+            "textColorMode": "adaptive"
+        }
+    },
+    "media": {
+        "balancedEars": true,
+        "enableMediaHover": true,
+        "notchMediaStyle": "mini",
+        "priority": "",
+        "showMediaCard": true
+    },
+    "nightMode": {
+        "active": false,
+        "colorTemperature": 4000
+    },
+    "notifications": {
+        "counterStyle": "counter",
+        "silent": false,
+        "timeout_ms": 2000
+    },
+    "overview": null,
+    "panels": {
+        "keep_left_sidebar_loaded": false,
+        "keep_right_sidebar_loaded": true
+    },
+    "powerProfile": {
+        "customPath": "/tmp/ryzen_mode",
+        "enabled": false
+    },
+    "privacy": {
+        "enable": true
+    },
+    "quickSettings": {
+        "caffeineActive": false,
+        "quickActionsPosition": "top",
+        "showPerformanceStats": true,
+        "toggles": [
+            {
+                "size": 2,
+                "type": "wifi"
+            },
+            {
+                "size": 2,
+                "type": "bluetooth"
+            },
+            {
+                "size": 2,
+                "type": "warp"
+            },
+            {
+                "size": 1,
+                "type": "audioOutput"
+            },
+            {
+                "size": 1,
+                "type": "audioInput"
+            },
+            {
+                "size": 2,
+                "type": "powerProfile"
+            },
+            {
+                "size": 1,
+                "type": "gameMode"
+            },
+            {
+                "size": 1,
+                "type": "caffeine"
+            },
+            {
+                "size": 1,
+                "type": "nightLight"
+            },
+            {
+                "size": 1,
+                "type": "dnd"
+            },
+            {
+                "size": 1,
+                "type": "musicRecognition"
+            },
+            {
+                "size": 1,
+                "type": "easyEffects"
+            },
+            {
+                "size": 1,
+                "type": "colorPicker"
+            },
+            {
+                "size": 1,
+                "type": "vpnUcm"
+            },
+            {
+                "size": 1,
+                "type": "screenRecord"
+            },
+            {
+                "size": 1,
+                "type": "screenSnip"
+            },
+            {
+                "size": 1,
+                "type": "ocr"
+            },
+            {
+                "size": 1,
+                "type": "qrcode"
+            }
+        ]
+    },
+    "regionSelector": {
+        "annotation": {
+            "useSatty": false
+        },
+        "annotationSymbol": {
+            "showIcons": true
+        },
+        "circle": {
+            "strokeWidth": 6
+        },
+        "rect": {
+            "opacity": 0.2,
+            "showAimLines": true,
+            "strokeWidth": 1
+        },
+        "showOnlyOnFocusedMonitor": false,
+        "targetRegions": {
+            "images": true,
+            "layers": true,
+            "selectionPadding": 5,
+            "windows": true
+        }
+    },
+    "screenSnip": {
+        "savePath": ""
+    },
+    "screenshot": {
+        "autoCopy": true,
+        "autoSave": true,
+        "recordPath": "file:///home/hypr/Videos/Recordings",
+        "savePath": "file:///home/hypr/Pictures/Screenshots",
+        "showPreview": true
+    },
+    "search": {
+        "clipboardPrefix": ";",
+        "commandPrefix": ">",
+        "emojiPrefix": ":",
+        "enableGrouping": false,
+        "enableUsageTracking": true,
+        "filePrefix": "?",
+        "iconShape": "Square",
+        "imageSearch": {
+            "imageSearchEngineBaseUrl": "https://lens.google.com/uploadbyurl?url="
+        },
+        "mathPrefix": "=",
+        "toolsPrefix": ".",
+        "webPrefix": "!"
+    },
+    "statusBar": {
+        "autoHide": false,
+        "backgroundCornerRadius": 20,
+        "backgroundStyle": 2,
+        "centeredWidth": 1200,
+        "height": 40,
+        "islandStyle": "pill",
+        "layoutStyle": "standard",
+        "textColorMode": "adaptive",
+        "trayStyle": "adaptive",
+        "useGradient": true
+    },
+    "system": {
+        "bluetoothEnabled": true,
+        "conservationMode": false,
+        "easyeffectsEnabled": false,
+        "gameModeActive": false,
+        "lastUpdateCheckDate": "",
+        "monitoredDisks": [
+            {
+                "alias": "System",
+                "path": "/"
+            }
+        ],
+        "warpConnected": false,
+        "wifiEnabled": true
+    },
+    "time": {
+        "dateFormat": "ddd, dd/MM",
+        "dateStyle": "DMY",
+        "format": "hh:mm",
+        "longDateFormat": "dd/MM/yyyy",
+        "timeStyle": "24H"
+    },
+    "weather": {
+        "autoLocation": true,
+        "enable": true,
+        "location": "",
+        "showDailyForecast": true,
+        "unit": "C",
+        "updateInterval": 30
+    },
+    "workspaces": {
+        "indicatorLabel": "japanese",
+        "indicatorStyle": "pill",
+        "max_shown": 5
+    }
+}
