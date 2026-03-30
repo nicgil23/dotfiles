@@ -54,10 +54,10 @@ Singleton {
     property string uptime: ""
     
     
-    // Processes (Disabled for now to fix SIGSEGV)
+    // Processes
     property var allProcesses: []
     
-    // GPUs (Disabled for now to fix SIGSEGV)
+    // GPUs
     property var availableGpus: []
     readonly property bool hasValidGpuData: {
         if (availableGpus.length === 0) return false;

@@ -55,7 +55,7 @@ ShellRoot {
     SpotlightLauncher {}
     QuickActions {}
     OSD {}
-//  PolkitPanel {}
+    PolkitPanel {}
     SessionPanel {}
     
     Dock {}

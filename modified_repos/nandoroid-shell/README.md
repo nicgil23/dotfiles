@@ -47,8 +47,7 @@ A fully customizable, authenticated control center:
 ### Spotlight & Search Ecosystem
 An intelligent, integrated search bar powered by a robust search registry:
 - **App Launcher**: Instant application fuzzy search with usage tracking.
-- **Advanced Providers**: Integrated Calculator (`qalc`), Clipboard History (`cliphist`), Emoji Picker, and File Search (`fd`).
-- **Math & Units**: Perform complex calculations and unit conversions directly in the search bar.
+- **Advanced Providers**: Clipboard History (`cliphist`), Emoji Picker, and File Search (`fd`).
 - **Web & Tools**: Quick prefixes for web searches (`!`), tools (`.`), and commands (`>`).
 
 ### Material 3 Design System
@@ -91,7 +90,7 @@ NAnDoroid-shell abstracts system complexity into easy-to-use QML singletons:
 - **Audio/Media**: `pipewire`, `wireplumber`, `playerctl`, `easyeffects`, `songrec`, `cava`.
 - **System**: `brightnessctl`, `ddcutil`, `auto-cpufreq`, `systemd`.
 - **Networking**: `networkmanager`, `bluez`, `warp-cli`, `openconnect`, `gp-saml-gui`.
-- **Search**: `fd`, `cliphist`, `libqalculate`, `zbar`, `tesseract`.
+- **Search**: `fd`, `cliphist`, `zbar`, `tesseract`.
 - **Visuals**: `imagemagick`, `hyprpicker`, `hyprsunset`, `hyprlock`.
 - **Capture**: `grim`, `slurp`, `wf-recorder`.
 

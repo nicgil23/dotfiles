@@ -30,9 +30,8 @@ singleton AppSearch 1.0 AppSearch.qml
 singleton LauncherSearch 1.0 LauncherSearch.qml
 singleton SearchRegistry 1.0 SearchRegistry.qml
 singleton Session 1.0 Session.qml
-# singleton PolkitService 1.0 PolkitService.qml
+singleton PolkitService 1.0 PolkitService.qml
 singleton PomodoroService 1.0 PomodoroService.qml
-singleton ScheduleService 1.0 ScheduleService.qml
 singleton VpnUcmService VpnUcmService.qml
 singleton MpdService MpdService.qml
 singleton AutoRotation AutoRotation.qml

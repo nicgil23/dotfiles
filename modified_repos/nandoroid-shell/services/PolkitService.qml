@@ -3,17 +3,14 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-// import Quickshell.Services.Polkit
+import Quickshell.Services.Polkit
 import "../core"
 
 Singleton {
     id: root
-//    property alias agent: polkitAgent
-//    property alias active: polkitAgent.isActive
-//    property alias flow: polkitAgent.flow
-    property var agent: null
-    property bool active: false
-    property var flow: null
+    property alias agent: polkitAgent
+    property alias active: polkitAgent.isActive
+    property alias flow: polkitAgent.flow
     property bool interactionAvailable: false
     property bool failed: false
 
@@ -53,7 +50,6 @@ Singleton {
         }
     }
 
-/*
     PolkitAgent {
         id: polkitAgent
         onAuthenticationRequestStarted: {
@@ -61,5 +57,4 @@ Singleton {
             root.failed = false;
         }
     }
-*/
 }
