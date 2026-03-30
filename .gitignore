@@ -1,0 +1,3 @@
+# MPD
+hyprland/.config/mpd/*
+!hyprland/.config/mpd/mpd.conf

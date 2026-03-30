@@ -314,6 +314,14 @@ Item {
                 root.close();
                 Quickshell.execDetached(["/home/hypr/dotfiles/modified_repos/nandoroid-shell/scripts/restartshell.sh"]);
             }
+        },
+        "autoRotation": {
+            name: "Auto Rotation",
+            icon: "screen_rotation",
+            iconOff: "screen_lock_rotation",
+            toggled: AutoRotation.active,
+            statusText: AutoRotation.active ? "On" : "Off",
+            action: () => AutoRotation.toggle()
         }
     })
 
@@ -327,7 +335,7 @@ Item {
         "wifi", "bluetooth", "dnd", "darkMode", "caffeine", "nightLight",
         "warp", "audioOutput", "audioInput", "powerProfile",
         "gameMode", "colorPicker", "screenSnip", "ocr", "qrcode", "screenRecord",
-        "musicRecognition", "easyEffects", "conservationMode", "restartShell", "vpnUcm"
+        "musicRecognition", "easyEffects", "conservationMode", "restartShell", "vpnUcm", "autoRotation"
     ]
     readonly property list<var> toggles: Config.options.quickSettings.toggles
     readonly property list<var> toggleRows: toggleRowsForList(toggles)

@@ -140,7 +140,7 @@ Variants {
                     highlightColor: MprisController.dynPrimary
                     trackColor: MprisController.dynSecondaryContainer
                     handleColor: MprisController.dynPrimary
-                    onMoved: if (MprisController.activePlayer) MprisController.activePlayer.position = value * MprisController.activePlayer.length
+                    onMoved: if (MprisController.canSeek) MprisController.setPosition(value * MprisController.length)
                     
                     Connections {
                         target: MprisController

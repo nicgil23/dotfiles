@@ -36,6 +36,8 @@ Singleton {
     property real swapUsage: 0
     property real totalMemoryMB: 0
     property real usedMemoryMB: 0
+    property real totalSwapMB: 0
+    property real usedSwapMB: 0
     
     property real networkRxRate: 0
     property real networkTxRate: 0
@@ -176,16 +178,17 @@ Singleton {
                         }
 
                         if (data.memory) {
-                            // Cambiado memUsage para almacenar la cantidad absoluta en MB en lugar del porcentaje
-                            root.memUsage = Math.round((data.memory.used || (data.memory.total - data.memory.available) || 0) / 1024);
                             root.totalMemoryMB = Math.round((data.memory.total || 0) / 1024);
                             root.usedMemoryMB = Math.round((data.memory.used || (data.memory.total - data.memory.available) || 0) / 1024);
+                            root.memUsage = root.totalMemoryMB > 0 ? root.usedMemoryMB / root.totalMemoryMB : 0;
+                            
                             const totalSwap = data.memory.swaptotal || 0;
                             const freeSwap = data.memory.swapfree || 0;
-                            // Cambiado swapUsage a cantidad absoluta en MB en lugar del porcentaje
-                            root.swapUsage = totalSwap > 0 ? Math.round((totalSwap - freeSwap) / 1024) : 0;
-                            // Se elimina la multiplicación por 100 de memUsage para guardar el valor real en el historial
-                            root.memHistory = root.addToHistory(root.memHistory, root.memUsage);
+                            root.totalSwapMB = Math.round(totalSwap / 1024);
+                            root.usedSwapMB = Math.round((totalSwap - freeSwap) / 1024);
+                            root.swapUsage = root.totalSwapMB > 0 ? root.usedSwapMB / root.totalSwapMB : 0;
+                            
+                            root.memHistory = root.addToHistory(root.memHistory, root.memUsage * 100);
                         }
 
                         if (data.network && Array.isArray(data.network)) {

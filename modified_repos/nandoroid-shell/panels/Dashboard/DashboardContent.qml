@@ -13,27 +13,39 @@ Item {
     signal closed()
 
     property bool active: GlobalStates.dashboardOpen
+    property bool barBgVisible: true
 
-    // -- Backdrop --------------------------------------------------------------
-    Rectangle {
+    readonly property real sheetHeight: Math.min(580 * Appearance.effectiveScale, parent ? parent.height * 0.70 : 0)
+    readonly property real targetY: barBgVisible 
+        ? (Appearance.sizes.statusBarHeight - 41 * Appearance.effectiveScale) 
+        : (parent ? (parent.height - sheetHeight) / 2 : 0)
+
+    // Atajo para cerrar con la tecla Escape
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.active
+        onActivated: root.closed()
+    }
+
+    // Área para cerrar al pulsar fuera del panel central
+    MouseArea {
         anchors.fill: parent
-        color: "#000000"
-        opacity: root.active ? 0.40 : 0
-        Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
-        MouseArea { anchors.fill: parent; onClicked: root.closed() }
+        enabled: root.active
+        onClicked: root.closed()
     }
 
     // -- Island Connector bridge -----------------------------------------------
     // A black trapezoid that grows from the pill width to the sheet width,
-    // clipped by the status bar at the top. It gives the "sheet drops from island" feel.
+    // clipped by the status bar at the top.
+    // It gives the "sheet drops from island" feel.
     Item {
         id: bridgeArea
         anchors.horizontalCenter: parent.horizontalCenter
         width: sheet.width
-        y: Appearance.sizes.statusBarHeight - 4 * Appearance.effectiveScale
+        y: (Appearance.sizes.statusBarHeight - 4 * Appearance.effectiveScale) + (barBgVisible ? Appearance.sizes.statusBarHeight : 0)
         height: 12 * Appearance.effectiveScale
-        visible: root.active
-        opacity: root.active ? 1 : 0
+        visible: root.active && root.barBgVisible
+        opacity: (root.active && root.barBgVisible) ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 200 } }
 
         // The connector: a rectangle the full width that merges into the sheet
@@ -55,17 +67,22 @@ Item {
     Rectangle {
         id: sheet
 
+        // Evitar que los clics dentro del panel cierren el dashboard
+        MouseArea {
+            anchors.fill: parent
+            onClicked: (mouse) => { mouse.accepted = true }
+        }
+
         readonly property real barHeight: Appearance.sizes.statusBarHeight
-        readonly property real sheetHeight: Math.min(580 * Appearance.effectiveScale, parent.height * 0.70)
         readonly property real hMargin: 32 * Appearance.effectiveScale
 
         anchors.horizontalCenter: parent.horizontalCenter
         width: Math.min(940 * Appearance.effectiveScale, parent.width - hMargin * 2)
-        height: sheetHeight
+        height: root.sheetHeight
 
         y: root.active
-            ? barHeight - 41 * Appearance.effectiveScale
-            : -(sheetHeight + 40 * Appearance.effectiveScale)
+            ? root.targetY
+            : -(height + 40 * Appearance.effectiveScale)
 
         Behavior on y {
             NumberAnimation { duration: 440; easing.type: Easing.OutQuint }
@@ -73,8 +90,8 @@ Item {
 
         // Square top, rounded bottom – visually "attached" to the bar
         radius: 20 * Appearance.effectiveScale
-        topLeftRadius: 0
-        topRightRadius: 0
+        topLeftRadius: barBgVisible ? 0 : radius
+        topRightRadius: barBgVisible ? 0 : radius
 
         color: Appearance.colors.colStatusBarSolid
         clip: true
@@ -101,7 +118,7 @@ Item {
             anchors.bottom: parent.bottom
             color: Appearance.colors.colLayer0
             // Same radii as sheet: square top, rounded bottom-left
-            topLeftRadius: 0
+            topLeftRadius: sheet.topLeftRadius
             bottomLeftRadius: sheet.radius
 
             property int currentTab: 0

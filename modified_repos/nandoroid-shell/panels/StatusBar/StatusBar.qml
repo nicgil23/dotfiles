@@ -27,7 +27,7 @@ Scope {
             screen: modelData
             exclusionMode: ExclusionMode.Ignore
             
-            readonly property bool autoHide: Config.ready && Config.options.statusBar ? Config.options.statusBar.autoHide : false
+            readonly property bool autoHide: (Config.ready && Config.options.statusBar ? Config.options.statusBar.autoHide : false) || GameMode.active
             property bool forceShowByHover: false
             readonly property bool barAreaHovered: barHoverHandler.hovered
 

@@ -29,7 +29,9 @@ Singleton {
         "com.spotify.client": "spotify",
         "kitty": "kitty",
         "org.wezfurlong.wezterm": "org.wezfurlong.wezterm",
-        "upscayl": "org.upscayl.Upscayl"
+        "upscayl": "org.upscayl.Upscayl",
+        "mpd": "multimedia-audio-player",
+        "mpc": "multimedia-audio-player"
     })
 
     function iconExists(iconName) {
@@ -63,9 +65,15 @@ Singleton {
         
         if (entry && entry.icon) return entry.icon;
 
-        // 3. Manual Substitutions (Now lightning fast with single lookup)
-        if (substitutions[lowClass]) return substitutions[lowClass];
-        if (substitutions[lowInitial]) return substitutions[lowInitial];
+        // 3. Manual Substitutions
+        if (substitutions[lowClass]) {
+            let sub = substitutions[lowClass];
+            if (iconExists(sub)) return sub;
+        }
+        if (substitutions[lowInitial]) {
+            let sub = substitutions[lowInitial];
+            if (iconExists(sub)) return sub;
+        }
 
         // 4. Reverse domain parts (e.g., "org.upscayl.Upscayl" -> "upscayl")
         const parts = lowClass.split('.');

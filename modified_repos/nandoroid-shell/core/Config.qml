@@ -274,7 +274,8 @@ Singleton {
                     { "type": "audioOutput", "size": 1 },
                     { "type": "audioInput", "size": 1 },
                     { "type": "powerProfile", "size": 2 },
-                    { "type": "restartShell", "size": 1 }
+                    { "type": "restartShell", "size": 1 },
+                    { "type": "autoRotation", "size": 1 }
                 ]
             }
 

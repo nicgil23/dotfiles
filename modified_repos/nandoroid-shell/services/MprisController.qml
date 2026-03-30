@@ -15,12 +15,13 @@ import "../widgets"
  */
 Singleton {
     id: root
-    property MprisPlayer activePlayer: trackedPlayer ?? Mpris.players.values[0] ?? null
-    property MprisPlayer trackedPlayer: null
+    property var activePlayer: trackedPlayer ?? (MpdService.isPlaying ? MpdService : (Mpris.players.values[0] ?? null))
+    property var trackedPlayer: null
     property bool isPlaying: activePlayer && activePlayer.isPlaying
     property bool canTogglePlaying: activePlayer?.canTogglePlaying ?? false
     property bool canGoPrevious: activePlayer?.canGoPrevious ?? false
     property bool canGoNext: activePlayer?.canGoNext ?? false
+    property bool canSeek: activePlayer?.canSeek ?? false
 
     property string trackTitle: activePlayer?.trackTitle || "No media"
     property string trackArtist: activePlayer?.trackArtist || ""
@@ -143,7 +144,13 @@ Singleton {
         running: root.isPlaying
         repeat: true
         onTriggered: {
-            if (root.activePlayer) root.activePlayer.positionChanged();
+            if (root.activePlayer) {
+                if (typeof root.activePlayer.requestPositionUpdate === "function") {
+                    root.activePlayer.requestPositionUpdate();
+                } else if (typeof root.activePlayer.positionChanged === "function") {
+                    root.activePlayer.positionChanged();
+                }
+            }
         }
     }
 
@@ -155,6 +162,27 @@ Singleton {
     }
     function next() {
         if (canGoNext) activePlayer.next();
+    }
+    
+    function setPosition(seconds) {
+        if (!activePlayer || !canSeek) return;
+        if (typeof activePlayer.setPosition === "function") {
+            activePlayer.setPosition(seconds);
+        } else {
+            activePlayer.position = seconds;
+        }
+    }
+
+    function seek(offset) {
+        if (!activePlayer || !canSeek) return;
+        if (typeof activePlayer.seek === "function") {
+            activePlayer.seek(offset);
+        } else if (typeof activePlayer.Seek === "function") {
+            activePlayer.Seek(offset * 1000000); // MPRIS standard uses microseconds
+        } else if (activePlayer.dbusName) {
+            // Fallback for raw MprisPlayer objects if the Seek method isn't directly exposed as a function
+            // (Though Quickshell usually exposes it)
+        }
     }
 
     property bool _manualOverride: false
@@ -181,6 +209,10 @@ Singleton {
             if ((p.trackTitle || "") === "" && (p.trackArtist || "") === "" && (p.trackArtUrl || "") === "") return false;
             return true;
         });
+
+        if (MpdService.isMpdAvailable) {
+            valid.push(MpdService);
+        }
 
         // Deduplicate browser proxy buses (e.g. native brave vs plasma-browser-integration)
         let unique = [];
@@ -302,5 +334,11 @@ Singleton {
                 root.autoReevaluatePlayer();
             }
         }
+    }
+
+    Connections {
+        target: MpdService
+        function onIsPlayingChanged() { root.autoReevaluatePlayer(); }
+        function onIsMpdAvailableChanged() { root.autoReevaluatePlayer(); }
     }
 }

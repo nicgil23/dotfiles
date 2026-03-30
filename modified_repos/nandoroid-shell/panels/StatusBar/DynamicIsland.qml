@@ -184,9 +184,10 @@ Item {
                 opacity: parent.parent.width > (24 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
                 property string activeEntryStr: {
                     if (!MprisController.activePlayer) return "";
-                    let entry = MprisController.activePlayer.desktopEntry.toString();
-                    let identity = MprisController.activePlayer.identity ? MprisController.activePlayer.identity.toString() : "";
-                    return AppSearch.guessIcon(entry, "", identity);
+                    let entry = MprisController.activePlayer.desktopEntry?.toString() || "";
+                    let identity = MprisController.activePlayer.identity?.toString() || "";
+                    let guessed = AppSearch.guessIcon(entry, "", identity);
+                    return (guessed === "application-x-executable" || guessed === "") ? "" : guessed;
                 }
                 
                 sourceComponent: Component { 
@@ -197,9 +198,12 @@ Item {
                             source: mediaLogo.activeEntryStr !== "" ? Quickshell.iconPath(mediaLogo.activeEntryStr, "") : ""
                             visible: status === Image.Ready
                         }
-                        MaterialSymbol {
-                            anchors.centerIn: parent; text: "music_note"; iconSize: 18 * Appearance.effectiveScale
-                            color: Appearance.colors.colNotchText; visible: innerImg.status !== Image.Ready
+                        StyledText {
+                            anchors.centerIn: parent
+                            text: "󰎆" // Nerd Font Musical Note
+                            font.pixelSize: 18 * Appearance.effectiveScale
+                            color: Appearance.colors.colNotchText
+                            visible: innerImg.status !== Image.Ready
                         }
                     }
                 }

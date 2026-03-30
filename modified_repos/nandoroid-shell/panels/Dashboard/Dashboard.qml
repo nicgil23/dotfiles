@@ -16,9 +16,54 @@ Variants {
     model: Quickshell.screens
 
     PanelWindow {
+        id: backdropWindow
+        required property var modelData
+        screen: modelData
+
+        readonly property bool isActive: GlobalStates.activeScreen === modelData
+
+        // Same visibility logic as the main window
+        visible: (GlobalStates.dashboardOpen && isActive)
+                 || (content && content.active && isActive)
+
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.namespace: "nandoroid:dashboard-backdrop"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+        color: "transparent"
+
+        anchors { top: true; bottom: true; left: true; right: true }
+
+        Rectangle {
+            anchors.fill: parent
+            color: "#000000"
+            opacity: GlobalStates.dashboardOpen ? 0.40 : 0
+            Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
+            
+            MouseArea { 
+                anchors.fill: parent
+                onClicked: GlobalStates.dashboardOpen = false 
+            }
+        }
+    }
+
+    PanelWindow {
         id: panelWindow
         required property var modelData
         screen: modelData
+
+        readonly property int monitorIndex: index
+        readonly property int bgStyle: Config.ready && Config.options.statusBar ? (Config.options.statusBar.backgroundStyle ?? 0) : 0
+        readonly property bool hasTiledWindows: {
+            if (bgStyle !== 2) return false;
+            const ws = Hyprland.monitorFor(modelData)?.activeWorkspace;
+            if (!ws) return false;
+            const wsId = ws.id;
+            return HyprlandData.windowList.some(w => 
+                w.workspace.id === wsId && !w.floating && w.monitor === monitorIndex
+            );
+        }
+        readonly property bool barBgVisible: bgStyle === 1 || (bgStyle === 2 && hasTiledWindows)
 
         readonly property bool isActive: GlobalStates.activeScreen === modelData
 
@@ -27,6 +72,7 @@ Variants {
                  || (content && content.active && isActive)
 
         exclusiveZone: 0
+        exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "nandoroid:dashboard"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: (GlobalStates.dashboardOpen && isActive)
@@ -48,6 +94,7 @@ Variants {
             id: content
             anchors.fill: parent
             visible: isActive
+            barBgVisible: panelWindow.barBgVisible
             onClosed: { GlobalStates.dashboardOpen = false }
         }
     }
