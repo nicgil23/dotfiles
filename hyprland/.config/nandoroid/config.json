@@ -13,7 +13,7 @@
             "matugenScheme": "scheme-content",
             "matugenSource": "desktop",
             "matugenThemeFile": "",
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/knights-radiant.jpg"
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/voyager-2.jpg"
         },
         "clock": {
             "analog": {
@@ -143,7 +143,10 @@
         "pinnedApps": [
             "kitty",
             "firefox",
-            "code"
+            "obsidian",
+            "dev.vencord.Vesktop",
+            "com.github.flxzt.rnote",
+            "com.rtosta.zapzap"
         ],
         "pinnedOnStartup": false,
         "scale": 1,
@@ -164,7 +167,7 @@
         "showMediaCard": true,
         "useHyprlock": true,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/knights-radiant.jpg",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/voyager-2.jpg",
         "weather": {
             "textColorMode": "adaptive"
         }
@@ -178,7 +181,7 @@
     },
     "nightMode": {
         "active": false,
-        "colorTemperature": 4000
+        "colorTemperature": 3900
     },
     "notifications": {
         "counterStyle": "counter",
@@ -216,11 +219,7 @@
             },
             {
                 "size": 1,
-                "type": "audioOutput"
-            },
-            {
-                "size": 1,
-                "type": "audioInput"
+                "type": "gameMode"
             },
             {
                 "size": 2,
@@ -228,19 +227,15 @@
             },
             {
                 "size": 1,
-                "type": "gameMode"
-            },
-            {
-                "size": 1,
                 "type": "caffeine"
             },
             {
                 "size": 1,
-                "type": "nightLight"
+                "type": "audioInput"
             },
             {
                 "size": 1,
-                "type": "dnd"
+                "type": "audioOutput"
             },
             {
                 "size": 1,
@@ -248,15 +243,7 @@
             },
             {
                 "size": 1,
-                "type": "easyEffects"
-            },
-            {
-                "size": 1,
-                "type": "colorPicker"
-            },
-            {
-                "size": 1,
-                "type": "vpnUcm"
+                "type": "nightLight"
             },
             {
                 "size": 1,
@@ -268,11 +255,27 @@
             },
             {
                 "size": 1,
+                "type": "qrcode"
+            },
+            {
+                "size": 1,
                 "type": "ocr"
             },
             {
                 "size": 1,
-                "type": "qrcode"
+                "type": "autoRotation"
+            },
+            {
+                "size": 1,
+                "type": "colorPicker"
+            },
+            {
+                "size": 1,
+                "type": "vpnUcm"
+            },
+            {
+                "size": 1,
+                "type": "dnd"
             }
         ]
     },
@@ -326,9 +329,9 @@
     },
     "statusBar": {
         "autoHide": false,
-        "backgroundCornerRadius": 20,
+        "backgroundCornerRadius": 35,
         "backgroundStyle": 2,
-        "centeredWidth": 1200,
+        "centeredWidth": 1300,
         "height": 40,
         "islandStyle": "pill",
         "layoutStyle": "standard",
@@ -337,7 +340,7 @@
         "useGradient": true
     },
     "system": {
-        "bluetoothEnabled": true,
+        "bluetoothEnabled": false,
         "conservationMode": false,
         "easyeffectsEnabled": false,
         "gameModeActive": false,

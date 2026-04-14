@@ -1,6 +1,6 @@
 import QtQuick
-import "../core"
-import "../services"
+import qs.core
+import qs.services
 
 Item {
     id: root

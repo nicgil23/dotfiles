@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../core"
+import qs.core
 
 /**
  * Service providing system performance metrics using 'dgop'.

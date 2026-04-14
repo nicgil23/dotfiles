@@ -6,8 +6,8 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
-import "../../core"
-import "../../core/functions" as Functions
+import qs.core
+import qs.core.functions as Functions
 import "utils"
 
 Singleton {

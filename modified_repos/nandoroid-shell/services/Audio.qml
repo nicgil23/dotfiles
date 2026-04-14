@@ -1,6 +1,6 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
-import "../core"
+import qs.core
 import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire

@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
-import "../../core"
-import "../../widgets"
+import qs.core
+import qs.widgets
 
 /**
  * DockPreview.qml

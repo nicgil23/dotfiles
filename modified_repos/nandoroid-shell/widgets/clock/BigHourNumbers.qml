@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import "../../core"
+import qs.core
 import ".."
 
 Item {

@@ -1,5 +1,5 @@
 import ".."
-import "../../../services"
+import qs.services
 
 OsdToggleIndicator {
     id: osdValues

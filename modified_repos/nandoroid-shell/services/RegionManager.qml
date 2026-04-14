@@ -3,8 +3,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../core"
-import "../panels/RegionSelector"
+import qs.core
+import qs.panels.RegionSelector
 
 Singleton {
     id: root

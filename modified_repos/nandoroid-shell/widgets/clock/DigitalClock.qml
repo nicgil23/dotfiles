@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
 import ".."
 
 ColumnLayout {

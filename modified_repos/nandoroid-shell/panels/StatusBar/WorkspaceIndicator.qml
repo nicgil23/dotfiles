@@ -1,7 +1,7 @@
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -192,7 +192,7 @@ Item {
                             return (dot.wsId).toString()
                         }
                         font.pixelSize: 10 * Appearance.effectiveScale
-                        font.weight: isActive ? Font.Bold : Font.Normal
+                        font.weight: Font.DemiBold
                         color: "#1E1E1E" 
                         opacity: (isActive || isHovered || isUnified) ? 1 : 0
                     }

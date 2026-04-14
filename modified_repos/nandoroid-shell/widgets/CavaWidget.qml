@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import "../services"
-import "../core"
+import qs.services
+import qs.core
 
 /**
  * Cava visualizer widget.

@@ -5,10 +5,10 @@ import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 
 Item {
     id: root

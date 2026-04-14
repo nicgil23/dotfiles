@@ -1,7 +1,7 @@
-import "../../core"
-import "../../core/functions" as Functions
+import qs.core
+import qs.core.functions as Functions
 import QtQuick
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland

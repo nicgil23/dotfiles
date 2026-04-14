@@ -4,7 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../core"
+import qs.core
 
 /**
  * Provides current date and time as properties that auto-update.

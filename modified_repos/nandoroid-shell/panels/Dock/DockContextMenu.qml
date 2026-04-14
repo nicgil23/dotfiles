@@ -6,9 +6,9 @@ import Quickshell.Io
 import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import "../../core"
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.services
+import qs.widgets
 
 /**
  * DockContextMenu.qml
@@ -112,8 +112,10 @@ PanelWindow {
                     Layout.fillWidth: true; Layout.leftMargin: 8 * Appearance.effectiveScale; Layout.rightMargin: 8 * Appearance.effectiveScale; Layout.topMargin: 4 * Appearance.effectiveScale; Layout.bottomMargin: 4 * Appearance.effectiveScale; spacing: 8 * Appearance.effectiveScale
                     Item {
                         Layout.preferredWidth: 20 * Appearance.effectiveScale; Layout.preferredHeight: 20 * Appearance.effectiveScale
-                        IconImage {
+                        Image {
                             anchors.fill: parent
+                            sourceSize: Qt.size(width, height)
+                            fillMode: Image.PreserveAspectFit
                             source: root.appId ? Quickshell.iconPath(AppSearch.guessIcon(root.appId), "application-x-executable") : ""
                         }
                     }

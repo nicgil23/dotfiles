@@ -28,13 +28,15 @@ MouseArea {
         event.accepted = true;
     }
 
-    IconImage {
+    Image {
         id: trayIcon
         source: (root.item && root.item.icon) ? root.item.icon : ""
         visible: source !== ""
         anchors.centerIn: parent
         width: 16 * Appearance.effectiveScale
         height: 16 * Appearance.effectiveScale
+        sourceSize: Qt.size(width, height)
+        fillMode: Image.PreserveAspectFit
         asynchronous: true
     }
 

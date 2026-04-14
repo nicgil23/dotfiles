@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import "../core"
+import qs.core
 
 ScrollBar {
     id: root

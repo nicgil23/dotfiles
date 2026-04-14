@@ -1,10 +1,10 @@
 import QtQuick
 import Quickshell
 import QtQuick.Layouts
-import "../../widgets"
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
+import qs.widgets
+import qs.core
+import qs.core.functions as Functions
+import qs.services
 
 Rectangle {
     id: root

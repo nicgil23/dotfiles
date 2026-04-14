@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../core"
-import "../../widgets"
+import qs.core
+import qs.widgets
 
 /**
  * Base button for dock items.

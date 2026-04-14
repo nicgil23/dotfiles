@@ -1,5 +1,5 @@
-import "../core"
-import "../core/functions" as Functions
+import qs.core
+import qs.core.functions as Functions
 import QtQuick
 
 Text {
@@ -8,13 +8,14 @@ Text {
     property real animationDistanceX: 0
     property real animationDistanceY: 6
 
-    renderType: Text.NativeRendering
+    renderType: Text.QtRendering
+    antialiasing: true
     verticalAlignment: Text.AlignVCenter
     property bool shouldUseNumberFont: root.text.match(/^\d+$/) !== null
     property var defaultFont: (Appearance.font && shouldUseNumberFont) ? Appearance.font.family.numbers : (Appearance.font ? Appearance.font.family.main : "sans-serif")
     
     font {
-        hintingPreference: Font.PreferDefaultHinting
+        hintingPreference: Font.PreferFullHinting
         family: defaultFont
         pixelSize: Appearance.font ? Appearance.font.pixelSize.small : 15
         // variableAxes: shouldUseNumberFont ? ({}) : Appearance.font.variableAxes.main

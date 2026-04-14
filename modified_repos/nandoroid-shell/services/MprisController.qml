@@ -5,9 +5,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Mpris
-import "../core"
-import "../core/functions" as Functions
-import "../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.widgets
 
 /**
  * Simplified MPRIS controller — wraps Quickshell's Mpris service

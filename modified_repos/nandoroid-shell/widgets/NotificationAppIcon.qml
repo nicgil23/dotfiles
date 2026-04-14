@@ -1,4 +1,4 @@
-import "../core"
+import qs.core
 import "../core/functions/NotificationUtils.js" as NotificationUtils
 import Qt5Compat.GraphicalEffects
 import QtQuick
@@ -57,9 +57,12 @@ MaterialShape { // App icon
         id: appIconLoader
         active: root.image == "" && root.appIcon != ""
         anchors.centerIn: parent
-        sourceComponent: IconImage {
+        sourceComponent: Image {
             id: appIconImage
-            implicitSize: root.appIconSize
+            width: root.appIconSize
+            height: root.appIconSize
+            sourceSize: Qt.size(width, height)
+            fillMode: Image.PreserveAspectFit
             asynchronous: true
             source: root.appIcon !== "" ? Quickshell.iconPath(root.appIcon, "image-missing") : ""
         }
@@ -108,8 +111,11 @@ MaterialShape { // App icon
                 active: root.appIcon != ""
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
-                sourceComponent: IconImage {
-                    implicitSize: root.smallAppIconSize
+                sourceComponent: Image {
+                    width: root.smallAppIconSize
+                    height: root.smallAppIconSize
+                    sourceSize: Qt.size(width, height)
+                    fillMode: Image.PreserveAspectFit
                     asynchronous: true
                     source: root.appIcon !== "" ? Quickshell.iconPath(root.appIcon, "image-missing") : ""
                 }

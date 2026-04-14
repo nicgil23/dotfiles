@@ -1,7 +1,7 @@
-import "../core"
-import "../services"
+import qs.core
+import qs.services
 import "."
-import "../core/functions" as Functions
+import qs.core.functions as Functions
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
@@ -60,7 +60,7 @@ Rectangle {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: false
-            
+
             layer.enabled: true
             layer.effect: GaussianBlur {
                 radius: 64 * Appearance.effectiveScale
@@ -171,6 +171,7 @@ Rectangle {
                                 Layout.fillWidth: true
                                 text: MprisController.trackArtist || "Unknown Artist"
                                 font.pixelSize: Appearance.font.pixelSize.smaller
+                                font.weight: Font.DemiBold
                                 color: MprisController.dynSubtext
                                 elide: Text.ElideRight
                                 verticalAlignment: Text.AlignTop
@@ -261,7 +262,7 @@ Rectangle {
                     text: Functions.StringUtils.friendlyTimeForSeconds(MprisController.position)
                     font.pixelSize: Appearance.font.pixelSize.smallest
                     font.family: Appearance.font.family.monospace
-                    font.weight: Font.Medium
+                    font.weight: Font.DemiBold
                     color: MprisController.dynSubtext
                     Layout.alignment: Qt.AlignVCenter
                     verticalAlignment: Text.AlignVCenter
@@ -306,7 +307,7 @@ Rectangle {
                     text: Functions.StringUtils.friendlyTimeForSeconds(MprisController.length)
                     font.pixelSize: Appearance.font.pixelSize.smallest
                     font.family: Appearance.font.family.monospace
-                    font.weight: Font.Medium
+                    font.weight: Font.DemiBold
                     color: MprisController.dynSubtext
                     Layout.alignment: Qt.AlignVCenter
                     verticalAlignment: Text.AlignVCenter
@@ -329,7 +330,7 @@ Rectangle {
                     MaterialSymbol {
                         anchors.centerIn: parent
                         text: "forward_10"; iconSize: 18 * Appearance.effectiveScale; fill: 1
-                        color: flastForwardBtn.hovered ? MprisController.dynPrimary : MprisController.dynOnSecondaryContainer
+                        color: fastForwardBtn.hovered ? MprisController.dynPrimary : MprisController.dynOnSecondaryContainer
                         Behavior on color { ColorAnimation { duration: 150 } }
                     }
                 }

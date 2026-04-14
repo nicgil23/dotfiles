@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell.Widgets
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
 import ".."
 import "."
-import "../shapes"
+import qs.shapes
 
 Item {
     id: root

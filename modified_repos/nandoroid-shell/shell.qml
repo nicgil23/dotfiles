@@ -3,24 +3,24 @@
 //@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
-import "core"
-import "services"
-import "widgets"
-import "panels/StatusBar"
-import "panels/NotificationCenter"
-import "panels/NotificationPopup"
-import "panels/QuickSettings"
-import "panels/Dashboard"
-import "panels/SystemMonitor"
-import "panels/Launcher"
-import "panels/Overview"
-import "panels/QuickActions"
-import "panels/Dock"
-import "panels/ScreenCorners"
-import "panels/RegionSelector"
+import qs.core
+import qs.services
+import qs.widgets
+import qs.panels.StatusBar
+import qs.panels.NotificationCenter
+import qs.panels.NotificationPopup
+import qs.panels.QuickSettings
+import qs.panels.Dashboard
+import qs.panels.SystemMonitor
+import qs.panels.Launcher
+import qs.panels.Overview
+import qs.panels.QuickActions
+import qs.panels.Dock
+import qs.panels.ScreenCorners
+import qs.panels.RegionSelector
 
 import "./panels/OSD"
-import "./panels/Polkit"
+// import "./panels/Polkit" // Disabled due to issues
 import "./panels/Session"
 
 import QtQuick
@@ -55,7 +55,7 @@ ShellRoot {
     SpotlightLauncher {}
     QuickActions {}
     OSD {}
-    PolkitPanel {}
+    // PolkitPanel {} // Disabled due to issues
     SessionPanel {}
     
     Dock {}

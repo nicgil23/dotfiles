@@ -1,7 +1,7 @@
 ClippedProgressBar ClippedProgressBar.qml
 CustomIcon CustomIcon.qml
-DragManager DragManager.qml
 DashedBorder DashedBorder.qml
+DragManager DragManager.qml
 MaterialShape MaterialShape.qml
 MaterialSymbol MaterialSymbol.qml
 NotificationActionButton NotificationActionButton.qml

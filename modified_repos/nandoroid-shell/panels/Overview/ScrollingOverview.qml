@@ -1,15 +1,13 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
-import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 
 /**
  * Scrolling Tape Overview

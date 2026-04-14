@@ -147,7 +147,7 @@ Item {
                 visible: islandState === "notification"
                 opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.Medium
+                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold
                 color: Appearance.colors.colNotchText
                 width: Math.min(implicitWidth, root.currentEarMaxWidth - (notifLogo.visible ? 28 * Appearance.effectiveScale : 8 * Appearance.effectiveScale))
                 elide: Text.ElideRight
@@ -193,8 +193,10 @@ Item {
                 sourceComponent: Component { 
                     Item {
                         width: 18 * Appearance.effectiveScale; height: 18 * Appearance.effectiveScale
-                        IconImage { 
+                        Image { 
                             id: innerImg; anchors.fill: parent; 
+                            sourceSize: Qt.size(width, height)
+                            fillMode: Image.PreserveAspectFit
                             source: mediaLogo.activeEntryStr !== "" ? Quickshell.iconPath(mediaLogo.activeEntryStr, "") : ""
                             visible: status === Image.Ready
                         }
@@ -212,7 +214,7 @@ Item {
                 id: mediaArtistLabel; text: MprisController.trackArtist || "Unknown Artist"
                 visible: islandState === "media"; opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.Medium; color: Appearance.colors.colNotchText
+                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
                 width: Math.min(implicitWidth, parent.parent.width - (mediaLogo.visible ? 28 * Appearance.effectiveScale : 8 * Appearance.effectiveScale))
                 elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter
             }

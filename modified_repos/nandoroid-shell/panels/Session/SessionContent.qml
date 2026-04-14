@@ -1,10 +1,10 @@
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 
 /**
  * Android 16 Style Session Menu
@@ -34,12 +34,11 @@ Item {
         border.color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.12)
         
         layer.enabled: true
-        layer.effect: DropShadow {
-            radius: 12 * Appearance.effectiveScale
-            samples: 24
-            color: Functions.ColorUtils.applyAlpha(Appearance.colors.colShadow, 0.1)
-            verticalOffset: 2 * Appearance.effectiveScale
-            transparentBorder: true
+        layer.effect: MultiEffect {
+        shadowEnabled: true
+            shadowBlur: 1.0 /* legacy radius: 12 * Appearance.effectiveScale */
+            shadowColor: Functions.ColorUtils.applyAlpha(Appearance.colors.colShadow, 0.1)
+            shadowVerticalOffset: 2 * Appearance.effectiveScale
         }
 
         ColumnLayout {

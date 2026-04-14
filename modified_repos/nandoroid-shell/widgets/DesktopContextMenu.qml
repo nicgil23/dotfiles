@@ -5,8 +5,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import "../core"
-import "../services"
+import qs.core
+import qs.services
 
 /**
  * DesktopContextMenu.qml

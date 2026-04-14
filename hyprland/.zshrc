@@ -15,6 +15,7 @@ alias ls="exa -l"
 alias obsidian-sync='~/dotfiles/hyprland/.config/hypr/scripts/obsidian-sync.sh'
 alias ff='fastfetch'
 alias vpn-ucm='~/dotfiles/hyprland/.config/hypr/scripts/vpn-ucm.sh'
+alias r='rmpc'
 
 # Funciones
 load-env() {
@@ -62,4 +63,11 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+# Linea para que el laucher de quichshell reconozca los iconos de las APPs de flatpak
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share
+
+# Ctrl + Retroceso para borrar la palabra hacia atrás
+bindkey '^H' backward-kill-word
+
+# Ctrl + Suprimir para borrar la palabra hacia adelante
+bindkey '^[[3;5~' kill-word

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../core"
+import qs.core
 
 /**
  * Simple vertical separator for the dock.

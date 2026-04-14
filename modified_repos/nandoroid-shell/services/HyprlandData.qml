@@ -5,7 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
-import "../core"
+import qs.core
 
 /**
  * Provides Hyprland workspace and window data via hyprctl JSON.

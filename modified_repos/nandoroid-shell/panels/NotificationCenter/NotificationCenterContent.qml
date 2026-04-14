@@ -1,7 +1,7 @@
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -54,11 +54,9 @@ Item {
     ColumnLayout {
         id: contentColumn
         anchors {
-            left: parent.left
-            right: parent.right
-            top: parent.top
+            fill: parent
             margins: 12 * Appearance.effectiveScale
-            topMargin: 12 * Appearance.effectiveScale
+            topMargin: 10 * Appearance.effectiveScale
         }
         spacing: 12 * Appearance.effectiveScale
 
@@ -77,7 +75,7 @@ Item {
         // -- Notification Island --
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: Appearance.sizes.notificationIslandMaxHeight
+            Layout.fillHeight: true
             
             color: Appearance.colors.colLayer1
             radius: Appearance.rounding.panel

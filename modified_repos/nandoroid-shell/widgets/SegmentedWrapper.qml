@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
-import "../core"
+import qs.core
 
 /**
  * SegmentedWrapper: A universal wrapper for segmented UI elements.

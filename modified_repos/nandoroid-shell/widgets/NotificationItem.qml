@@ -1,7 +1,7 @@
-import "../core"
-import "../services"
+import qs.core
+import qs.services
 import "../core/functions/NotificationUtils.js" as NotificationUtils
-import "../core/functions" as Functions
+import qs.core.functions as Functions
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects

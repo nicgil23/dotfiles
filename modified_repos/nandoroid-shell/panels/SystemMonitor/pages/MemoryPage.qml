@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../../core"
-import "../../../services"
-import "../../../widgets"
+import qs.core
+import qs.services
+import qs.widgets
 import ".."
 
 /**

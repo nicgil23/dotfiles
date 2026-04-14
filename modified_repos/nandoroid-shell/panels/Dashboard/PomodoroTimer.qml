@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../widgets"
-import "../../core"
-import "../../services"
+import qs.widgets
+import qs.core
+import qs.services
 
 /**
  * Pomodoro Timer UI.

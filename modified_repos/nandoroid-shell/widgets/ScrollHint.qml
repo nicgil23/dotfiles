@@ -1,6 +1,6 @@
 import QtQuick
 import "."
-import "../core"
+import qs.core
 
 Revealer { // Scroll hint
     id: root

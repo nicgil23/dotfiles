@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
-import "../core"
-import "../core/functions" as Functions
+import qs.core
+import qs.core.functions as Functions
 import "."
 
 /**

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Effects
-import "../core"
-import "../services"
+import qs.core
+import qs.services
 
 /**
  * WaveVisualizer.qml (v1.2)

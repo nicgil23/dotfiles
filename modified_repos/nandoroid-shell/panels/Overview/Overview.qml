@@ -1,16 +1,15 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import "../../core"
-import "../../core/functions" as Functions
-import "../../widgets"
-import "../../services"
+import qs.core
+import qs.core.functions as Functions
+import qs.widgets
+import qs.services
 
 /**
  * Standard Grid Overview

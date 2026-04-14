@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Qt5Compat.GraphicalEffects
-import "../core"
-import "../core/functions"
+import qs.core
+import qs.core.functions
 
 /**
  * Robust Thumbnail image component.

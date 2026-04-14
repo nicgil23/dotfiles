@@ -1,5 +1,5 @@
-import "../core"
-import "../core/functions" as Functions
+import qs.core
+import qs.core.functions as Functions
 import QtQuick
 import QtQuick.Layouts
 

@@ -1,7 +1,7 @@
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -208,9 +208,11 @@ Rectangle {
                                             width: 22 * Appearance.effectiveScale
                                             height: 22 * Appearance.effectiveScale
                                             
-                                            IconImage {
+                                            Image {
                                                 id: appIcon
                                                 anchors.fill: parent
+                                                sourceSize: Qt.size(width, height)
+                                                fillMode: Image.PreserveAspectFit
                                                 source: Quickshell.iconPath(Audio.appNodeIconName(streamItem.modelData), "image-missing")
                                                 visible: status === Image.Ready
                                             }

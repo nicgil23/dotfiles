@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import "../../core"
-import "../../widgets"
+import qs.core
+import qs.widgets
 
 PopupWindow {
     id: root

@@ -1,6 +1,6 @@
 import QtQuick
-import "../../core"
-import "../../core/functions" as Functions
+import qs.core
+import qs.core.functions as Functions
 
 /**
  * A real-time line graph component for performance metrics.

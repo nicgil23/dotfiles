@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import "../core"
-import "../services"
+import qs.core
+import qs.services
 
 /**
  * Network Speed Meter widget for the status bar.
@@ -48,7 +48,7 @@ ColumnLayout {
         StyledText {
             text: root.formatSpeed(SystemData.networkTxRate)
             font.pixelSize: Appearance.font.pixelSize.smallest
-            font.weight: Font.Medium
+            font.weight: Font.DemiBold
             color: root.color
             horizontalAlignment: Text.AlignRight
             verticalAlignment: Text.AlignBottom
@@ -68,7 +68,7 @@ ColumnLayout {
         StyledText {
             text: root.formatSpeed(SystemData.networkRxRate)
             font.pixelSize: Appearance.font.pixelSize.smallest
-            font.weight: Font.Medium
+            font.weight: Font.DemiBold
             color: root.color
             horizontalAlignment: Text.AlignRight
             verticalAlignment: Text.AlignTop

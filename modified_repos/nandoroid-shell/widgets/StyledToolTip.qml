@@ -1,4 +1,4 @@
-import "../core"
+import qs.core
 import "."
 import QtQuick
 import QtQuick.Controls

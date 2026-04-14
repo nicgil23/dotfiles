@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.SystemTray
-import "../../core"
-import "../../widgets"
+import qs.core
+import qs.widgets
 
 RowLayout {
     id: root

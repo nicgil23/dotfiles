@@ -22,7 +22,7 @@ function mapAppName(appName) {
 }
 
 function findSuitableMaterialSymbol(summary) {
-    var defaultType = 'chat';
+    var defaultType = 'notifications';
     if (!summary || summary.length === 0) return defaultType;
 
     var keywordsToTypes = {
@@ -32,7 +32,7 @@ function findSuitableMaterialSymbol(summary) {
         'power': 'power',
         'screenshot': 'screenshot_monitor',
         'welcome': 'waving_hand',
-        'time': 'scheduleb',
+        'time': 'schedule',
         'installed': 'download',
         'configuration reloaded': 'reset_wrench',
         'unable': 'question_mark',
@@ -47,6 +47,8 @@ function findSuitableMaterialSymbol(summary) {
         'input': 'keyboard_alt',
         'preedit': 'keyboard_alt',
         'startswith:file': 'folder_copy', 
+        'bell': 'notifications',
+        'notify-send': 'notifications',
     };
 
     var lowerSummary = summary.toLowerCase();
@@ -64,6 +66,14 @@ function findSuitableMaterialSymbol(summary) {
     }
 
     return defaultType;
+}
+
+function mapAppIcon(appIcon) {
+    if (!appIcon) return "";
+    var lower = appIcon.toLowerCase();
+    var generic = ["notify-send", "unknown", "bash", "sh", "python", "perl"];
+    if (generic.indexOf(lower) !== -1) return "";
+    return appIcon;
 }
 
 function getFriendlyNotifTimeString(timestamp) {

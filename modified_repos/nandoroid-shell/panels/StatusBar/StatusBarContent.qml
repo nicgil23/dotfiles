@@ -119,16 +119,6 @@ Item {
         anchors.leftMargin: root.sidePadding + (root.isCentered ? 12 * Appearance.effectiveScale : 0)
         spacing: 8 * Appearance.effectiveScale
 
-        layer.enabled: true
-        layer.effect: DropShadow {
-            transparentBorder: true
-            horizontalOffset: 0
-            verticalOffset: 1 * Appearance.effectiveScale
-            radius: 4 * Appearance.effectiveScale
-            samples: 8
-            color: "#80000000"
-        }
-
         Item {
             Layout.fillHeight: true
             Layout.preferredWidth: leftClusterContent.implicitWidth
@@ -187,16 +177,6 @@ Item {
         font.pixelSize: Appearance.font.pixelSize.small
         font.weight: Font.DemiBold
         color: root.contentColor
-
-        layer.enabled: true
-        layer.effect: DropShadow {
-            transparentBorder: true
-            horizontalOffset: 0
-            verticalOffset: 1 * Appearance.effectiveScale
-            radius: 4 * Appearance.effectiveScale
-            samples: 8
-            color: "#80000000"
-        }
     }
 
     // Date (Right of Notch)
@@ -207,16 +187,6 @@ Item {
         font.pixelSize: Appearance.font.pixelSize.small
         font.weight: Font.DemiBold
         color: root.contentColor
-
-        layer.enabled: true
-        layer.effect: DropShadow {
-            transparentBorder: true
-            horizontalOffset: 0
-            verticalOffset: 1 * Appearance.effectiveScale
-            radius: 4 * Appearance.effectiveScale
-            samples: 8
-            color: "#80000000"
-        }
     }
 
     // --- Absolute Center Workspace Indicator ---
@@ -236,16 +206,6 @@ Item {
         anchors.bottom: parent.bottom
         anchors.rightMargin: 8 * Appearance.effectiveScale
         spacing: 4 * Appearance.effectiveScale
-
-        layer.enabled: true
-        layer.effect: DropShadow {
-            transparentBorder: true
-            horizontalOffset: 0
-            verticalOffset: 1 * Appearance.effectiveScale
-            radius: 4 * Appearance.effectiveScale
-            samples: 8
-            color: "#80000000"
-        }
 
         RowLayout {
             id: rightClusterContent

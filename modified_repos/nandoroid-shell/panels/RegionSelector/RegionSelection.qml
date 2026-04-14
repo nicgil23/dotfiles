@@ -6,10 +6,10 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import "../../core"
-import "../../core/functions" as Functions
-import "../../widgets"
-import "../../services"
+import qs.core
+import qs.core.functions as Functions
+import qs.widgets
+import qs.services
 import "utils"
 import "widgets"
 

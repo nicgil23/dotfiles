@@ -3,10 +3,10 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
-import "../../core"
-import "../../services"
-import "../../widgets"
-import "../../core/functions" as Functions
+import qs.core
+import qs.services
+import qs.widgets
+import qs.core.functions as Functions
 import "../NotificationCenter" as NotificationCenter
 
 /**

@@ -4,7 +4,7 @@ pragma Singleton
 // Manages night mode via hyprsunset with persistence in Config.
 
 import QtQuick
-import "../core"
+import qs.core
 import Quickshell
 import Quickshell.Io
 

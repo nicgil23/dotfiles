@@ -1,8 +1,8 @@
-import "../../../services"
+import qs.services
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import "../../widgets"
+import qs.widgets
 import ".." 
 
 OsdValueIndicator {

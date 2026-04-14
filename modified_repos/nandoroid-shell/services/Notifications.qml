@@ -1,7 +1,8 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import "../core"
+import qs.core
+import "../core/functions/NotificationUtils.js" as NotificationUtils
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -173,8 +174,8 @@ Singleton {
             const newNotif = notifComponent.createObject(root, {
                 "notificationId": notification.id + root.idOffset,
                 "notification": notification,
-                "appIcon":  notification.appIcon  ?? "",
-                "appName":  notification.appName  ?? "",
+                "appIcon":  NotificationUtils.mapAppIcon(notification.appIcon  ?? ""),
+                "appName":  NotificationUtils.mapAppName(notification.appName  ?? ""),
                 "body":     notification.body     ?? "",
                 "image":    notification.image    ?? "",
                 "summary":  notification.summary  ?? "",

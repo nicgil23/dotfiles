@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
-import "../../widgets"
-import "../../core"
+import qs.widgets
+import qs.core
 
 RippleButton {
     id: root
@@ -46,12 +46,14 @@ RippleButton {
                 borderWidth: 1 * Appearance.effectiveScale
                 borderColor: Qt.rgba(0, 0, 0, 0.1)
                 
-                IconImage {
+                Image {
                     id: iconImg
                     source: (result && !result.isPlugin) ? Quickshell.iconPath(result.icon || "application-x-executable", "image-missing") : ""
                     visible: result && !result.isPlugin && result.emoji === ""
                     width: 20 * Appearance.effectiveScale
                     height: 20 * Appearance.effectiveScale
+                    sourceSize: Qt.size(width, height)
+                    fillMode: Image.PreserveAspectFit
                     anchors.centerIn: parent
                 }
 

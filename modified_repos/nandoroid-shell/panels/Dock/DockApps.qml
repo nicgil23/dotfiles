@@ -2,9 +2,9 @@ import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
-import "../../core"
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.services
+import qs.widgets
 
 /**
  * DockApps component
@@ -34,10 +34,10 @@ Item {
     // Universal Fade Mask: Works perfectly for BG and No-BG modes
     layer.enabled: true
     layer.effect: OpacityMask {
-        maskSource: LinearGradient {
+        maskSource: Rectangle {
             width: root.width; height: root.height
-            start: Qt.point(0, 0); end: Qt.point(width, 0)
             gradient: Gradient {
+                orientation: Gradient.Horizontal
                 GradientStop { position: 0.0; color: (listView.contentX > 5 * Appearance.effectiveScale) ? "transparent" : "black" }
                 GradientStop { position: 0.1; color: "black" }
                 GradientStop { position: 0.9; color: "black" }

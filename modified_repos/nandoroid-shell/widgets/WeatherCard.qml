@@ -1,5 +1,5 @@
-import "../core"
-import "../services"
+import qs.core
+import qs.services
 import "."
 import QtQuick
 import QtQuick.Layouts

@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import "../../core"
-import "../../services"
+import qs.core
+import qs.services
 
 PanelWindow {
     id: root

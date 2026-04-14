@@ -1,7 +1,7 @@
-import "../../core"
-import "../../widgets"
-import "../../services"
-import "../../core/functions"
+import qs.core
+import qs.widgets
+import qs.services
+import qs.core.functions
 import QtQuick
 import QtQuick.Layouts
 import Quickshell

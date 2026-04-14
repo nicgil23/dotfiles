@@ -1,6 +1,6 @@
-import "../../core"
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.services
+import qs.widgets
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -35,12 +35,14 @@ Variants {
 
         anchors {
             top: true
+            bottom: true
             left: true
         }
 
         WlrLayershell.margins {
-            left: panelWindow.sidePadding
-            top: 4 * Appearance.effectiveScale
+            left: 10 * Appearance.effectiveScale
+            top: 10 * Appearance.effectiveScale
+            bottom: 10 * Appearance.effectiveScale
         }
 
         implicitWidth: Appearance.sizes.notificationCenterWidth

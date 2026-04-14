@@ -6,11 +6,15 @@ catppuccin-gtk-theme-mocha
 catppuccin-sddm-theme-mocha
 cmatrix-git
 cmatrix-git-debug
+cpptrace
+cpptrace-debug
 dragon-drop-debug
 gp-saml-gui-git
 iio-hyprland-git
 iio-hyprland-git-debug
 libcava-debug
+minecraft-launcher
+minecraft-launcher-debug
 mongodb-bin
 mongodb-bin-debug
 mongodb-tools-bin
@@ -26,6 +30,7 @@ python-dash
 python-jupytext
 python-pprintpp
 qt5-location
+qt5-sensors
 ripdrag
 ripdrag-debug
 swww
@@ -35,6 +40,7 @@ ttf-material-symbols-variable-git
 visual-studio-code-bin
 walker-debug
 waybar-cava-debug
+webkit2gtk
 wlogout
 wlogout-debug
 wvkbd

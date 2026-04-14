@@ -1,5 +1,5 @@
 import QtQuick
-import "../core"
+import qs.core
 
 /**
  * Recreation of GTK revealer. Expects one single child.

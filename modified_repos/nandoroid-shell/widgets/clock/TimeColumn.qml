@@ -2,8 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
-import "../../core"
-import "../../services"
+import qs.core
+import qs.services
 
 Column {
     id: root

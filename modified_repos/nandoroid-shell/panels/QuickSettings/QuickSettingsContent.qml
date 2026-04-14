@@ -1,7 +1,7 @@
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -9,7 +9,6 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Qt5Compat.GraphicalEffects
-import QtQuick.Effects
 
 /**
  * Quick Settings content — Android-style panel with:
@@ -391,6 +390,7 @@ Item {
             left: parent.left
             right: parent.right
             margins: 10 * Appearance.effectiveScale
+            topMargin: 8 * Appearance.effectiveScale
         }
         spacing: 12 * Appearance.effectiveScale
 

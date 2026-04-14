@@ -1,6 +1,6 @@
 import QtQuick
-import "../../../core"
-import "../../../widgets"
+import qs.core
+import qs.widgets
 
 Item {
     id: root

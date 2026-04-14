@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import ".."
-import "../../core"
-import "../../services"
+import qs.core
+import qs.services
 
 ColumnLayout {
     id: root

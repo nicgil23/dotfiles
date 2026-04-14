@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import "../core"
+import qs.core
 
 /**
  * TaskbarApps Service

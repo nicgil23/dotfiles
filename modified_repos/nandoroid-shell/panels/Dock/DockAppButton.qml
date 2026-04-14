@@ -3,10 +3,10 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
+import qs.core
+import qs.core.functions as Functions
+import qs.services
+import qs.widgets
 
 /**
  * DockAppButton component for the dock.
@@ -81,9 +81,11 @@ DockButton {
             width: root.iconSize
             height: root.iconSize
 
-            IconImage {
+            Image {
                 id: iconImage
                 anchors.fill: parent
+                sourceSize: Qt.size(width, height)
+                fillMode: Image.PreserveAspectFit
                 property string iconName: appToplevel ? AppSearch.guessIcon(appToplevel.appId) : ""
                 source: iconName !== "" ? Quickshell.iconPath(iconName, "application-x-executable") : ""
                 visible: !(Config.ready && Config.options.dock.monochromeIcons) && source !== ""
