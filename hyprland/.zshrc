@@ -71,3 +71,6 @@ bindkey '^H' backward-kill-word
 
 # Ctrl + Suprimir para borrar la palabra hacia adelante
 bindkey '^[[3;5~' kill-word
+
+# Antigravity
+alias antigravity='/home/hypr/Applications/Antigravity/bin/antigravity'

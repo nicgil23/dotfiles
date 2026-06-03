@@ -321,6 +321,14 @@ Item {
             toggled: AutoRotation.active,
             statusText: AutoRotation.active ? "On" : "Off",
             action: () => AutoRotation.toggle()
+        },
+        "autoHideBar": {
+            name: "Auto-Hide Bar",
+            icon: "vertical_align_top",
+            iconOff: "vertical_align_top",
+            toggled: Config.options.statusBar.autoHide,
+            statusText: Config.options.statusBar.autoHide ? "On" : "Off",
+            action: () => { Config.options.statusBar.autoHide = !Config.options.statusBar.autoHide }
         }
     })
 
@@ -334,7 +342,8 @@ Item {
         "wifi", "bluetooth", "dnd", "darkMode", "caffeine", "nightLight",
         "warp", "audioOutput", "audioInput", "powerProfile",
         "gameMode", "colorPicker", "screenSnip", "ocr", "qrcode", "screenRecord",
-        "musicRecognition", "easyEffects", "conservationMode", "restartShell", "vpnUcm", "autoRotation"
+        "musicRecognition", "easyEffects", "conservationMode", "restartShell", "vpnUcm", "autoRotation",
+        "autoHideBar"
     ]
     readonly property list<var> toggles: Config.options.quickSettings.toggles
     readonly property list<var> toggleRows: toggleRowsForList(toggles)

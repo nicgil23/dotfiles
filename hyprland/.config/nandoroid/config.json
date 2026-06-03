@@ -13,7 +13,7 @@
             "matugenScheme": "scheme-content",
             "matugenSource": "desktop",
             "matugenThemeFile": "",
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/voyager-2.jpg"
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/snowy-map.png"
         },
         "clock": {
             "analog": {
@@ -167,7 +167,7 @@
         "showMediaCard": true,
         "useHyprlock": true,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/voyager-2.jpg",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/snowy-map.png",
         "weather": {
             "textColorMode": "adaptive"
         }
@@ -275,7 +275,7 @@
             },
             {
                 "size": 1,
-                "type": "dnd"
+                "type": "autoHideBar"
             }
         ]
     },
@@ -329,18 +329,18 @@
     },
     "statusBar": {
         "autoHide": false,
-        "backgroundCornerRadius": 35,
+        "backgroundCornerRadius": 20,
         "backgroundStyle": 2,
         "centeredWidth": 1300,
         "height": 40,
         "islandStyle": "pill",
-        "layoutStyle": "standard",
+        "layoutStyle": "centered",
         "textColorMode": "adaptive",
-        "trayStyle": "adaptive",
+        "trayStyle": "hide",
         "useGradient": true
     },
     "system": {
-        "bluetoothEnabled": false,
+        "bluetoothEnabled": true,
         "conservationMode": false,
         "easyeffectsEnabled": false,
         "gameModeActive": false,

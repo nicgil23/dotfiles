@@ -27,7 +27,7 @@ Scope {
             screen: modelData
             exclusionMode: ExclusionMode.Ignore
             
-            readonly property bool autoHide: (Config.ready && Config.options.statusBar ? Config.options.statusBar.autoHide : false) || GameMode.active
+            readonly property bool autoHide: ((Config.ready && Config.options.statusBar ? Config.options.statusBar.autoHide : false) && hasAnyWindows) || GameMode.active
             property bool forceShowByHover: false
             readonly property bool barAreaHovered: barHoverHandler.hovered
 
@@ -103,6 +103,14 @@ Scope {
                 ? (Config.options.statusBar.backgroundStyle ?? 0) : 0
             readonly property int cornerRadius: Math.round((Config.ready && Config.options.statusBar
                 ? (Config.options.statusBar.backgroundCornerRadius ?? 20) : 20) * Appearance.effectiveScale)
+
+            readonly property bool hasAnyWindows: {
+                if ((Hyprland.monitorFor(modelData)?.activeWorkspace?.id ?? -1) === -1) return false;
+                const wsId = Hyprland.monitorFor(modelData).activeWorkspace.id;
+                return HyprlandData.windowList.some(w => 
+                    w.workspace.id === wsId && w.monitor === monitorIndex && (w.mapped || w.initialTitle !== "") && !w.hidden
+                );
+            }
 
             readonly property bool hasTiledWindows: {
                 if (bgStyle !== 2 || (Hyprland.monitorFor(modelData)?.activeWorkspace?.id ?? -1) === -1) return false;
