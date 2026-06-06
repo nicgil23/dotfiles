@@ -1,3 +1,12 @@
-# MPD
-hyprland/.config/mpd/*
-!hyprland/.config/mpd/mpd.conf
+# Code & Antigravity
+hyprland/.config/Code/**
+!hyprland/.config/Code/User/
+!hyprland/.config/Code/User/settings.json
+!hyprland/.config/Code/User/keybindings.json
+!hyprland/.config/Code/User/snippets/
+
+hyprland/.config/Antigravity/**
+!hyprland/.config/Antigravity/User/
+!hyprland/.config/Antigravity/User/settings.json
+!hyprland/.config/Antigravity/User/keybindings.json
+!hyprland/.config/Antigravity/User/snippets/
