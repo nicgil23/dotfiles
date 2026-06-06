@@ -16,7 +16,7 @@
             "matugenSource": "desktop",
             "matugenThemeFile": "",
             "showCava": false,
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/126270092_p0.jpg"
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg"
         },
         "clock": {
             "analog": {
@@ -86,8 +86,8 @@
                 "isVertical": false
             },
             "locked": false,
-            "offsetX": 628,
-            "offsetY": 383,
+            "offsetX": 627,
+            "offsetY": 385,
             "pill": {
                 "dateColorStyle": "primary",
                 "isVertical": false,
@@ -208,9 +208,9 @@
         "showCava": true,
         "showMediaCard": true,
         "showWeather": true,
-        "useHyprlock": true,
+        "useHyprlock": false,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/126270092_p0.jpg",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg",
         "weather": {
             "textColorMode": "adaptive"
         }
