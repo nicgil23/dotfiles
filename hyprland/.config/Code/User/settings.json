@@ -71,7 +71,7 @@
     "window.menuBarVisibility": "compact",
     "window.commandCenter": false,
     "workbench.startupEditor": "none",
-    "workbench.colorTheme": "Catppuccin Macchiato",
+    "workbench.colorTheme": "HyprLuna",
     "files.autoSave": "afterDelay",
     "editor.parameterHints.enabled": false
 ,
