@@ -6,10 +6,10 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.core.functions as Functions
-import qs.widgets
-import qs.services
+import "../../core"
+import "../../core/functions" as Functions
+import "../../widgets"
+import "../../services"
 import "utils"
 import "widgets"
 
@@ -44,6 +44,7 @@ PanelWindow {
     property int selectionMode: modeRect
     signal dismiss()
 
+    property string finalScreenshotPath: ""
     property string screenshotDir: Directories.screenshotTemp
     property color overlayColor: Qt.rgba(0, 0, 0, 0.4)
     property color selectionBorderColor: Appearance.colors.colPrimary
@@ -154,7 +155,7 @@ PanelWindow {
         id: cropProcess
         onExited: (exitCode, exitStatus) => {
             if (root.action === actionCopy || root.action === actionEdit) {
-                GlobalStates.screenshotTaken(root.screenshotPath);
+                GlobalStates.screenshotTaken(root.finalScreenshotPath);
             }
             root.dismiss();
         }
@@ -229,18 +230,18 @@ PanelWindow {
         }
 
         
-        const command = ScreenshotAction.getCommand(
+        const actionResult = ScreenshotAction.getCommand(
             root.regionX * root.monitorScale,
             root.regionY * root.monitorScale,
             root.regionWidth * root.monitorScale,
             root.regionHeight * root.monitorScale,
             root.screenshotPath,
-            actionEnum,
-            root.isRecording ? "" : (Config.options.screenshot.autoSave ? Config.options.screenshot.savePath : "temp")
+            actionEnum
         )
         
         root.visible = false; // Hide immediately
-        cropProcess.command = command;
+        root.finalScreenshotPath = actionResult.targetPath;
+        cropProcess.command = actionResult.command;
         cropProcess.running = true;
     }
 
@@ -360,16 +361,31 @@ PanelWindow {
                 }
             }
             
-            // Close Button
-            M3IconButton {
-                id: closeButton
+            Row {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 anchors.margins: 20 * Appearance.effectiveScale
-                iconName: "close"
-                onClicked: root.dismiss()
+                spacing: 12 * Appearance.effectiveScale
                 z: 10000
                 visible: root.visible
+
+                M3IconButton {
+                    id: fullscreenButton
+                    iconName: "fullscreen"
+                    onClicked: {
+                        root.regionX = 0;
+                        root.regionY = 0;
+                        root.regionWidth = root.width;
+                        root.regionHeight = root.height;
+                        root.snip();
+                    }
+                }
+
+                M3IconButton {
+                    id: closeButton
+                    iconName: "close"
+                    onClicked: root.dismiss()
+                }
             }
         }
     }

@@ -1,6 +1,6 @@
-import qs.core
-import qs.widgets
-import qs.core.functions as Functions
+import "../../core"
+import "../../widgets"
+import "../../core/functions" as Functions
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -37,7 +37,7 @@ Item {
             anchors.rightMargin: 12 * Appearance.effectiveScale
             spacing: 12 * Appearance.effectiveScale
 
-            // -- Slot Kiri: Icon Wrapper --
+            // ── Slot Kiri: Icon Wrapper ──
             Item {
                 Layout.preferredWidth: 32 * Appearance.effectiveScale
                 Layout.preferredHeight: 32 * Appearance.effectiveScale
@@ -61,7 +61,7 @@ Item {
                 }
             }
 
-            // -- Slot Tengah: Main Content (Sleeker StyledSlider) --
+            // ── Slot Tengah: Main Content (Sleeker StyledSlider) ──
             Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 32 * Appearance.effectiveScale
@@ -87,7 +87,7 @@ Item {
                 }
             }
 
-            // -- Slot Kanan: Value Indicator (Compact Centered Square) --
+            // ── Slot Kanan: Value Indicator (Compact Centered Square) ──
             Rectangle {
                 id: valueSlot
                 Layout.preferredWidth: 44 * Appearance.effectiveScale
@@ -102,7 +102,7 @@ Item {
                     text: Math.round(root.value * 100)
                     font.pixelSize: 13 * Appearance.effectiveScale
                     font.family: Appearance.font.family.numbers
-                    font.weight: Font.Bold
+                    font.weight: Font.DemiBold
                     color: Appearance.m3colors.m3onSecondaryContainer
                     
                     horizontalAlignment: Text.AlignHCenter

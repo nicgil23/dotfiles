@@ -1,6 +1,6 @@
 pragma Singleton
-import qs.core
-import qs.services
+import "../core"
+import "../services"
 import Quickshell
 import QtQuick
 
@@ -20,7 +20,7 @@ Singleton {
     }
 
     function logout() {
-        Quickshell.execDetached(["hyprctl", "dispatch", "exit"]);
+        Quickshell.execDetached(["hyprctl", "dispatch", HyprlandCompat.dsp("exit", "exit")]);
     }
 
     function launchTaskManager() {

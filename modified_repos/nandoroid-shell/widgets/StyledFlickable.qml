@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import qs.core
+import "../core"
 
 Flickable {
     id: root

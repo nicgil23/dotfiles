@@ -1,5 +1,5 @@
-import qs.core
-import qs.core.functions
+import "../core"
+import "../core/functions"
 import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects

@@ -1,7 +1,7 @@
-import qs.core
-import qs.widgets
-import qs.services
-import qs.core.functions
+import "../../core"
+import "../../widgets"
+import "../../services"
+import "../../core/functions"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -66,7 +66,6 @@ Item {
                     StyledText {
                         Layout.alignment: Qt.AlignVCenter
                         font.pixelSize: 10 * Appearance.effectiveScale
-                        Layout.topMargin: 3 * Appearance.effectiveScale
                         font.weight: Font.DemiBold
                         text: batteryProgress.text
                         color: (isLow && !isCharging) ? "#FFFFFF" : root.color

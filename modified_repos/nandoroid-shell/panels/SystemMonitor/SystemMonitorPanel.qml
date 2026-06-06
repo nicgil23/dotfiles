@@ -1,19 +1,24 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 
 import "pages"
 
 /**
  * High-fidelity System Monitor Panel for NAnDoroid.
+ * Features:
+ * - Real-time performance graphs (CPU, RAM, Network, Disk)
+ * - Process management with right-click menu
+ * - GPU statistics
+ * - Navigation sidebar
  */
 Scope {
     id: rootScope
@@ -76,11 +81,11 @@ Scope {
                 anchors.margins: 12 * Appearance.effectiveScale
                 spacing: 12 * Appearance.effectiveScale
 
-                // -- Global Header --
+                // ── Global Header ──
                 Item {
                     id: headerWrapper
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 52 * Appearance.effectiveScale
+                    Layout.preferredHeight: 52 * Appearance.effectiveScale // Reduced from 64
 
                     RowLayout {
                         anchors.fill: parent
@@ -91,7 +96,7 @@ Scope {
                         StyledText {
                             text: "System Monitor"
                             font.pixelSize: 24 * Appearance.effectiveScale
-                            font.weight: Font.Bold
+                            font.weight: Font.DemiBold
                             color: Appearance.colors.colOnLayer0
                             Layout.alignment: Qt.AlignVCenter
                         }
@@ -116,7 +121,7 @@ Scope {
                     }
                 }
 
-                // -- Main Content Area (Sidebar + Pages) --
+                // ── Main Content Area (Sidebar + Pages) ──
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -201,25 +206,25 @@ Scope {
                         }
                     }
                 
-                    // Main Content Area
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        color: Appearance.colors.colLayer1
-                        radius: 20 * Appearance.effectiveScale
-                        clip: true
+                // Main Content Area
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    color: Appearance.colors.colLayer1
+                    radius: 20 * Appearance.effectiveScale
+                    clip: true
+                    
+                    StackLayout {
+                        anchors.fill: parent
+                        currentIndex: GlobalStates.systemMonitorIndex
                         
-                        StackLayout {
-                            anchors.fill: parent
-                            currentIndex: GlobalStates.systemMonitorIndex
-                            
-                            PerformancePage {}
-                            BatteryPage { visible: Battery.available }
-                            ProcessesPage {}
-                        }
-                    }
-                }
-            }
-        }
-    }
+                        PerformancePage {}
+                        BatteryPage { visible: Battery.available }
+                        ProcessesPage {}
+                    } // End contentContainer Loader
+                } // End Main Content RowLayout
+            } // End Global ColumnLayout
+        } // End Main Panel Background Rectangle
+    } // End FloatingWindow
+} // End Scope
 }

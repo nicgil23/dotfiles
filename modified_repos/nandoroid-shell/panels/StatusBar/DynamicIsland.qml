@@ -19,6 +19,8 @@ Item {
     
     property HyprlandMonitor monitor
     property bool pomodoroActive: PomodoroService.isSessionRunning
+    property bool timerActive: TimerService.active || (TimerService.remainingTime < TimerService.duration && TimerService.remainingTime > 0)
+    property bool stopwatchActive: StopwatchService.active || StopwatchService.elapsedMs > 0
     property real indicatorWidth: 52 * Appearance.effectiveScale 
     
     width: 0 
@@ -52,6 +54,8 @@ Item {
         if (Notifications.activePopup) return "notification"
         if (ScreenRecord.active) return "recording"
         if ((mediaShowing || GlobalStates.mediaNotchOpen) && MprisController.activePlayer) return "media"
+        if (timerActive) return "timer"
+        if (stopwatchActive) return "stopwatch"
         if (pomodoroActive) return "pomodoro"
         return "idle"
     }
@@ -117,6 +121,8 @@ Item {
                     ? root.sharedMediaWidth : root.mediaLeftNaturalWidth
                 return Math.min(w, root.currentEarMaxWidth)
             }
+            if (islandState === "timer") return Math.min(timerLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
+            if (islandState === "stopwatch") return Math.min(stopwatchLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
             if (islandState === "pomodoro") return Math.min(pomoModeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
             return 0
         }
@@ -147,7 +153,7 @@ Item {
                 visible: islandState === "notification"
                 opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold
+                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.Medium
                 color: Appearance.colors.colNotchText
                 width: Math.min(implicitWidth, root.currentEarMaxWidth - (notifLogo.visible ? 28 * Appearance.effectiveScale : 8 * Appearance.effectiveScale))
                 elide: Text.ElideRight
@@ -184,28 +190,22 @@ Item {
                 opacity: parent.parent.width > (24 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
                 property string activeEntryStr: {
                     if (!MprisController.activePlayer) return "";
-                    let entry = MprisController.activePlayer.desktopEntry?.toString() || "";
-                    let identity = MprisController.activePlayer.identity?.toString() || "";
-                    let guessed = AppSearch.guessIcon(entry, "", identity);
-                    return (guessed === "application-x-executable" || guessed === "") ? "" : guessed;
+                    let entry = MprisController.activePlayer.desktopEntry.toString();
+                    let identity = MprisController.activePlayer.identity ? MprisController.activePlayer.identity.toString() : "";
+                    return AppSearch.guessIcon(entry, "", identity);
                 }
                 
                 sourceComponent: Component { 
                     Item {
                         width: 18 * Appearance.effectiveScale; height: 18 * Appearance.effectiveScale
-                        Image { 
+                        IconImage { 
                             id: innerImg; anchors.fill: parent; 
-                            sourceSize: Qt.size(width, height)
-                            fillMode: Image.PreserveAspectFit
                             source: mediaLogo.activeEntryStr !== "" ? Quickshell.iconPath(mediaLogo.activeEntryStr, "") : ""
                             visible: status === Image.Ready
                         }
-                        StyledText {
-                            anchors.centerIn: parent
-                            text: "󰎆" // Nerd Font Musical Note
-                            font.pixelSize: 18 * Appearance.effectiveScale
-                            color: Appearance.colors.colNotchText
-                            visible: innerImg.status !== Image.Ready
+                        MaterialSymbol {
+                            anchors.centerIn: parent; text: "music_note"; iconSize: 18 * Appearance.effectiveScale
+                            color: Appearance.colors.colNotchText; visible: innerImg.status !== Image.Ready
                         }
                     }
                 }
@@ -214,7 +214,7 @@ Item {
                 id: mediaArtistLabel; text: MprisController.trackArtist || "Unknown Artist"
                 visible: islandState === "media"; opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.Medium; color: Appearance.colors.colNotchText
                 width: Math.min(implicitWidth, parent.parent.width - (mediaLogo.visible ? 28 * Appearance.effectiveScale : 8 * Appearance.effectiveScale))
                 elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter
             }
@@ -227,6 +227,24 @@ Item {
             opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
             font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
             visible: islandState === "pomodoro"
+        }
+
+        // Timer - centered
+        StyledText {
+            id: timerLabel; anchors.centerIn: parent
+            text: "Timer"
+            opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
+            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            visible: islandState === "timer"
+        }
+
+        // Stopwatch - centered
+        StyledText {
+            id: stopwatchLabel; anchors.centerIn: parent
+            text: "Cronómetro"
+            opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
+            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            visible: islandState === "stopwatch"
         }
     }
 
@@ -258,6 +276,8 @@ Item {
                     ? root.sharedMediaWidth : root.mediaRightNaturalWidth
                 return Math.min(w, root.currentEarMaxWidth)
             }
+            if (islandState === "timer") return Math.min(timerTimeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
+            if (islandState === "stopwatch") return Math.min(stopwatchTimeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
             if (islandState === "pomodoro") return Math.min(pomoTimeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
             return 0
         }
@@ -299,8 +319,26 @@ Item {
             id: pomoTimeLabel; anchors.centerIn: parent
             text: PomodoroService.timeString
             opacity: parent.width > (10 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.Bold; color: Appearance.colors.colNotchText
+            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
             font.family: Appearance.font.family.numbers; visible: islandState === "pomodoro"
+        }
+
+        // Timer duration - centered
+        StyledText {
+            id: timerTimeLabel; anchors.centerIn: parent
+            text: TimerService.timeString
+            opacity: parent.width > (10 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
+            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            font.family: Appearance.font.family.numbers; visible: islandState === "timer"
+        }
+
+        // Stopwatch elapsed - centered
+        StyledText {
+            id: stopwatchTimeLabel; anchors.centerIn: parent
+            text: StopwatchService.timeString
+            opacity: parent.width > (10 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
+            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            font.family: Appearance.font.family.numbers; visible: islandState === "stopwatch"
         }
     }
 
@@ -356,14 +394,15 @@ Item {
                 if (mouse.button === Qt.RightButton) { GlobalStates.overviewOpen = !GlobalStates.overviewOpen; return; }
                 if (islandState === "notification" && Notifications.activePopup) { Notifications.activePopup.expanded = !Notifications.activePopup.expanded }
                 else if (islandState === "media") { MprisController.raisePlayer(); GlobalStates.closeAllPanels() }
-                else if (islandState === "pomodoro") { GlobalStates.dashboardOpen = true }
+                else if (islandState === "pomodoro") { GlobalStates.dashboardActiveTab = 0; GlobalStates.dashboardOpen = true }
+                else if (islandState === "timer" || islandState === "stopwatch") { GlobalStates.dashboardActiveTab = 3; GlobalStates.dashboardOpen = true }
             }
             onScrollUp: {
                 if (root.monitor && root.monitor.activeWorkspace && root.monitor.activeWorkspace.id > 1) {
-                    Hyprland.dispatch("workspace r-1")
+                    Hyprland.dispatch(HyprlandCompat.dspWorkspace("r-1"))
                 }
             }
-            onScrollDown: Hyprland.dispatch("workspace r+1")
+            onScrollDown: Hyprland.dispatch(HyprlandCompat.dspWorkspace("r+1"))
         }
     }
 }

@@ -1,8 +1,8 @@
-import qs.services
+import "../../../services"
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import qs.widgets
+import "../../widgets"
 import ".." 
 
 OsdValueIndicator {
@@ -10,7 +10,7 @@ OsdValueIndicator {
     property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
     property var brightnessMonitor: Brightness.getMonitorForScreen(focusedScreen)
 
-    icon: "light_mode"
+    icon: "light_mode" // Hyprsunset removed
     rotateIcon: true
     scaleIcon: true
     name: "Brightness"

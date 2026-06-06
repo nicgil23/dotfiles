@@ -3,10 +3,10 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 
 /**
  * DockAppButton component for the dock.
@@ -81,11 +81,9 @@ DockButton {
             width: root.iconSize
             height: root.iconSize
 
-            Image {
+            IconImage {
                 id: iconImage
                 anchors.fill: parent
-                sourceSize: Qt.size(width, height)
-                fillMode: Image.PreserveAspectFit
                 property string iconName: appToplevel ? AppSearch.guessIcon(appToplevel.appId) : ""
                 source: iconName !== "" ? Quickshell.iconPath(iconName, "application-x-executable") : ""
                 visible: !(Config.ready && Config.options.dock.monochromeIcons) && source !== ""
@@ -106,7 +104,7 @@ DockButton {
                 visible: appToplevel && notifCount > 0
                 z: 10
                 readonly property int notifCount: appToplevel ? Notifications.getCountForApp(appToplevel.appId) : 0
-                StyledText { anchors.centerIn: parent; text: parent.notifCount > 9 ? "!" : parent.notifCount; font.pixelSize: 10 * Appearance.effectiveScale; font.weight: Font.Bold; color: "white" }
+                StyledText { anchors.centerIn: parent; text: parent.notifCount > 9 ? "!" : parent.notifCount; font.pixelSize: 10 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: "white" }
                 scale: visible ? 1 : 0
                 Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
             }

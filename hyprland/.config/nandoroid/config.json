@@ -5,15 +5,18 @@
             "autoCycleDirectory": "file:///home/hypr/Pictures/wallpapers",
             "autoCycleEnabled": false,
             "autoCycleInterval": 30,
-            "darkmode": true,
-            "favorites": [
+            "cavaOpacity": 0.15,
+            "customFolders": [
             ],
+            "darkmode": true,
+            "liveWallpaperPath": "",
             "matugen": true,
-            "matugenCustomColor": "#cdd6f4",
+            "matugenCustomColor": "",
             "matugenScheme": "scheme-content",
             "matugenSource": "desktop",
             "matugenThemeFile": "",
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/snowy-map.png"
+            "showCava": false,
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/126270092_p0.jpg"
         },
         "clock": {
             "analog": {
@@ -68,19 +71,39 @@
             },
             "digital": {
                 "colorStyle": "primary",
+                "dateFontSize": 24,
+                "dateGap": 4,
                 "fontSize": 84,
                 "hideAmPm": false,
                 "isVertical": false
             },
             "digitalLocked": {
                 "colorStyle": "primary",
+                "dateFontSize": 24,
+                "dateGap": 4,
                 "fontSize": 84,
                 "hideAmPm": false,
                 "isVertical": false
             },
             "locked": false,
-            "offsetX": 0,
-            "offsetY": -50,
+            "offsetX": 628,
+            "offsetY": 383,
+            "pill": {
+                "dateColorStyle": "primary",
+                "isVertical": false,
+                "pillColorStyle": "surfaceContainerHigh",
+                "showBackground": true,
+                "size": 120,
+                "timeColorStyle": "onLayer0"
+            },
+            "pillLocked": {
+                "dateColorStyle": "primary",
+                "isVertical": false,
+                "pillColorStyle": "surfaceContainerHigh",
+                "showBackground": true,
+                "size": 120,
+                "timeColorStyle": "onLayer0"
+            },
             "showDate": true,
             "showOnDesktop": true,
             "stacked": {
@@ -105,6 +128,20 @@
             },
             "style": "digital",
             "styleLocked": "digital",
+            "text": {
+                "alignment": "center",
+                "dateColorStyle": "primary",
+                "dateFontSize": 18,
+                "fontSize": 42,
+                "timeColorStyle": "onSurface"
+            },
+            "textLocked": {
+                "alignment": "center",
+                "dateColorStyle": "primary",
+                "dateFontSize": 18,
+                "fontSize": 42,
+                "timeColorStyle": "onSurface"
+            },
             "useSameStyle": true
         },
         "fonts": {
@@ -113,16 +150,16 @@
             "numbers": "JetBrainsMono Nerd Font Propo",
             "title": "JetBrainsMono Nerd Font Propo"
         },
-        "globalScale": 1,
+        "globalScale": 0.9,
         "screenCorners": {
             "mode": 1,
             "radius": 20
         }
     },
     "bar": {
-        "avatar_path": "",
+        "avatar_path": "/home/hypr/dotfiles/hyprland/.config/hypr/img/nerd_emoji.jpg",
         "distroIcon": "",
-        "network_speed_unit": "KB",
+        "network_speed_unit": "MB",
         "show_distro_icon": true,
         "show_network_speed": false
     },
@@ -139,7 +176,7 @@
         "ignoredAppRegexes": [
             "^xwaylandvideobridge$"
         ],
-        "monochromeIcons": true,
+        "monochromeIcons": false,
         "pinnedApps": [
             "kitty",
             "firefox",
@@ -149,25 +186,31 @@
             "com.rtosta.zapzap"
         ],
         "pinnedOnStartup": false,
-        "scale": 1,
+        "scale": 0.8500000000000001,
         "showLauncher": true,
         "showOnlyInDesktop": true,
         "showOverview": true
+    },
+    "gameModeState": {
+        "previousLayout": "",
+        "previousLiveWallpaperPath": ""
     },
     "github": {
         "githubToken": "",
         "githubUsername": "nicgil23"
     },
     "lock": {
+        "cavaOpacity": 0.15,
         "launchOnStartup": false,
         "security": {
             "requirePasswordToPower": true
         },
         "showCava": true,
         "showMediaCard": true,
+        "showWeather": true,
         "useHyprlock": true,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/snowy-map.png",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/126270092_p0.jpg",
         "weather": {
             "textColorMode": "adaptive"
         }
@@ -175,17 +218,16 @@
     "media": {
         "balancedEars": true,
         "enableMediaHover": true,
-        "notchMediaStyle": "mini",
+        "notchMediaStyle": "full",
         "priority": "",
         "showMediaCard": true
     },
     "nightMode": {
         "active": false,
-        "colorTemperature": 3900
+        "colorTemperature": 4500
     },
     "notifications": {
-        "counterStyle": "counter",
-        "silent": false,
+        "counterStyle": "simple",
         "timeout_ms": 2000
     },
     "overview": null,
@@ -212,10 +254,6 @@
             {
                 "size": 2,
                 "type": "bluetooth"
-            },
-            {
-                "size": 2,
-                "type": "warp"
             },
             {
                 "size": 1,
@@ -319,7 +357,7 @@
         "enableGrouping": false,
         "enableUsageTracking": true,
         "filePrefix": "?",
-        "iconShape": "Square",
+        "iconShape": "Circle",
         "imageSearch": {
             "imageSearchEngineBaseUrl": "https://lens.google.com/uploadbyurl?url="
         },
@@ -332,6 +370,7 @@
         "backgroundCornerRadius": 20,
         "backgroundStyle": 2,
         "centeredWidth": 1300,
+        "clockPosition": "center",
         "height": 40,
         "islandStyle": "pill",
         "layoutStyle": "centered",
@@ -341,18 +380,18 @@
     },
     "system": {
         "bluetoothEnabled": true,
-        "conservationMode": false,
         "easyeffectsEnabled": false,
-        "gameModeActive": false,
-        "lastUpdateCheckDate": "",
+        "lastUpdateCheckDate": "2026-06-06",
         "monitoredDisks": [
             {
                 "alias": "System",
                 "path": "/"
+            },
+            {
+                "alias": "Home",
+                "path": "/home"
             }
-        ],
-        "warpConnected": false,
-        "wifiEnabled": true
+        ]
     },
     "time": {
         "dateFormat": "ddd, dd/MM",
@@ -361,10 +400,23 @@
         "longDateFormat": "dd/MM/yyyy",
         "timeStyle": "24H"
     },
+    "wallpaperEngine": {
+        "autoPause": true,
+        "disableAudioProcessing": false,
+        "disableMouse": false,
+        "disableParallax": false,
+        "disableParticles": true,
+        "fps": 30,
+        "noPbo": false,
+        "scaling": "fill",
+        "silent": false,
+        "volume": 15
+    },
     "weather": {
         "autoLocation": true,
         "enable": true,
         "location": "",
+        "provider": "openmeteo",
         "showDailyForecast": true,
         "unit": "C",
         "updateInterval": 30

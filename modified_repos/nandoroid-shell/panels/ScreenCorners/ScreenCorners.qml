@@ -13,7 +13,7 @@ Scope {
         property var screen: QsWindow.window?.screen
         property var corner
         property bool fullscreen
-        
+
         // Mode: 0 = Off, 1 = On (Hide fullscreen), 2 = Always On
         visible: {
             if (!Config.ready || !Config.options.appearance.screenCorners) return false;

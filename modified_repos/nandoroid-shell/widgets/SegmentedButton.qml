@@ -1,4 +1,4 @@
-import qs.core
+import "../core"
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -12,7 +12,7 @@ import Quickshell
 SegmentedWrapper {
     id: root
     
-    // -- Input Properties --
+    // ── Input Properties ──
     property bool checked: false // Use a dedicated property instead of aliasing to internal button.toggled
     property string iconName: ""
     property int iconSize: 24 * Appearance.effectiveScale

@@ -56,6 +56,7 @@ if [[ -d "$VENV_PATH" && -f "$COLOR_FILE" ]]; then
     MODE_FLAG="-l"
     [[ "$DARK_MODE" == "true" ]] && MODE_FLAG="-d"
 
-    # Run in background as it might take a moment to apply
+    # Immediately kill any previous instance and run in background
+    pkill -f "kde-material-you-colors"
     "$VENV_PATH/bin/kde-material-you-colors" "$MODE_FLAG" --color "$COLOR" -sv "$sv_num" &
 fi

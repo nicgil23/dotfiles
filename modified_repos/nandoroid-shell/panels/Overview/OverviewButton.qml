@@ -1,9 +1,9 @@
 import QtQuick
-import qs.core
-import qs.services
-import qs.core
-import qs.widgets
-import qs.core
+import "../../core"
+import "../../services"
+import "../../core"
+import "../../widgets"
+import "../../core"
 
 ToggleButton {
     buttonIcon: "grid_view"

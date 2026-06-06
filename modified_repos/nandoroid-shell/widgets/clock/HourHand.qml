@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
-import qs.core
+import "../../core"
 
 Item {
     id: root
@@ -16,12 +16,12 @@ Item {
 
     property real fillColorAlpha: root.style === "hollow" ? 0 : 1
     Behavior on fillColorAlpha {
-        animation: ({duration: 300})
+        NumberAnimation { duration: 300 }
     }
 
     rotation: -90 + (360 / 12) * (root.clockHour + root.clockMinute / 60)
     Behavior on rotation {
-        animation: RotationAnimation {
+        RotationAnimation {
             direction: RotationAnimation.Clockwise
             duration: 300
             easing.type: Easing.BezierSpline
@@ -40,7 +40,7 @@ Item {
         border.width: 4
 
         Behavior on x {
-            animation: ({duration: 300})
+            NumberAnimation { duration: 300 }
         }
     }
 }

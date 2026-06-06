@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import qs.core
+import "../core"
 
 ScrollBar {
     id: root
@@ -12,9 +12,10 @@ ScrollBar {
 
     contentItem: Rectangle {
         implicitWidth: 4 * Appearance.effectiveScale
-        implicitHeight: root.visualSize
+        // Fix binding loop by using height instead of visualSize which depends on contentItem height
+        height: root.height * root.visualSize
         radius: width / 2
-        color: Appearance.m3colors.m3onSurfaceVariant // Adapted color
+        color: Appearance.m3colors.m3onSurfaceVariant
         
         opacity: root.policy === ScrollBar.AlwaysOn || (root.active && root.size < 1.0) ? 0.5 : 0
         Behavior on opacity {

@@ -1,10 +1,11 @@
-import qs.core
-import qs.widgets
+import "../../core"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 
 /**
  * Android 16 Style Session Action Button
+ * Guaranteed 1:1 aspect ratio to prevent "gepeng" (flattened) look.
  */
 RippleButton {
     id: root
@@ -12,12 +13,15 @@ RippleButton {
     property string iconName
     property string actionText
     
+    // Scale relative to height to maintain consistent vertical size across resolutions
     readonly property real baseScale: (Appearance.sizes.screen.height / 1080) * Appearance.effectiveScale
     readonly property real buttonSize: 128 * baseScale
     
+    // Hard-set width and height to force 1:1
     width: buttonSize
     height: buttonSize
     
+    // Also set layouts properties just in case
     Layout.preferredWidth: buttonSize
     Layout.preferredHeight: buttonSize
     Layout.minimumWidth: buttonSize
@@ -28,6 +32,7 @@ RippleButton {
     
     onHoveredChanged: if (root.hovered) root.forceActiveFocus()
 
+    // Circular when active
     buttonRadius: (root.activeFocus || root.down) ? (buttonSize / 2) : (28 * baseScale)
 
     colBackground: root.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3surfaceContainerHighest
@@ -64,10 +69,6 @@ RippleButton {
     }
     
     Keys.onPressed: (event) => {
-        if (event.key === Qt.Key_H) { if (KeyNavigation.left) KeyNavigation.left.forceActiveFocus(); event.accepted = true; }
-        if (event.key === Qt.Key_J) { if (KeyNavigation.down) KeyNavigation.down.forceActiveFocus(); event.accepted = true; }
-        if (event.key === Qt.Key_K) { if (KeyNavigation.up) KeyNavigation.up.forceActiveFocus(); event.accepted = true; }
-        if (event.key === Qt.Key_L) { if (KeyNavigation.right) KeyNavigation.right.forceActiveFocus(); event.accepted = true; }
 
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
             root.clicked()

@@ -1,5 +1,5 @@
-import qs.widgets
-import qs.core
+import "../../widgets"
+import "../../core"
 import QtQuick
 
 RippleButton {
@@ -17,6 +17,7 @@ RippleButton {
         }
     }
 
+    background.anchors.fill: button
     buttonRadius: Appearance.rounding.full
     colBackground: Appearance.colors.colLayer2
     colBackgroundHover: Appearance.colors.colLayer2Hover

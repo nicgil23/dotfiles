@@ -27,7 +27,7 @@ Singleton {
         switch (options.time.dateStyle) {
             case "DMY": return "ddd, dd/MM"
             case "MDY": return "ddd, MM/dd"
-            case "YMD": return "yyyy/MM/dd" // Short YMD usually uses dots or dashes but let's stick to slash for consistency or use YYYY-MM-DD
+            case "YMD": return "yyyy/MM/dd" 
             default:    return "ddd, dd/MM"
         }
     }
@@ -63,7 +63,6 @@ Singleton {
         onFileChanged: fileReloadTimer.restart()
         onAdapterUpdated: fileWriteTimer.restart()
         onLoaded: {
-            console.log("[Config] Loaded configuration from:", root.filePath);
             root.ready = true;
         }
         onLoadFailed: error => {
@@ -81,8 +80,8 @@ Singleton {
                 property string format: "hh:mm"
                 property string dateFormat: "ddd, dd/MM"
                 property string longDateFormat: "dd/MM/yyyy"
-                property string timeStyle: "24H" // 12H_pm, 12H_PM, 24H
-                property string dateStyle: "DMY" // DMY, MDY, YMD
+                property string timeStyle: "24H" 
+                property string dateStyle: "DMY" 
             }
 
             // --- Appearance ---
@@ -90,9 +89,9 @@ Singleton {
                 property real globalScale: 1.0
                 property bool autoScale: true
                 property JsonObject fonts: JsonObject {
-                    property string main: "SF Pro Rounded"
-                    property string numbers: "SF Pro Rounded"
-                    property string title: "SF Pro Rounded"
+                    property string main: "Google Sans Flex"
+                    property string numbers: "Google Sans Flex"
+                    property string title: "Google Sans Flex"
                     property string monospace: "JetBrains Mono NF"
                 }
                 property JsonObject background: JsonObject {
@@ -103,13 +102,15 @@ Singleton {
                     property string matugenCustomColor: "#3F51B5"
                     property string matugenThemeFile: ""
                     property string matugenSource: "desktop"
+                    property string liveWallpaperPath: ""
                     property bool autoCycleEnabled: false
-                    property string autoCycleDirectory: Directories.home + "/Pictures/wallpapers"
-                    property int autoCycleInterval: 30 // in minutes
-                    property list<string> favorites: []
+                    property string autoCycleDirectory: Directories.home + "/Pictures/Wallpapers"
+                    property int autoCycleInterval: 30 
+                    property list<string> customFolders: []
+                    property bool showCava: false
+                    property real cavaOpacity: 0.15
                 }
                 property JsonObject screenCorners: JsonObject {
-                    // mode: 0 (Off), 1 (On, hide on fullscreen), 2 (Always On)
                     property int mode: 1
                     property int radius: 20
                 }
@@ -127,36 +128,35 @@ Singleton {
                         property bool isVertical: false
                         property string colorStyle: "primary"
                         property int fontSize: 84
+                        property int dateFontSize: 24
+                        property int dateGap: 4
                         property bool hideAmPm: false
                     }
-
-                    // Independent lockscreen digital settings (used when useSameStyle is false)
                     property JsonObject digitalLocked: JsonObject {
                         property bool isVertical: false
                         property string colorStyle: "primary"
                         property int fontSize: 84
+                        property int dateFontSize: 24
+                        property int dateGap: 4
                         property bool hideAmPm: false
                     }
-
                     property JsonObject analog: JsonObject {
                         property bool constantlyRotate: false
-                        property string backgroundStyle: "shape" // shape, cookie, sine, none
+                        property string backgroundStyle: "shape" 
                         property int sides: 12
                         property string backgroundShape: "Circle" 
-                        property string shape: "Circle" // alias for backgroundShape
+                        property string shape: "Circle" 
                         property bool showMarks: true
                         property bool hourMarks: false
                         property bool timeIndicators: false
-                        property string dateStyle: "bubble" // bubble, border, rect, none
-                        property string handStyle: "modern" // fallback
-                        property string hourHandStyle: "fill" // fill, classic, hollow, none
-                        property string minuteHandStyle: "bold" // bold, medium, thin, classic, none
-                        property string secondHandStyle: "dot" // dot, line, classic, none
-                        property string dialStyle: "dots" // dots, numbers, full, none
+                        property string dateStyle: "bubble" 
+                        property string handStyle: "modern" 
+                        property string hourHandStyle: "fill" 
+                        property string minuteHandStyle: "bold" 
+                        property string secondHandStyle: "dot" 
+                        property string dialStyle: "dots" 
                         property int size: 240
                     }
-
-                    // Independent lockscreen analog settings (used when useSameStyle is false)
                     property JsonObject analogLocked: JsonObject {
                         property bool constantlyRotate: false
                         property string backgroundStyle: "shape"
@@ -174,7 +174,6 @@ Singleton {
                         property string dialStyle: "dots"
                         property int size: 240
                     }
-
                     property JsonObject code: JsonObject {
                         property string valueColorStyle: "primary"
                         property string keywordColorStyle: "tertiary"
@@ -183,8 +182,6 @@ Singleton {
                         property string blockType: "js"
                         property string fontFamily: "JetBrainsMono Nerd Font"
                     }
-
-                    // Independent lockscreen code settings (used when useSameStyle is false)
                     property JsonObject codeLocked: JsonObject {
                         property string valueColorStyle: "primary"
                         property string keywordColorStyle: "tertiary"
@@ -193,27 +190,55 @@ Singleton {
                         property string blockType: "js"
                         property string fontFamily: "JetBrainsMono Nerd Font"
                     }
-
                     property JsonObject stacked: JsonObject {
                         property string colorStyle: "error"
                         property string textColorStyle: "onSurface"
                         property int fontSize: 84
                         property int labelFontSize: 42
-                        property string fontFamily: "SF Pro Rounded"
+                        property string fontFamily: "Google Sans Flex"
                         property string fontWeight: "Medium"
                         property string labelFontWeight: "Light"
                         property string alignment: "left"
                     }
-
                     property JsonObject stackedLocked: JsonObject {
                         property string colorStyle: "error"
                         property string textColorStyle: "onSurface"
                         property int fontSize: 84
                         property int labelFontSize: 42
-                        property string fontFamily: "SF Pro Rounded"
+                        property string fontFamily: "Google Sans Flex"
                         property string fontWeight: "Medium"
                         property string labelFontWeight: "Light"
                         property string alignment: "left"
+                    }
+                    property JsonObject text: JsonObject {
+                        property int fontSize: 42
+                        property int dateFontSize: 18
+                        property string alignment: "center"
+                        property string timeColorStyle: "onSurface"
+                        property string dateColorStyle: "primary"
+                    }
+                    property JsonObject textLocked: JsonObject {
+                        property int fontSize: 42
+                        property int dateFontSize: 18
+                        property string alignment: "center"
+                        property string timeColorStyle: "onSurface"
+                        property string dateColorStyle: "primary"
+                    }
+                    property JsonObject pill: JsonObject {
+                        property int size: 120
+                        property bool isVertical: false
+                        property bool showBackground: true
+                        property string timeColorStyle: "onLayer0"
+                        property string dateColorStyle: "primary"
+                        property string pillColorStyle: "surfaceContainerHigh"
+                    }
+                    property JsonObject pillLocked: JsonObject {
+                        property int size: 120
+                        property bool isVertical: false
+                        property bool showBackground: true
+                        property string timeColorStyle: "onLayer0"
+                        property string dateColorStyle: "primary"
+                        property string pillColorStyle: "surfaceContainerHigh"
                     }
                 }
             }
@@ -221,61 +246,57 @@ Singleton {
             // --- Workspaces ---
             property JsonObject workspaces: JsonObject {
                 property int max_shown: 5
-                property string indicatorStyle: "pill" // pill, unified
-                property string indicatorLabel: "none" // none, numeric, japanese, roman
+                property string indicatorStyle: "pill" 
+                property string indicatorLabel: "none" 
             }
 
             // --- Bar ---
             property JsonObject bar: JsonObject {
                 property bool show_distro_icon: true
-                property string distroIcon: "" // manual override, e.g. "cachyos-symbolic"
+                property string distroIcon: "" 
                 property string avatar_path: ""
                 property bool show_network_speed: false
-                property string network_speed_unit: "KB" // B, KB, MB
+                property string network_speed_unit: "KB" 
             }
 
             // --- Status Bar ---
             property JsonObject statusBar: JsonObject {
                 property real height: 40
-                property string layoutStyle: "standard" // standard, centered
+                property string layoutStyle: "standard" 
                 property int centeredWidth: 1200
-                property string textColorMode: "adaptive" // adaptive, light, dark
+                property string clockPosition: "center" 
+                property string textColorMode: "adaptive" 
                 property bool useGradient: true
-                // 0 = None (transparent), 1 = Always (solid), 2 = Adaptive (show when window active)
                 property int backgroundStyle: 0
                 property int backgroundCornerRadius: 20
-                property string islandStyle: "pill" // pill, waterdrop
+                property string islandStyle: "pill" 
                 property bool autoHide: false
-                property string trayStyle: "adaptive" // all, adaptive, hide
+                property string trayStyle: "adaptive" 
             }
 
             // --- Quick Settings ---
             property JsonObject quickSettings: JsonObject {
                 property bool caffeineActive: false
                 property bool showPerformanceStats: true
-                property string quickActionsPosition: "top" // top or bottom
+                property string quickActionsPosition: "top" 
                 property list<var> toggles: [
                     { "type": "wifi", "size": 2 },
                     { "type": "bluetooth", "size": 2 },
-                    { "type": "dnd", "size": 1 },
-                    { "type": "darkMode", "size": 1 },
-                    { "type": "caffeine", "size": 1 },
-                    { "type": "nightLight", "size": 1 },
-                    { "type": "colorPicker", "size": 1 },
-                    { "type": "screenSnip", "size": 1 },
                     { "type": "gameMode", "size": 1 },
-                    { "type": "screenRecord", "size": 1 },
-                    { "type": "ocr", "size": 1 },
-                    { "type": "qrcode", "size": 1 },
-                    { "type": "musicRecognition", "size": 1 },
-                    { "type": "easyEffects", "size": 1 },
-                    { "type": "conservationMode", "size": 1 },
-                    { "type": "warp", "size": 2 },
-                    { "type": "audioOutput", "size": 1 },
-                    { "type": "audioInput", "size": 1 },
                     { "type": "powerProfile", "size": 2 },
-                    { "type": "restartShell", "size": 1 },
-                    { "type": "autoRotation", "size": 1 }
+                    { "type": "caffeine", "size": 1 },
+                    { "type": "audioInput", "size": 1 },
+                    { "type": "audioOutput", "size": 1 },
+                    { "type": "musicRecognition", "size": 1 },
+                    { "type": "nightLight", "size": 1 },
+                    { "type": "screenRecord", "size": 1 },
+                    { "type": "screenSnip", "size": 1 },
+                    { "type": "qrcode", "size": 1 },
+                    { "type": "ocr", "size": 1 },
+                    { "type": "autoRotation", "size": 1 },
+                    { "type": "colorPicker", "size": 1 },
+                    { "type": "vpnUcm", "size": 1 },
+                    { "type": "autoHideBar", "size": 1 }
                 ]
             }
 
@@ -283,9 +304,9 @@ Singleton {
             property JsonObject dock: JsonObject {
                 property bool enable: true
                 property bool autoHide: false
-                property int autoHideMode: 0 // 0: Intelligent, 1: Always
+                property int autoHideMode: 0 
                 property bool showOnlyInDesktop: true
-                property int backgroundStyle: 1 // 0: None, 1: Floating, 2: Attached
+                property int backgroundStyle: 1 
                 property int hoverRegionHeight: 5
                 property bool pinnedOnStartup: false
                 property bool monochromeIcons: true
@@ -313,14 +334,13 @@ Singleton {
                 property bool enable: true
                 property bool autoLocation: true
                 property string location: ""
-                property string unit: "C" // C or F
+                property string unit: "C" 
+                property string provider: "open-meteo" 
                 property bool showDailyForecast: true
-                property int updateInterval: 30 // in minutes
+                property int updateInterval: 30 
             }
 
-            // ----------------------------------------------
-            // Overview Panel
-            // ----------------------------------------------
+            // --- Overview Panel ---
             property QtObject overview: QtObject {
                 property int rows: 2
                 property int columns: 5
@@ -328,20 +348,16 @@ Singleton {
                 property real workspaceSpacing: 10
             }
 
-            ///////////////////////////////////
-            /// Signals & Functions
-            ///////////////////////////////////
             // --- Notifications ---
             property JsonObject notifications: JsonObject {
                 property int timeout_ms: 2000
-                property string counterStyle: "counter" // counter, simple, hidden
-                property bool silent: false
+                property string counterStyle: "counter" 
             }
 
             // --- Battery ---
             property JsonObject battery: JsonObject {
                 property int low: 20
-                property int critical: 10
+                property int critical: 5
             }
 
             // --- Panels ---
@@ -374,46 +390,35 @@ Singleton {
                 property string wallpaperPath: ""
                 property bool useSeparateWallpaper: false
                 property bool showCava: true
+                property real cavaOpacity: 0.15
                 property bool showMediaCard: true
-                property JsonObject weather: JsonObject {
-                    property string textColorMode: "adaptive" // adaptive, light, dark
-                }
-                property JsonObject security: JsonObject {
-                    property bool requirePasswordToPower: true
-                }
+                property bool showWeather: true
+                property JsonObject weather: JsonObject { property string textColorMode: "adaptive" }
+                property JsonObject security: JsonObject { property bool requirePasswordToPower: true }
             }
+
             // --- System ---
             property JsonObject system: JsonObject {
                 property string lastUpdateCheckDate: ""
                 property bool easyeffectsEnabled: false
                 property bool bluetoothEnabled: true
-                property bool wifiEnabled: true
-                property bool warpConnected: false
-                property bool gameModeActive: false
-                property bool conservationMode: false
-                property list<var> monitoredDisks: [
-                    { "path": "/", "alias": "System" },
-                    { "path": "/home", "alias": "Home" }
-                ]
+                property list<var> monitoredDisks: [ { "path": "/", "alias": "System" } ]
             }
+
             // --- Media ---
             property JsonObject media: JsonObject {
                 property string priority: ""
                 property bool showMediaCard: true
                 property bool enableMediaHover: true
                 property bool balancedEars: true
-                property string notchMediaStyle: "mini" // mini, full
+                property string notchMediaStyle: "mini" 
             }
 
             // --- Privacy ---
-            property JsonObject privacy: JsonObject {
-                property bool enable: true
-            }
+            property JsonObject privacy: JsonObject { property bool enable: true }
 
             // --- Screen Snip ---
-            property JsonObject screenSnip: JsonObject {
-                property string savePath: "" // only copy to clipboard when empty
-            }
+            property JsonObject screenSnip: JsonObject { property string savePath: "" }
 
             // --- Region Selector ---
             property JsonObject regionSelector: JsonObject {
@@ -429,32 +434,42 @@ Singleton {
                     property int strokeWidth: 1
                     property real opacity: 0.2
                 }
-                property JsonObject circle: JsonObject {
-                    property int strokeWidth: 6
-                }
-                property JsonObject annotationSymbol: JsonObject {
-                    property bool showIcons: true
-                }
-                property JsonObject annotation: JsonObject {
-                    property bool useSatty: false // Use swappy by default
-                }
+                property JsonObject circle: JsonObject { property int strokeWidth: 6 }
+                property JsonObject annotationSymbol: JsonObject { property bool showIcons: true }
+                property JsonObject annotation: JsonObject { property bool useSatty: false }
             }
 
             // --- GitHub ---
-            property JsonObject github: JsonObject {
-                property string githubUsername: ""
-                property string githubToken: "" // Personal access token (optional, for private repos)
-            }
+            property JsonObject github: JsonObject { property string githubUsername: ""; property string githubToken: "" }
 
             // --- Screenshot & Recording ---
             property JsonObject screenshot: JsonObject {
                 property bool autoSave: true
-                property string savePath: Directories.home + "/Pictures/Screenshots"
-                property string recordPath: Directories.home + "/Videos/Recordings"
+                property string savePath: Directories.home.replace("file://", "") + "/Pictures/Screenshots"
+                property string recordPath: Directories.home.replace("file://", "") + "/Videos/Recordings"
                 property bool showPreview: true
                 property bool autoCopy: true
             }
 
+            // --- Wallpaper Engine ---
+            property JsonObject wallpaperEngine: JsonObject {
+                property int fps: 30
+                property int volume: 15
+                property bool silent: false
+                property bool autoPause: true
+                property bool disableParticles: true
+                property bool disableParallax: false
+                property bool disableMouse: false
+                property bool disableAudioProcessing: false
+                property string scaling: "fill" // stretch, fit, fill, cover
+                property bool noPbo: false
+            }
+
+            // --- Game Mode State ---
+            property JsonObject gameModeState: JsonObject {
+                property string previousLiveWallpaperPath: ""
+                property string previousLayout: ""
+            }
         }
     }
 }

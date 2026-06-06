@@ -3,10 +3,10 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
-import qs.core
-import qs.services
-import qs.widgets
-import qs.core.functions as Functions
+import "../../core"
+import "../../services"
+import "../../widgets"
+import "../../core/functions" as Functions
 import "../NotificationCenter" as NotificationCenter
 
 /**
@@ -78,7 +78,7 @@ Variants {
                 anchors.margins: 8 * Appearance.effectiveScale
                 spacing: 10 * Appearance.effectiveScale
 
-                // -- 1. Art with Play/Pause Overlay --
+                // ── 1. Art with Play/Pause Overlay ──
                 MaterialShape {
                     width: 36 * Appearance.effectiveScale; height: 36 * Appearance.effectiveScale
                     shape: MaterialShape.Shape.Circle
@@ -120,7 +120,7 @@ Variants {
                     }
                 }
 
-                // -- 2. Skip Previous --
+                // ── 2. Skip Previous ──
                 MaterialSymbol {
                     text: "skip_previous"; iconSize: 22 * Appearance.effectiveScale; fill: 1; color: Appearance.colors.colNotchText
                     opacity: MprisController.canGoPrevious ? 1 : 0.4
@@ -130,7 +130,7 @@ Variants {
                     }
                 }
 
-                // -- 3. Slider --
+                // ── 3. Slider ──
                 StyledSlider {
                     id: progressSlider
                     Layout.fillWidth: true; Layout.preferredHeight: 14 * Appearance.effectiveScale
@@ -140,7 +140,7 @@ Variants {
                     highlightColor: MprisController.dynPrimary
                     trackColor: MprisController.dynSecondaryContainer
                     handleColor: MprisController.dynPrimary
-                    onMoved: if (MprisController.canSeek) MprisController.setPosition(value * MprisController.length)
+                    onMoved: if (MprisController.activePlayer) MprisController.activePlayer.position = value * MprisController.activePlayer.length
                     
                     Connections {
                         target: MprisController
@@ -152,7 +152,7 @@ Variants {
                     }
                 }
 
-                // -- 4. Skip Next --
+                // ── 4. Skip Next ──
                 MaterialSymbol {
                     text: "skip_next"; iconSize: 22 * Appearance.effectiveScale; fill: 1; color: Appearance.colors.colNotchText
                     opacity: MprisController.canGoNext ? 1 : 0.4

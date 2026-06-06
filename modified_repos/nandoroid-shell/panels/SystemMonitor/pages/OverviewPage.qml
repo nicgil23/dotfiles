@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../.."
+import "../../../core"
+import "../../../core/functions" as Functions
+import "../../../services"
+import "../../../widgets"
 import ".."
 
 /**
@@ -34,7 +35,7 @@ Item {
             StyledText {
                 text: "System Overview"
                 font.pixelSize: Appearance.font.pixelSize.huge
-                font.weight: Font.Bold
+                font.weight: Font.DemiBold
                 color: Appearance.m3colors.m3onSurface
             }
 
@@ -45,19 +46,19 @@ Item {
                 
                 ColumnLayout {
                     spacing: 0
-                    StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: Appearance.m3colors.m3outline }
+                    StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
                     StyledText { text: SystemData.uptime || "--"; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
                 }
                 
                 ColumnLayout {
                     spacing: 0
-                    StyledText { text: "LOAD AVG"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: Appearance.m3colors.m3outline }
+                    StyledText { text: "LOAD AVG"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
                     StyledText { text: SystemData.loadAverage || "--"; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
                 }
                 
                 ColumnLayout {
                     spacing: 0
-                    StyledText { text: "PROCESSES"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: Appearance.m3colors.m3outline }
+                    StyledText { text: "PROCESSES"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
                     StyledText { text: `${SystemData.processCount} (${SystemData.threadCount} threads)`; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
                 }
                 
@@ -94,7 +95,7 @@ Item {
                     )
                     border.width: 2 * Appearance.effectiveScale
 
-                    // -- Real GPU content ----------------------------------
+                    // ── Real GPU content ──────────────────────────────────
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 16 * Appearance.effectiveScale
@@ -133,7 +134,7 @@ Item {
                         }
                     }
 
-                    // -- Fallback placeholder ------------------------------
+                    // ── Fallback placeholder ──────────────────────────────
                     ColumnLayout {
                         anchors.centerIn: parent
                         spacing: 8 * Appearance.effectiveScale
@@ -165,7 +166,7 @@ Item {
 
                 GraphCard {
                     title: "Memory"
-                    value: (SystemData.usedMemoryMB / 1024).toFixed(1) + "GB"
+                    value: Math.round(SystemData.memUsage * 100) + "%"
                     subValue: `${SystemData.usedMemoryMB}MB / ${SystemData.totalMemoryMB}MB`
                     history: SystemData.memHistory
                     accentColor: "#8AB4F8"
@@ -272,7 +273,7 @@ Item {
                         visible: card.subValue !== ""
                         text: card.subValue
                         font.pixelSize: Appearance.font.pixelSize.smallest
-                        font.weight: Font.Bold
+                        font.weight: Font.DemiBold
                         color: Appearance.colors.colSubtext
                     }
                 }

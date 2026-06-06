@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
-import qs.core
+import "../core"
 
 /**
  * SegmentedWrapper: A universal wrapper for segmented UI elements.
@@ -14,7 +14,7 @@ Item {
     // Marking this as a segmented wrapper for auto-detection logic
     readonly property bool isSegmentedWrapper: true
     
-    // -- Input Properties --
+    // ── Input Properties ──
     property bool active: false
     property int orientation: Qt.Horizontal // Qt.Horizontal or Qt.Vertical
     property bool pillOnActive: true // Keep pill shape when active?
@@ -25,7 +25,7 @@ Item {
     property bool forcePill: false
     property bool forceNotStandalone: false
     
-    // -- Style Properties --
+    // ── Style Properties ──
     property color color: "transparent"
     property var maxRadius: undefined
     property real fullRadius: {
@@ -39,7 +39,7 @@ Item {
     implicitWidth: 40 * Appearance.effectiveScale
     implicitHeight: 40 * Appearance.effectiveScale
     
-    // -- Auto-Detection Logic --
+    // ── Auto-Detection Logic ──
     readonly property var visibleSiblings: {
         // Trigger re-evaluation when children are added/removed
         let trigger = parent ? parent.children.length : 0; 
@@ -92,7 +92,7 @@ Item {
         return isFirst && isLast;
     }
     
-    // -- Radius Logic --
+    // ── Radius Logic ──
     readonly property real rTopLeft: (isFirst || isStandalone || (active && pillOnActive) || forcePill) ? fullRadius : smallRadius
     readonly property real rTopRight: {
         if ((active && pillOnActive) || isStandalone || forcePill) return fullRadius;
@@ -106,7 +106,7 @@ Item {
     }
     readonly property real rBottomRight: (isLast || isStandalone || (active && pillOnActive) || forcePill) ? fullRadius : smallRadius
 
-    // -- Main Layout Container (With Clipping) --
+    // ── Main Layout Container (With Clipping) ──
     Item {
         id: container
         anchors.fill: parent
@@ -127,7 +127,7 @@ Item {
             }
         }
 
-        // -- Background --
+        // ── Background ──
         Rectangle {
             id: bgRect
             anchors.fill: parent
@@ -146,7 +146,7 @@ Item {
             Behavior on bottomRightRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(bgRect) }
         }
 
-        // -- Content container --
+        // ── Content container ──
         Item {
             id: contentItem
             anchors.fill: parent

@@ -4,8 +4,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.services
+import "../../core"
+import "../../services"
 
 /**
  * Refactored OSD (On-Screen Display) for v1.1
@@ -54,7 +54,7 @@ Scope {
         }
     }
 
-    // -- Signal Connections --
+    // ── Signal Connections ──
     Connections {
         target: Brightness
         function onBrightnessUpdated() {
@@ -72,14 +72,6 @@ Scope {
         function onMutedChanged() {
             root.currentIndicator = "volume";
             root.triggerOsd();
-        }
-    }
-
-    // Dynamic Sink detection
-    Connections {
-        target: Audio
-        function onSinkChanged() {
-            // Re-bind volume signals if sink changes
         }
     }
 
@@ -116,7 +108,7 @@ Scope {
         }
     }
 
-    // -- OSD Visual Layer --
+    // ── OSD Visual Layer ──
     Loader {
         id: osdLoader
         active: false
@@ -178,7 +170,7 @@ Scope {
         }
     }
 
-    // -- IPC Handlers --
+    // ── IPC Handlers ──
     IpcHandler {
         target: "osd"
         function showBrightness() { root.currentIndicator = "brightness"; root.triggerOsd(); }

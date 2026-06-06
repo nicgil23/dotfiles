@@ -1,8 +1,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
-import qs.core.functions
+import "../core"
+import "../core/functions"
 
 /**
  * Directory and File icon component.

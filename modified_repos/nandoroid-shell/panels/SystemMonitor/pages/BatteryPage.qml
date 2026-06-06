@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../../core"
+import "../../../core/functions" as Functions
+import "../../../services"
+import "../../../widgets"
 
 /**
  * Enhanced Battery Stats page for System Monitor (v1.2).
@@ -27,7 +27,7 @@ Flickable {
         anchors.topMargin: 32 * Appearance.effectiveScale
         spacing: 32 * Appearance.effectiveScale
 
-        // -- 1. Hero Battery Visual --
+        // ── 1. Hero Battery Visual ──
         RowLayout {
             Layout.fillWidth: true
             spacing: 32 * Appearance.effectiveScale
@@ -124,7 +124,7 @@ Flickable {
             }
         }
 
-        // -- 2. Health & Efficiency Cards --
+        // ── 2. Health & Efficiency Cards ──
         GridLayout {
             Layout.fillWidth: true
             columns: 4
@@ -168,7 +168,7 @@ Flickable {
             }
         }
 
-        // -- 3. Technical Specifications --
+        // ── 3. Technical Specifications ──
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 12 * Appearance.effectiveScale
@@ -218,7 +218,7 @@ Flickable {
         Item { Layout.preferredHeight: 20 * Appearance.effectiveScale }
     }
 
-    // -- Internal Components --
+    // ── Internal Components ──
 
     component StatCard: Rectangle {
         id: cardRoot
@@ -254,7 +254,7 @@ Flickable {
             StyledText {
                 text: cardRoot.value
                 font.pixelSize: Appearance.font.pixelSize.huge
-                font.weight: Font.Bold
+                font.weight: Font.DemiBold
                 color: Appearance.colors.colOnLayer0
                 elide: Text.ElideRight
                 Layout.fillWidth: true

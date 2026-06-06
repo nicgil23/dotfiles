@@ -1,6 +1,6 @@
-import qs.core
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -23,10 +23,10 @@ Variants {
         readonly property bool isActive: GlobalStates.activeScreen === modelData
         visible: (GlobalStates.quickSettingsOpen && isActive) || content.opacity > 0
         
-        exclusiveZone: 0
+        exclusiveZone: (GlobalStates.quickSettingsOpen && isActive) ? content.implicitWidth : 0
         WlrLayershell.namespace: "nandoroid:quicksettings"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+        WlrLayershell.layer: ((GlobalStates.quickSettingsOpen || content.opacity > 0) && isActive) ? WlrLayer.Top : WlrLayer.Background
+        WlrLayershell.keyboardFocus: (GlobalStates.quickSettingsOpen && isActive) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         color: "transparent"
 
         readonly property bool isCentered: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.layoutStyle === "centered" : false
@@ -39,12 +39,12 @@ Variants {
         }
 
         WlrLayershell.margins {
-            right: 10 * Appearance.effectiveScale
-            top: 10 * Appearance.effectiveScale
+            right: panelWindow.sidePadding
+            top: 4 * Appearance.effectiveScale
         }
 
-        implicitWidth: Appearance.sizes.notificationCenterWidth
-        implicitHeight: content.implicitHeight > 0 ? content.implicitHeight : 600 * Appearance.effectiveScale
+        implicitWidth: content.implicitWidth
+        implicitHeight: content.implicitHeight
 
         HyprlandFocusGrab {
             id: focusGrab

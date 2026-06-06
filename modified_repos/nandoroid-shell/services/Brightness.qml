@@ -4,8 +4,8 @@ pragma ComponentBehavior: Bound
 // From https://github.com/caelestia-dots/shell with modifications.
 // License: GPLv3
 
-import qs.core
-import qs.core.functions
+import "../core"
+import "../core/functions"
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
@@ -47,31 +47,19 @@ Singleton {
 
     reloadableId: "brightness"
 
-    Component.onCompleted: {
-        ddcProc.running = true;
-        // Start parallel initialization for all monitors immediately (backlight focus)
-        for (let i = 0; i < monitors.length; i++) {
-            monitors[i].initialize();
-        }
-    }
-
     onMonitorsChanged: {
         ddcMonitors = [];
         ddcProc.running = true;
-        for (let i = 0; i < monitors.length; i++) {
-            monitors[i].initialize();
-        }
+    }
+
+    function initializeMonitor(i: int): void {
+        if (i >= monitors.length)
+            return;
+        monitors[i].initialize();
     }
 
     function ddcDetectFinished(): void {
-        // Only re-initialize monitors that were found to be DDC
-        for (let i = 0; i < monitors.length; i++) {
-            const m = monitors[i];
-            const isDdcMatch = ddcMonitors.some(dm => dm.name === m.screen.name);
-            if (isDdcMatch) {
-                m.initialize();
-            }
-        }
+        initializeMonitor(0);
     }
 
     Process {
@@ -192,7 +180,7 @@ Singleton {
                 }
             }
             onExited: (exitCode, exitStatus) => {
-                // Parallel initialization now, no need to chain
+                initializeMonitor(root.monitors.indexOf(monitor) + 1);
             }
         }
         

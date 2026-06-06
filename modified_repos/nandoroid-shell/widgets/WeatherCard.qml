@@ -1,5 +1,5 @@
-import qs.core
-import qs.services
+import "../core"
+import "../services"
 import "."
 import QtQuick
 import QtQuick.Layouts
@@ -48,7 +48,7 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-        // -- Top Section: Primary Conditions --
+        // ── Top Section: Primary Conditions ──
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: 20 * Appearance.effectiveScale
@@ -100,7 +100,7 @@ Rectangle {
             }
         }
 
-        // -- Middle Section: Hourly (Transparent) --
+        // ── Middle Section: Hourly (Transparent) ──
         Item {
             Layout.fillWidth: true
             implicitHeight: hourlyCol.implicitHeight + 32 * Appearance.effectiveScale
@@ -139,7 +139,7 @@ Rectangle {
             }
         }
 
-        // -- Bottom Section: Daily (Transparent) --
+        // ── Bottom Section: Daily (Transparent) ──
         Item {
             visible: Weather.daily.length > 0
             Layout.fillWidth: true
@@ -174,7 +174,7 @@ Rectangle {
             }
         }
 
-        // -- Footer Section: Status --
+        // ── Footer Section: Status ──
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 0

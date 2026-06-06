@@ -1,7 +1,7 @@
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -9,6 +9,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 
 /**
  * Quick Settings content — Android-style panel with:
@@ -53,7 +54,6 @@ Item {
         function onQuickSettingsOpenChanged() {
             if (GlobalStates.quickSettingsOpen) {
                 root.forceActiveFocus();
-                PowerProfileService.refresh();
             } else {
                 root.showWifiPanel = false;
                 root.showBluetoothPanel = false;
@@ -72,7 +72,7 @@ Item {
         }
     }
 
-    // -- Toggle grid constants --
+    // ── Toggle grid constants ──
     // 4 columns: size 1 = 1 col (square icon), size 2 = 2 cols (icon + text)
     readonly property int columns: 4
     readonly property real toggleSpacing: 6 * Appearance.effectiveScale
@@ -83,7 +83,7 @@ Item {
     }
     readonly property real baseCellHeight: 56 * Appearance.effectiveScale
 
-    // -- Toggle data registry --
+    // ── Toggle data registry ──
     readonly property var allToggles: ({
         "wifi": {
             name: "Wi-Fi",
@@ -154,14 +154,6 @@ Item {
             available: Network.warpCLIInstalled,
             action: () => Network.toggleWarp()
         },
-        "vpnUcm": {
-            name: "VPN UCM",
-            icon: "vpn_lock",
-            iconOff: "vpn_lock",
-            toggled: VpnUcmService.active,
-            statusText: VpnUcmService.active ? "Connected" : "Disconnected",
-            action: () => VpnUcmService.toggle()
-        },
         "audioOutput": {
             name: "Audio Output",
             icon: "volume_up",
@@ -229,26 +221,6 @@ Item {
                 Functions.General.delayedAction(300, () => RegionService.ocr());
             }
         },
-        "ocr": {
-            name: "Text Recognition",
-            icon: "text_snippet",
-            iconOff: "text_snippet",
-            statusText: "OCR",
-            action: () => {
-                root.close();
-                Functions.General.delayedAction(300, () => RegionService.ocr());
-            }
-        },
-        "qrcode": {
-            name: "QR Scanner",
-            icon: "qr_code_scanner",
-            iconOff: "qr_code_scanner",
-            statusText: "Scan",
-            action: () => {
-                root.close();
-                Functions.General.delayedAction(300, () => RegionService.qrcode());
-            }
-        },
         "screenRecord": {
             name: ScreenRecord.active ? "Recording" : "Record Screen",
             icon: "screen_record",
@@ -303,6 +275,26 @@ Item {
             action: () => ConservationMode.toggle(),
             tooltipText: "Lenovo Battery Conservation Mode"
         },
+        "ocr": {
+            name: "Text Recognition",
+            icon: "text_snippet",
+            iconOff: "text_snippet",
+            statusText: "OCR",
+            action: () => {
+                root.close();
+                Functions.General.delayedAction(300, () => RegionService.ocr());
+            }
+        },
+        "qrcode": {
+            name: "QR Scanner",
+            icon: "qr_code_scanner",
+            iconOff: "qr_code_scanner",
+            statusText: "Scan",
+            action: () => {
+                root.close();
+                Functions.General.delayedAction(300, () => RegionService.qrcode());
+            }
+        },
         "restartShell": {
             name: "Restart Shell",
             icon: "refresh",
@@ -311,8 +303,16 @@ Item {
             statusText: "Restart",
             action: () => {
                 root.close();
-                Quickshell.execDetached(["/home/hypr/dotfiles/modified_repos/nandoroid-shell/scripts/restartshell.sh"]);
+                Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/restartshell.sh")]);
             }
+        },
+        "vpnUcm": {
+            name: "VPN UCM",
+            icon: "vpn_lock",
+            iconOff: "vpn_lock",
+            toggled: VpnUcmService.active,
+            statusText: VpnUcmService.active ? "Connected" : "Disconnected",
+            action: () => VpnUcmService.toggle()
         },
         "autoRotation": {
             name: "Auto Rotation",
@@ -332,12 +332,12 @@ Item {
         }
     })
 
-    // -- Toggle state properties --
+    // ── Toggle state properties ──
     property bool audioMuted: Audio.muted
     property bool micMuted: Audio.microphoneMuted
     property string powerProfileIcon: PowerProfileService.currentProfile === "performance" ? "local_fire_department" : (PowerProfileService.currentProfile === "balanced" ? "balance" : "eco")
 
-    // -- Toggle data (matching example pattern exactly) --
+    // ── Toggle data (matching example pattern exactly) ──
     readonly property list<string> availableToggleTypes: [
         "wifi", "bluetooth", "dnd", "darkMode", "caffeine", "nightLight",
         "warp", "audioOutput", "audioInput", "powerProfile",
@@ -385,13 +385,13 @@ Item {
         return rows;
     }
 
-    // -- VOLUME/MIC WATCHERS --
+    // ── VOLUME/MIC WATCHERS ──
     Component.onDestruction: {
         // Cleanup if needed
     }
 
 
-    // -- CONTENT UI --
+    // ── CONTENT UI ──
     ColumnLayout {
         id: contentColumn
         anchors {
@@ -399,7 +399,6 @@ Item {
             left: parent.left
             right: parent.right
             margins: 10 * Appearance.effectiveScale
-            topMargin: 8 * Appearance.effectiveScale
         }
         spacing: 12 * Appearance.effectiveScale
 
@@ -429,8 +428,8 @@ Item {
                             const cfgPath = Config.options.bar?.avatar_path;
                             if (cfgPath && cfgPath !== "") return `file://${cfgPath}`;
                             const sysPath = SystemInfo.userAvatarPath;
-                            if (sysPath && sysPath !== "" && !sysPath.includes("/var/lib/AccountsService/icons/")) return `file://${sysPath}`;
-                            return "file:///home/hypr/dotfiles/hyprland/.config/hypr/img/nerd_emoji.jpg";
+                            if (!sysPath || sysPath.includes("/var/lib/AccountsService/icons/")) return "";
+                            return `file://${sysPath}`;
                         }
                         sourceSize: Qt.size(44 * Appearance.effectiveScale, 44 * Appearance.effectiveScale)
                         fillMode: Image.PreserveAspectCrop
@@ -499,25 +498,9 @@ Item {
                         colBackgroundHover: Appearance.colors.colLayer2
                         colRipple: Appearance.colors.colLayer2Active
                         onClicked: {
-                            Wallpapers.nextWallpaper()
-                        }
-                        MaterialSymbol {
-                            anchors.centerIn: parent
-                            text: "help"
-                            iconSize: 18 * Appearance.effectiveScale
-                            color: Appearance.m3colors.m3onSurface
-                        }
-                    }
-
-                    RippleButton {
-                        implicitWidth: 36 * Appearance.effectiveScale
-                        implicitHeight: 36 * Appearance.effectiveScale
-                        buttonRadius: 18 * Appearance.effectiveScale
-                        colBackground: Appearance.colors.colLayer2
-                        colBackgroundHover: Appearance.colors.colLayer2
-                        colRipple: Appearance.colors.colLayer2Active
-                        onClicked: {
-                            Quickshell.execDetached(["/home/hypr/.local/bin/wallpaper-selector.sh"])
+                            root.close()
+                            GlobalStates.wallpaperSelectorTarget = "desktop"
+                            GlobalStates.wallpaperSelectorOpen = true
                         }
                         MaterialSymbol {
                             anchors.centerIn: parent
@@ -525,6 +508,7 @@ Item {
                             iconSize: 18 * Appearance.effectiveScale
                             color: Appearance.m3colors.m3onSurface
                         }
+                        StyledToolTip { text: "Change Wallpaper" }
                     }
 
                     RippleButton {
@@ -541,6 +525,7 @@ Item {
                             iconSize: 18 * Appearance.effectiveScale
                             color: root.editMode ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurface
                         }
+                        StyledToolTip { text: root.editMode ? "Done Editing" : "Edit Toggles" }
                     }
 
                     RippleButton {
@@ -551,10 +536,8 @@ Item {
                         colBackgroundHover: Appearance.colors.colLayer2
                         colRipple: Appearance.colors.colLayer2Active
                         onClicked: {
-                            console.log(`QuickSettingsContent: opening config. Path: ${Config.filePath}`);
                             GlobalStates.quickSettingsOpen = false
-                            // Try kitty first as common on Hyprland, fallback to desktop-agnostic xdg-open if needed (but user asked for nvim)
-                            Quickshell.execDetached(["hyprctl", "dispatch", "exec", "[float]", "kitty", "nvim", Config.filePath])
+                            GlobalStates.activateSettings()
                         }
                         MaterialSymbol {
                             anchors.centerIn: parent
@@ -562,6 +545,7 @@ Item {
                             iconSize: 18 * Appearance.effectiveScale
                             color: Appearance.m3colors.m3onSurface
                         }
+                        StyledToolTip { text: "System Settings" }
                     }
 
                     RippleButton {
@@ -581,19 +565,20 @@ Item {
                             iconSize: 18 * Appearance.effectiveScale
                             color: Appearance.m3colors.m3error
                         }
+                        StyledToolTip { text: "Power Menu" }
                     }
                 }
             }
         }
 
-        // -- Performance Stats Island --
+        // ── Performance Stats Island ──
         PerformanceStats {
             visible: Config.options.quickSettings?.showPerformanceStats ?? true
             Layout.preferredHeight: visible ? implicitHeight : 0
             clip: !visible
         }
 
-        // -- Sliders Island --
+        // ── Sliders Island ──
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: sliderCol.implicitHeight + (20 * Appearance.effectiveScale)
@@ -686,7 +671,7 @@ Item {
         }
     }
 
-        // -- Toggle Grid Island --
+        // ── Toggle Grid Island ──
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: toggleColumn.implicitHeight + (root.togglePadding * 2)
@@ -819,7 +804,7 @@ Item {
             }
         }
 
-        // -- Privacy Info Island --
+        // ── Privacy Info Island ──
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: privacyCol.implicitHeight + (20 * Appearance.effectiveScale)
@@ -875,7 +860,7 @@ Item {
             }
         }
 
-        // -- Interactive Key Helpers (Edit Mode) --
+        // ── Interactive Key Helpers (Edit Mode) ──
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: 40 * Appearance.effectiveScale
@@ -900,7 +885,7 @@ Item {
                         Rectangle {
                             width: 44 * Appearance.effectiveScale; height: 18 * Appearance.effectiveScale; radius: 4 * Appearance.effectiveScale
                             color: Appearance.m3colors.m3surfaceVariant
-                            StyledText { anchors.centerIn: parent; text: "LClick"; font.pixelSize: 9 * Appearance.effectiveScale; font.weight: Font.Bold }
+                            StyledText { anchors.centerIn: parent; text: "LClick"; font.pixelSize: 9 * Appearance.effectiveScale; font.weight: Font.DemiBold }
                         }
                     }
 
@@ -911,7 +896,7 @@ Item {
                         Rectangle {
                             width: 44 * Appearance.effectiveScale; height: 18 * Appearance.effectiveScale; radius: 4 * Appearance.effectiveScale
                             color: Appearance.m3colors.m3surfaceVariant
-                            StyledText { anchors.centerIn: parent; text: "RClick"; font.pixelSize: 9 * Appearance.effectiveScale; font.weight: Font.Bold }
+                            StyledText { anchors.centerIn: parent; text: "RClick"; font.pixelSize: 9 * Appearance.effectiveScale; font.weight: Font.DemiBold }
                         }
                     }
 
@@ -923,7 +908,7 @@ Item {
                         Rectangle {
                             width: 38 * Appearance.effectiveScale; height: 18 * Appearance.effectiveScale; radius: 4 * Appearance.effectiveScale
                             color: Appearance.m3colors.m3surfaceVariant
-                            StyledText { anchors.centerIn: parent; text: "Scroll"; font.pixelSize: 10 * Appearance.effectiveScale; font.weight: Font.Bold }
+                            StyledText { anchors.centerIn: parent; text: "Scroll"; font.pixelSize: 10 * Appearance.effectiveScale; font.weight: Font.DemiBold }
                         }
                     }
                 }
@@ -1001,6 +986,6 @@ Item {
     
     Process {
         id: avatarPickerProc
-        command: ["bash", "-c", "cd /tmp && qs -c nandoroid ipc call spotlight browse_avatar"]
+        command: ["bash", "-c", `cd /tmp && ${Directories.ipcCommandPrefixString} ipc call spotlight browse_avatar`]
     }
 }

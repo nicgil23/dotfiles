@@ -1,7 +1,7 @@
-import qs.core
-import qs.services
+import "../core"
+import "../services"
 import "."
-import qs.core.functions as Functions
+import "../core/functions" as Functions
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
@@ -60,7 +60,7 @@ Rectangle {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: false
-
+            
             layer.enabled: true
             layer.effect: GaussianBlur {
                 radius: 64 * Appearance.effectiveScale
@@ -100,10 +100,11 @@ Rectangle {
             shape: MaterialShape.Shape.Square
             color: MprisController.dynLayer0
             
-            StyledText {
+            MaterialSymbol {
                 anchors.centerIn: parent
-                text: "󰎆" // Nerd Font Note
-                font.pixelSize: 32 * Appearance.effectiveScale
+                text: "music_note"
+                iconSize: 32 * Appearance.effectiveScale
+                fill: 1
                 color: MprisController.dynSubtext
                 visible: !parent.image || parent.image.toString() === ""
             }
@@ -161,7 +162,7 @@ Rectangle {
                                 Layout.fillWidth: true
                                 text: Functions.StringUtils.cleanMusicTitle(MprisController.trackTitle) || "No media"
                                 font.pixelSize: Appearance.font.pixelSize.normal
-                                font.weight: Font.Bold
+                                font.weight: Font.DemiBold
                                 color: MprisController.dynOnLayer0
                                 elide: Text.ElideRight
                                 verticalAlignment: Text.AlignTop
@@ -171,7 +172,6 @@ Rectangle {
                                 Layout.fillWidth: true
                                 text: MprisController.trackArtist || "Unknown Artist"
                                 font.pixelSize: Appearance.font.pixelSize.smaller
-                                font.weight: Font.DemiBold
                                 color: MprisController.dynSubtext
                                 elide: Text.ElideRight
                                 verticalAlignment: Text.AlignTop
@@ -236,38 +236,18 @@ Rectangle {
                     }
                 }
 
-                // Seek Backward
-                RippleButton {
-                    id: rewindBtn
-                    padding: 0
-                    implicitWidth: 24 * Appearance.effectiveScale; implicitHeight: 24 * Appearance.effectiveScale; buttonRadius: 12 * Appearance.effectiveScale
-                    colBackground: "transparent"
-                    colBackgroundHover: "transparent"
-                    colText: "transparent"
-                    rippleEnabled: false
-                    enabled: MprisController.canSeek
-                    onClicked: MprisController.seek(-10)
-                    
-                    MaterialSymbol {
-                        anchors.centerIn: parent
-                        text: "replay_10"; iconSize: 18 * Appearance.effectiveScale; fill: 1
-                        color: rewindBtn.hovered ? MprisController.dynPrimary : MprisController.dynOnSecondaryContainer
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                    }
-                }
-
                 // Current Time
                 StyledText {
                     id: currentTimeText
                     text: Functions.StringUtils.friendlyTimeForSeconds(MprisController.position)
                     font.pixelSize: Appearance.font.pixelSize.smallest
                     font.family: Appearance.font.family.monospace
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Medium
                     color: MprisController.dynSubtext
                     Layout.alignment: Qt.AlignVCenter
                     verticalAlignment: Text.AlignVCenter
-                    Layout.leftMargin: 4 * Appearance.effectiveScale 
-                    Layout.rightMargin: 10 * Appearance.effectiveScale 
+                    Layout.leftMargin: 0 // Menempel ke arrow
+                    Layout.rightMargin: 10 * Appearance.effectiveScale // Menjauh dari slider
                 }
 
                 // Slider
@@ -286,8 +266,8 @@ Rectangle {
                     handleColor: MprisController.dynPrimary
                     
                     onMoved: {
-                        if (MprisController.canSeek) {
-                            MprisController.setPosition(value * MprisController.length);
+                        if (player && player.canSeek) {
+                            player.position = value * player.length;
                         }
                     }
 
@@ -307,32 +287,12 @@ Rectangle {
                     text: Functions.StringUtils.friendlyTimeForSeconds(MprisController.length)
                     font.pixelSize: Appearance.font.pixelSize.smallest
                     font.family: Appearance.font.family.monospace
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Medium
                     color: MprisController.dynSubtext
                     Layout.alignment: Qt.AlignVCenter
                     verticalAlignment: Text.AlignVCenter
-                    Layout.leftMargin: 10 * Appearance.effectiveScale 
-                    Layout.rightMargin: 4 * Appearance.effectiveScale 
-                }
-
-                // Seek Forward
-                RippleButton {
-                    id: fastForwardBtn
-                    padding: 0
-                    implicitWidth: 24 * Appearance.effectiveScale; implicitHeight: 24 * Appearance.effectiveScale; buttonRadius: 12 * Appearance.effectiveScale
-                    colBackground: "transparent"
-                    colBackgroundHover: "transparent"
-                    colText: "transparent"
-                    rippleEnabled: false
-                    enabled: MprisController.canSeek
-                    onClicked: MprisController.seek(10)
-                    
-                    MaterialSymbol {
-                        anchors.centerIn: parent
-                        text: "forward_10"; iconSize: 18 * Appearance.effectiveScale; fill: 1
-                        color: fastForwardBtn.hovered ? MprisController.dynPrimary : MprisController.dynOnSecondaryContainer
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                    }
+                    Layout.leftMargin: 10 * Appearance.effectiveScale // Menjauh dari slider
+                    Layout.rightMargin: 0 // Menempel ke arrow
                 }
 
                 // Skip Next

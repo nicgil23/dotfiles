@@ -14,6 +14,7 @@ Singleton {
     id: root
 
     signal screenshotTaken(string path)
+    signal closePopups()
 
     property bool statusBarVisible: true
     property bool notificationCenterOpen: false
@@ -26,16 +27,33 @@ Singleton {
     property bool spotlightOpen: false
     property string initialSpotlightQuery: ""
     property bool settingsOpen: false
-    property bool quickWallpaperOpen: false
+    property bool accentPickerOpen: false
+    onAccentPickerOpenChanged: {
+        if (accentPickerOpen) {
+            // When opening picker, ensure other distracting panels are closed
+            launcherOpen = false;
+            dashboardOpen = false;
+            spotlightOpen = false;
+            notificationCenterOpen = false;
+            quickSettingsOpen = false;
+            quickActionsOpen = false;
+            sessionOpen = false;
+        }
+    }
+
+    property string accentPickerTarget: "desktop" // "desktop" or "lockscreen"
     property bool dashboardOpen: false
+    property int dashboardActiveTab: 0
     property bool systemMonitorOpen: false
     property bool regionSelectorOpen: false
     property bool overviewOpen: false
     property bool dockMenuOpen: false
+    property bool desktopContextMenuOpen: false
     property bool mediaNotchOpen: false
     property bool trayOverflowOpen: false
     property real trayPosX: 0
     property var activeMediaNotchScreen: null
+    property var activeTrayItem: null
     property var activeScreen: Quickshell.screens[0]
     property string wallpaperSelectorTarget: "desktop" // "desktop" or "lock"
     
@@ -70,6 +88,7 @@ Singleton {
 
     // Settings Navigation
     property int settingsPageIndex: 0
+    property string settingsAboutView: "main" // "main", "update", "dependency", or "credits"
     property bool settingsBluetoothPairMode: false
 
     // System Monitor Navigation
@@ -83,11 +102,11 @@ Singleton {
 
     onNotificationCenterOpenChanged: {
         if (notificationCenterOpen) {
+            accentPickerOpen = false
             quickSettingsOpen = false
             quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -95,11 +114,11 @@ Singleton {
 
     onQuickSettingsOpenChanged: {
         if (quickSettingsOpen) {
+            accentPickerOpen = false
             notificationCenterOpen = false
             quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -107,11 +126,11 @@ Singleton {
 
     onQuickActionsOpenChanged: {
         if (quickActionsOpen) {
+            accentPickerOpen = false
             notificationCenterOpen = false
             quickSettingsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -119,10 +138,10 @@ Singleton {
 
     onLauncherOpenChanged: {
         if (launcherOpen) {
+            accentPickerOpen = false
             notificationCenterOpen = false
             quickSettingsOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -135,19 +154,6 @@ Singleton {
             quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
-            dashboardOpen = false
-            sessionOpen = false
-        }
-    }
-
-    onQuickWallpaperOpenChanged: {
-        if (quickWallpaperOpen) {
-            notificationCenterOpen = false
-            quickSettingsOpen = false
-            quickActionsOpen = false
-            launcherOpen = false
-            spotlightOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -155,12 +161,12 @@ Singleton {
 
     onDashboardOpenChanged: {
         if (dashboardOpen) {
+            accentPickerOpen = false
             notificationCenterOpen = false
             quickSettingsOpen = false
             quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             sessionOpen = false
         }
     }
@@ -172,7 +178,6 @@ Singleton {
             quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -180,11 +185,11 @@ Singleton {
 
     onSpotlightOpenChanged: {
         if (spotlightOpen) {
+            accentPickerOpen = false
             notificationCenterOpen = false
             quickSettingsOpen = false
             quickActionsOpen = false
             launcherOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -192,12 +197,12 @@ Singleton {
 
     onSessionOpenChanged: {
         if (sessionOpen) {
+            accentPickerOpen = false
             notificationCenterOpen = false
             quickSettingsOpen = false
             quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
         }
     }
@@ -215,7 +220,6 @@ Singleton {
             quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            quickWallpaperOpen = false
             dashboardOpen = false
             sessionOpen = false
             systemMonitorOpen = false
@@ -230,24 +234,30 @@ Singleton {
         launcherOpen = false
         spotlightOpen = false
         settingsOpen = false
-        quickWallpaperOpen = false
         dashboardOpen = false
         systemMonitorOpen = false
         sessionOpen = false
         overviewOpen = false
         mediaNotchOpen = false
         trayOverflowOpen = false
+        accentPickerOpen = false
         // Note: wallpaperSelectorOpen and regionSelectorOpen are excluded
     }
 
     function activateSettings() {
+        const moveCmd = Hyprland.usingLua
+            ? "hyprctl dispatch \"hl.dsp.window.move({ workspace = \\\"name:$CUR_WS\\\", window = \\\"address:$ADDR\\\", follow = false })\""
+            : "hyprctl dispatch movetoworkspacesilent name:$CUR_WS, address:$ADDR";
+        const focusCmd = Hyprland.usingLua
+            ? "hyprctl dispatch \"hl.dsp.focus({ window = \\\"address:$ADDR\\\" })\""
+            : "hyprctl dispatch focuswindow address:$ADDR";
         const cmd = `
             # Find settings window address
             ADDR=$(hyprctl clients -j | jq -r '.[] | select(.title == "Settings" and .class == "org.quickshell") | .address')
             
             if [ -z "$ADDR" ] || [ "$ADDR" = "null" ]; then
                 # Not open, so open it
-                qs -p ${Quickshell.shellPath(".")} ipc call settings open_direct
+                ${Directories.ipcCommandPrefixString} ipc call settings open_direct
                 exit 0
             fi
 
@@ -256,30 +266,36 @@ Singleton {
             
             if [ "$ADDR" = "$ACTIVE_ADDR" ]; then
                 # Already focused here, so close it
-                qs -c nandoroid ipc call settings close
+                ${Directories.ipcCommandPrefixString} ipc call settings close
             else
                 # Pull it here! Get current workspace name
                 CUR_WS=$(hyprctl activeworkspace -j | jq -r .name)
                 
                 # Move window to current workspace silently
-                hyprctl dispatch movetoworkspacesilent "name:$CUR_WS,address:$ADDR"
+                ${moveCmd}
                 
                 # Micro-delay to let Hyprland update internal state, then focus
                 sleep 0.05
-                hyprctl dispatch focuswindow "address:$ADDR"
+                ${focusCmd}
             fi
         `;
         Quickshell.execDetached(["bash", "-c", cmd]);
     }
 
     function activateSystemMonitor() {
+        const moveCmd = Hyprland.usingLua
+            ? "hyprctl dispatch \"hl.dsp.window.move({ workspace = \\\"name:$CUR_WS\\\", window = \\\"address:$ADDR\\\", follow = false })\""
+            : "hyprctl dispatch movetoworkspacesilent name:$CUR_WS, address:$ADDR";
+        const focusCmd = Hyprland.usingLua
+            ? "hyprctl dispatch \"hl.dsp.focus({ window = \\\"address:$ADDR\\\" })\""
+            : "hyprctl dispatch focuswindow address:$ADDR";
         const cmd = `
             # Find System Monitor window address
             ADDR=$(hyprctl clients -j | jq -r '.[] | select(.title == "System Monitor" and .class == "org.quickshell") | .address')
             
             if [ -z "$ADDR" ] || [ "$ADDR" = "null" ]; then
                 # Not open, so open it
-                qs -p ${Quickshell.shellPath(".")} ipc call systemmonitor open_direct
+                ${Directories.ipcCommandPrefixString} ipc call systemmonitor open_direct
                 exit 0
             fi
 
@@ -288,17 +304,17 @@ Singleton {
             
             if [ "$ADDR" = "$ACTIVE_ADDR" ]; then
                 # Already focused here, so close it
-                qs -c nandoroid ipc call systemmonitor close
+                ${Directories.ipcCommandPrefixString} ipc call systemmonitor close
             else
                 # Pull it here! Get current workspace name
                 CUR_WS=$(hyprctl activeworkspace -j | jq -r .name)
                 
                 # Move window to current workspace silently
-                hyprctl dispatch movetoworkspacesilent "name:$CUR_WS,address:$ADDR"
+                ${moveCmd}
                 
                 # Micro-delay
                 sleep 0.05
-                hyprctl dispatch focuswindow "address:$ADDR"
+                ${focusCmd}
             fi
         `;
         Quickshell.execDetached(["bash", "-c", cmd]);

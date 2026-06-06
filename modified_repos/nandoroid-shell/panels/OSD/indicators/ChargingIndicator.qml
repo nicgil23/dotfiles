@@ -1,5 +1,5 @@
 import ".."
-import qs.services
+import "../../../services"
 
 OsdToggleIndicator {
     id: osdValues
@@ -9,4 +9,5 @@ OsdToggleIndicator {
     name: "Power"
     statusText: isPluggedIn ? "Charging" : "Discharging"
     icon: Battery.materialSymbol
+    // shape: "circle"
 }

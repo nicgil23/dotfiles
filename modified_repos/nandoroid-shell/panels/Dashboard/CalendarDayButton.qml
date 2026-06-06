@@ -1,5 +1,5 @@
-import qs.widgets
-import qs.core
+import "../../widgets"
+import "../../core"
 import QtQuick
 import QtQuick.Layouts
 

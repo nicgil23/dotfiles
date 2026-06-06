@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.services
-import qs.widgets
+import "../../../core"
+import "../../../services"
+import "../../../widgets"
 import ".."
 
 /**
@@ -19,7 +19,7 @@ Item {
         StyledText {
             text: "Network Activity"
             font.pixelSize: Appearance.font.pixelSize.huge
-            font.weight: Font.Bold
+            font.weight: Font.DemiBold
         }
 
         Rectangle {
@@ -47,12 +47,12 @@ Item {
                         spacing: 24 * Appearance.effectiveScale
                         ColumnLayout {
                             spacing: 0
-                            StyledText { text: "DOWNLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: "#81C995" }
+                            StyledText { text: "DOWNLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: "#81C995" }
                             StyledText { text: (SystemData.networkRxRate / (1024 * 1024)).toFixed(2) + " MB/s"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.Black; color: Appearance.m3colors.m3onSurface }
                         }
                         ColumnLayout {
                             spacing: 0
-                            StyledText { text: "UPLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: "#FF8A65" }
+                            StyledText { text: "UPLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: "#FF8A65" }
                             StyledText { text: (SystemData.networkTxRate / (1024 * 1024)).toFixed(2) + " MB/s"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.Black; color: Appearance.m3colors.m3onSurface; horizontalAlignment: Text.AlignRight }
                         }
                     }

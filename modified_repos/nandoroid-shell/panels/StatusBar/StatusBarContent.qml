@@ -6,7 +6,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
-import Qt5Compat.GraphicalEffects
 
 /**
  * Status bar content layout with Android-style gradient.
@@ -46,7 +45,7 @@ Item {
     property real sidePadding: targetSidePadding
     Behavior on sidePadding { NumberAnimation { duration: 450; easing.type: Easing.OutQuint } }
 
-    // -- Click-to-close backdrop (invisible, catches unfocused clicks) --
+    // ── Click-to-close backdrop (invisible, catches unfocused clicks) ──
     MouseArea {
         anchors.fill: parent
         onClicked: GlobalStates.closeAllPanels()
@@ -67,11 +66,9 @@ Item {
             GlobalStates.notificationCenterOpen = !GlobalStates.notificationCenterOpen;
         }
 
-        onScrollUp: Brightness.decreaseBrightness()
-        onScrollDown: Brightness.increaseBrightness()
+        onScrollUp: Brightness.increaseBrightness()
+        onScrollDown: Brightness.decreaseBrightness()
         onMovedAway: {}
-
-
     }
 
     // Right 35% of the screen clicks open Quick Settings
@@ -88,11 +85,9 @@ Item {
             GlobalStates.quickSettingsOpen = !GlobalStates.quickSettingsOpen;
         }
 
-        onScrollUp: Audio.decrementVolume()
-        onScrollDown: Audio.incrementVolume()
+        onScrollUp: Audio.incrementVolume()
+        onScrollDown: Audio.decrementVolume()
         onMovedAway: {}
-
-
     }
 
     // Middle 30% of the screen clicks open Dashboard
@@ -110,7 +105,7 @@ Item {
     }
 
 
-    // -- Left Cluster --
+    // ── Left Cluster ──
     RowLayout {
         id: leftCluster
         anchors.left: parent.left
@@ -160,7 +155,7 @@ Item {
         }
     }
 
-    // -- Center Cluster (Dynamic Island host) --
+    // ── Center Cluster (Dynamic Island host) ──
     DynamicIsland {
         id: dynamicIsland
         anchors.horizontalCenter: parent.horizontalCenter
@@ -171,21 +166,23 @@ Item {
 
     // Time (Left of Notch)
     StyledText {
+        visible: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.clockPosition !== "right" : true
         anchors.verticalCenter: parent.verticalCenter
         x: dynamicIsland.x + dynamicIsland.pill.x - width - 16 * Appearance.effectiveScale
         text: DateTime.currentTime
         font.pixelSize: Appearance.font.pixelSize.small
-        font.weight: Font.DemiBold
+        font.weight: Font.Normal
         color: root.contentColor
     }
 
     // Date (Right of Notch)
     StyledText {
+        visible: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.clockPosition !== "right" : true
         anchors.verticalCenter: parent.verticalCenter
         x: dynamicIsland.x + dynamicIsland.pill.x + dynamicIsland.pill.width + 16 * Appearance.effectiveScale
         text: DateTime.currentDate
         font.pixelSize: Appearance.font.pixelSize.small
-        font.weight: Font.DemiBold
+        font.weight: Font.Normal
         color: root.contentColor
     }
 
@@ -198,7 +195,7 @@ Item {
     }
 
 
-    // -- Right Cluster --
+    // ── Right Cluster ──
     RowLayout {
         id: rightCluster
         anchors.right: privacyIndicator.left
@@ -261,15 +258,16 @@ Item {
                     width: Math.max(12 * Appearance.effectiveScale, badgeText.implicitWidth + 4 * Appearance.effectiveScale)
                     height: 12 * Appearance.effectiveScale
                     radius: 6 * Appearance.effectiveScale
-                    color: bellIcon.color // Match the bell icon color
+                    color: root.contentColor
 
                     StyledText {
                         id: badgeText
                         anchors.centerIn: parent
                         text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
                         font.pixelSize: 8 * Appearance.effectiveScale
-                        font.weight: Font.Bold
-                        color: showBackground ? Appearance.m3colors.m3surface : Appearance.colors.colLayer0 // High contrast against the bell-colored badge
+                        font.weight: Font.DemiBold
+                        // Inverse color of the badge to ensure contrast
+                        color: showBackground ? Appearance.m3colors.m3surface : (Appearance.colors.resolvedStatusBarDarkText ? "#F5F5F5" : "#1E1E1E")
                     }
                 }
             }
@@ -318,6 +316,31 @@ Item {
                 visible: Battery.available
                 Layout.alignment: Qt.AlignVCenter
                 color: root.contentColor
+            }
+
+            // Right-aligned clock
+            ColumnLayout {
+                id: rightClock
+                visible: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.clockPosition === "right" : false
+                spacing: -2 * Appearance.effectiveScale
+                Layout.alignment: Qt.AlignVCenter
+                Layout.leftMargin: 4 * Appearance.effectiveScale
+
+                StyledText {
+                    font.pixelSize: Appearance.font.pixelSize.smallest
+                    color: root.subtextColor
+                    text: DateTime.currentDate
+                    font.weight: Font.Normal
+                    Layout.alignment: Qt.AlignRight
+                }
+
+                StyledText {
+                    font.pixelSize: Appearance.font.pixelSize.smaller
+                    color: root.contentColor
+                    font.weight: Font.Normal
+                    text: DateTime.currentTime
+                    Layout.alignment: Qt.AlignRight
+                }
             }
 
             // DND Indicator

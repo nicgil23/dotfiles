@@ -1,10 +1,10 @@
 import QtQuick
 import Quickshell
 import QtQuick.Layouts
-import qs.widgets
-import qs.core
-import qs.core.functions as Functions
-import qs.services
+import "../../widgets"
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
 
 Rectangle {
     id: root
@@ -59,7 +59,7 @@ Rectangle {
             launcherContent: root
         }
         
-        // -- Spotlight / Search List --
+        // ── Spotlight / Search List ──
         ListView {
             id: pluginList
             Layout.fillWidth: true
@@ -87,7 +87,7 @@ Rectangle {
             }
         }
 
-        // -- Vicinae Footer --
+        // ── Vicinae Footer ──
         RowLayout {
             id: footer
             Layout.fillWidth: true
@@ -102,21 +102,12 @@ Rectangle {
                 opacity: 0.6
                 text: {
                     const q = LauncherSearch.query;
-                    const prefixes = (Config.ready && Config.options.search) ? {
-                        emoji: Config.options.search.emojiPrefix,
-                        clipboard: Config.options.search.clipboardPrefix,
-                        file: Config.options.search.filePrefix,
-                        web: Config.options.search.webPrefix,
-                        math: Config.options.search.mathPrefix,
-                        command: Config.options.search.commandPrefix
-                    } : { emoji: ":", clipboard: ";", file: "?", web: "!", math: "=", command: ">" };
-
-                    if (q.startsWith(prefixes.emoji)) return "Emoji Search";
-                    if (q.startsWith(prefixes.web)) return "Web Search";
-                    if (q.startsWith(prefixes.math)) return "Calculator";
-                    if (q.startsWith(prefixes.clipboard)) return "Clipboard History";
-                    if (q.startsWith(prefixes.file)) return "File Search";
-                    if (q.startsWith(prefixes.command)) return "Quick Commands";
+                    if (q.startsWith(":")) return "Emoji Search";
+                    if (q.startsWith("!")) return "Web Search";
+                    if (q.startsWith("=")) return "Calculator";
+                    if (q.startsWith(";")) return "Clipboard History";
+                    if (q.startsWith("?")) return "File Search";
+                    if (q.startsWith(">")) return "Quick Commands";
                     return q ? "Spotlight Search" : "Applications";
                 }
             }

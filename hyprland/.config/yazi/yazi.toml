@@ -1,6 +1,6 @@
 # A TOML linter such as https://taplo.tamasfe.dev/ can use this schema to validate your config.
 # If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
-"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
+# "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 [mgr]
 ratio          = [ 1, 4, 3 ]
@@ -92,12 +92,12 @@ rules = [
 	# Virtual file system
 	{ mime = "vfs/{absent,stale}", use = "download" },
   # Emuladores
-  { name = "*.gb",   use = "gba" },
-	{ name = "*.gbc",  use = "gba" },
-	{ name = "*.gba",  use = "gba" },
-	{ name = "*.nds",  use = "nds" },
-	{ name = "*.3ds",  use = "3ds" },
-	{ name = "*.cia",  use = "3ds" },
+    { url = "*.gb",   use = "gba" },
+	{ url = "*.gbc",  use = "gba" },
+	{ url = "*.gba",  use = "gba" },
+	{ url = "*.nds",  use = "nds" },
+	{ url = "*.3ds",  use = "3ds" },
+	{ url = "*.cia",  use = "3ds" },
 	# Fallback
 	{ url = "*", use = [ "open", "reveal" ] },
 ]
@@ -113,9 +113,9 @@ suppress_preload = false
 [plugin]
 fetchers = [
 	# Mimetype
-	{ id = "mime", url = "*/",         run = "mime.dir", prio = "high" },
-	{ id = "mime", url = "local://*",  run = "mime.local", prio = "high" },
-	{ id = "mime", url = "remote://*", run = "mime.remote", prio = "high" },
+	{ id = "mime", url = "*/",         run = "mime.dir", group = "navigation", prio = "high" },
+	{ id = "mime", url = "local://*",  run = "mime.local", group = "navigation", prio = "high" },
+	{ id = "mime", url = "remote://*", run = "mime.remote", group = "navigation", prio = "high" },
 ]
 spotters = [
 	{ url = "*/", run = "folder" },

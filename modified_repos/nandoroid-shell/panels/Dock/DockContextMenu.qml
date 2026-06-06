@@ -6,9 +6,9 @@ import Quickshell.Io
 import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../services"
+import "../../widgets"
 
 /**
  * DockContextMenu.qml
@@ -112,17 +112,15 @@ PanelWindow {
                     Layout.fillWidth: true; Layout.leftMargin: 8 * Appearance.effectiveScale; Layout.rightMargin: 8 * Appearance.effectiveScale; Layout.topMargin: 4 * Appearance.effectiveScale; Layout.bottomMargin: 4 * Appearance.effectiveScale; spacing: 8 * Appearance.effectiveScale
                     Item {
                         Layout.preferredWidth: 20 * Appearance.effectiveScale; Layout.preferredHeight: 20 * Appearance.effectiveScale
-                        Image {
+                        IconImage {
                             anchors.fill: parent
-                            sourceSize: Qt.size(width, height)
-                            fillMode: Image.PreserveAspectFit
                             source: root.appId ? Quickshell.iconPath(AppSearch.guessIcon(root.appId), "application-x-executable") : ""
                         }
                     }
                     StyledText {
                         text: root.desktopEntry ? root.desktopEntry.name : (root.appId ? (root.appId.charAt(0).toUpperCase() + root.appId.slice(1)) : "Application")
                         font.pixelSize: Appearance.font.pixelSize.small
-                        font.weight: Font.Bold; color: Appearance.colors.colOnLayer0
+                        font.weight: Font.DemiBold; color: Appearance.colors.colOnLayer0
                         elide: Text.ElideRight; Layout.fillWidth: true
                     }
                 }
@@ -193,6 +191,10 @@ PanelWindow {
                 MenuItem {
                     menuText: "Restart Shell"; menuIcon: "refresh"
                     onClicked: { Quickshell.execDetached([Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/scripts/restartshell.sh"]); root.close() }
+                }
+                MenuItem {
+                    menuText: "Restart Fix"; menuIcon: "build"
+                    onClicked: { Quickshell.execDetached([Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/scripts/restart_fix.sh"]); root.close() }
                 }
                 MenuItem {
                     menuText: "Settings"; menuIcon: "settings"

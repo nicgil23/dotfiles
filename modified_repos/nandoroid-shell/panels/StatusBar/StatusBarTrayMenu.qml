@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import qs.core
-import qs.widgets
+import "../../core"
+import "../../widgets"
 
 PopupWindow {
     id: root
@@ -19,6 +19,8 @@ PopupWindow {
     onVisibleChanged: {
         if (!visible) menuClosed();
     }
+
+    Component.onDestruction: menuClosed()
 
     Rectangle {
         id: popupBackground

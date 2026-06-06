@@ -17,16 +17,10 @@ Singleton {
     property var wiredConnections: []
 
     property bool wifiEnabled: false
-    onWifiEnabledChanged: {
-        if (wifiEnabled) update()
-        if (Config.ready) Config.options.system.wifiEnabled = wifiEnabled
-    }
+    onWifiEnabledChanged: if (wifiEnabled) update()
     
     // WARP VPN properties
     property bool warpConnected: false
-    onWarpConnectedChanged: {
-        if (Config.ready) Config.options.system.warpConnected = warpConnected
-    }
     property bool warpCLIInstalled: false
 
     function toggleWarp() {
@@ -372,21 +366,6 @@ Singleton {
         update()
         // Initial check; warpPollTimer will keep polling afterwards.
         warpStatusProc.running = true
-    }
-
-    Connections {
-        target: Config
-        function onReadyChanged() {
-            if (Config.ready) {
-                // Enforce saved preferences on startup
-                if (root.wifiEnabled !== Config.options.system.wifiEnabled) {
-                    root.enableWifi(Config.options.system.wifiEnabled);
-                }
-                if (root.warpConnected !== Config.options.system.warpConnected) {
-                    root.toggleWarp();
-                }
-            }
-        }
     }
 
     Process {

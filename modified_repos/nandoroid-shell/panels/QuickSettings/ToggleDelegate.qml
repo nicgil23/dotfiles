@@ -1,7 +1,7 @@
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -60,7 +60,7 @@ RippleButton {
     property color colText: (isToggled && !hasMenu && enabled) ? Appearance.colors.colOnPrimary : Functions.ColorUtils.transparentize(Appearance.colors.colOnLayer2, enabled ? 0 : 0.7)
     property color colIcon: expandedSize ? (isToggled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer3) : colText
 
-    // -- Normal mode click handling --
+    // ── Normal mode click handling ──
     onClicked: {
         if (hasMenu) {
             root.openDetails();
@@ -173,7 +173,7 @@ RippleButton {
         }
     }
 
-    // -- Edit mode: blocking MouseArea (exactly like the example) --
+    // ── Edit mode: blocking MouseArea (exactly like the example) ──
     // Sits on top of everything and handles all edit interactions via direct mutation
     MouseArea {
         id: editModeInteraction
@@ -276,7 +276,7 @@ RippleButton {
             anchors.margins: 6 * Appearance.effectiveScale
             text: root.cellSize === 1 ? "1×" : "2×"
             font.pixelSize: Appearance.font.pixelSize.smaller
-            font.weight: Font.Bold
+            font.weight: Font.DemiBold
             color: Appearance.m3colors.m3error
         }
     }

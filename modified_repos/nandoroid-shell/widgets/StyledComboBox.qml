@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import qs.core
+import "../core"
 import "."
 
 /**
@@ -18,6 +18,8 @@ Item {
     property var model: []
     property string placeholder: "Select or type..."
     property bool searchable: true
+    property string fontFamily: Appearance.font.family.main
+    property bool isFontPicker: false
     property bool isOpened: false
     property bool isFiltering: false // Only filter when user starts typing
     property int maxHeight: 240 * Appearance.effectiveScale
@@ -67,67 +69,68 @@ Item {
             anchors.margins: 12 * Appearance.effectiveScale
             spacing: 8 * Appearance.effectiveScale
             
-                TextInput {
-                    id: input
-                    Layout.fillWidth: true
-                    text: root.text
-                    font.family: Appearance.font.family.main
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    color: Appearance.colors.colOnLayer1
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.verticalCenterOffset: 0 * Appearance.effectiveScale
-                    readOnly: !root.searchable
-                    focus: false
-                    selectByMouse: root.searchable
-                    clip: true
-                    
-                    onTextChanged: {
-                        if (root.searchable && activeFocus && root.isOpened) {
-                            root.text = text;
-                            root.isFiltering = true;
-                        }
-                        if (!activeFocus) cursorPosition = 0;
+            TextInput {
+                id: input
+                Layout.fillWidth: true
+                text: root.text
+                font.family: root.fontFamily
+                font.pixelSize: Appearance.font.pixelSize.normal
+                color: Appearance.colors.colOnLayer1
+                verticalAlignment: TextInput.AlignVCenter
+                readOnly: !root.searchable
+                focus: root.searchable
+                selectByMouse: root.searchable
+                clip: true
+                
+                onTextChanged: {
+                    if (root.searchable && activeFocus && root.isOpened) {
+                        root.text = text;
+                        root.isFiltering = true;
                     }
-                    TapHandler {
-                        onTapped: if (!root.isOpened) root.isOpened = true
-                    }
-
-                    Keys.onPressed: (event) => {
-                        if (!root.isOpened) {
-                            if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
-                                root.isOpened = true;
-                                event.accepted = true;
-                            }
-                            return;
-                        }
-
-                        if (event.key === Qt.Key_Down) {
-                            listView.currentIndex = Math.min(listView.count - 1, listView.currentIndex + 1);
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Up) {
-                            listView.currentIndex = Math.max(0, listView.currentIndex - 1);
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            if (listView.currentIndex >= 0 && listView.currentIndex < listView.count) {
-                                root.selectItem(root.filteredModel[listView.currentIndex]);
-                                root.isOpened = false;
-                                input.focus = false;
-                            }
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Escape) {
-                            root.isOpened = false;
-                            event.accepted = true;
-                        }
-                    }
-
-                    Text {
-                        text: root.placeholder
-                        color: Appearance.colors.colSubtext
-                        visible: !parent.text && !parent.activeFocus
-                        font: parent.font
-                        anchors.verticalCenter: parent.verticalCenter
+                    if (!activeFocus) cursorPosition = 0;
+                }
+                onActiveFocusChanged: {
+                    if (activeFocus && root.searchable) {
+                        root.isOpened = true;
                     }
                 }
+
+                Keys.onPressed: (event) => {
+                    if (!root.isOpened) {
+                        if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
+                            root.isOpened = true;
+                            event.accepted = true;
+                        }
+                        return;
+                    }
+
+                    if (event.key === Qt.Key_Down) {
+                        listView.currentIndex = Math.min(listView.count - 1, listView.currentIndex + 1);
+                        event.accepted = true;
+                    } else if (event.key === Qt.Key_Up) {
+                        listView.currentIndex = Math.max(0, listView.currentIndex - 1);
+                        event.accepted = true;
+                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                        if (listView.currentIndex >= 0 && listView.currentIndex < listView.count) {
+                            root.selectItem(root.filteredModel[listView.currentIndex]);
+                            root.isOpened = false;
+                            input.focus = false;
+                        }
+                        event.accepted = true;
+                    } else if (event.key === Qt.Key_Escape) {
+                        root.isOpened = false;
+                        event.accepted = true;
+                    }
+                }
+
+                Text {
+                    text: root.placeholder
+                    color: Appearance.colors.colSubtext
+                    visible: !parent.text && !parent.activeFocus
+                    font: parent.font
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
             
             MaterialSymbol {
                 text: root.isOpened ? "expand_less" : "expand_more"
@@ -205,8 +208,8 @@ Item {
                     anchors.leftMargin: 12 * Appearance.effectiveScale
                     verticalAlignment: Text.AlignVCenter
                     color: delegateRoot.isCurrent ? (Appearance.m3colors.m3primary || Appearance.colors.colPrimary) : Appearance.colors.colOnLayer2
-                    font.family: root.searchable ? text : Appearance.font.family.main
-                    font.weight: delegateRoot.isCurrent ? Font.Bold : Font.Normal
+                    font.family: root.isFontPicker ? text : root.fontFamily
+                    font.weight: delegateRoot.isCurrent ? Font.DemiBold : Font.Normal
                 }
                 
                 onClicked: {

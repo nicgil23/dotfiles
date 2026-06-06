@@ -1,6 +1,6 @@
-import qs.core
-import qs.widgets
-import qs.services
+import "../../core"
+import "../../widgets"
+import "../../services"
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -88,7 +88,7 @@ Item {
         anchors.fill: parent
         spacing: 12 * Appearance.effectiveScale
 
-        // -- Note List Sidebar (fixed width, always same) --
+        // ── Note List Sidebar (fixed width, always same) ──
         ColumnLayout {
             id: sidebar
             width: 200 * Appearance.effectiveScale
@@ -174,7 +174,7 @@ Item {
             }
         }
 
-        // -- Note Editor --
+        // ── Note Editor ──
         Item {
             id: editorArea
             width: mainRow.width - sidebar.width - mainRow.spacing
@@ -222,7 +222,7 @@ Item {
                         anchors.fill: parent; anchors.margins: 10 * Appearance.effectiveScale
                         font.family: Appearance.font.family.main
                         font.pixelSize: Appearance.font.pixelSize.large
-                        font.weight: Font.Bold
+                        font.weight: Font.DemiBold
                         color: Appearance.colors.colOnLayer1
                         verticalAlignment: TextInput.AlignVCenter
                         onTextChanged: saveTimer.restart()
@@ -233,7 +233,7 @@ Item {
                             color: Appearance.colors.colSubtext
                             visible: !parent.text && !parent.activeFocus
                             font.pixelSize: Appearance.font.pixelSize.large
-                            font.weight: Font.Bold
+                            font.weight: Font.DemiBold
                             verticalAlignment: Text.AlignVCenter
                         }
                     }

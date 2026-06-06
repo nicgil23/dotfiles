@@ -1,6 +1,6 @@
-import qs.core
-import qs.widgets
-import qs.services
+import "../../core"
+import "../../widgets"
+import "../../services"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Io
@@ -62,7 +62,7 @@ RowLayout {
         return dates
     }
 
-    // -- Calendar --
+    // ── Calendar ──
     Rectangle {
         Layout.fillHeight: true
         Layout.fillWidth: true
@@ -79,7 +79,7 @@ RowLayout {
         }
     }
 
-    // -- Pomodoro with circle ring --
+    // ── Pomodoro with circle ring ──
     Rectangle {
         Layout.fillHeight: true
         Layout.fillWidth: true
@@ -88,12 +88,17 @@ RowLayout {
         radius: Appearance.rounding.normal
         clip: true
 
+        MouseArea {
+            anchors.fill: parent
+            onClicked: GlobalStates.closePopups()
+        }
+
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 16 * Appearance.effectiveScale
             spacing: 14 * Appearance.effectiveScale
 
-            // -- Circular Arc Timer --
+            // ── Circular Arc Timer ──
             Item {
                 Layout.alignment: Qt.AlignHCenter
                 implicitWidth: arcSize
@@ -159,7 +164,7 @@ RowLayout {
                         Layout.alignment: Qt.AlignHCenter
                         text: PomodoroService.timeString
                         font.pixelSize: 32 * Appearance.effectiveScale
-                        font.weight: Font.Bold
+                        font.weight: Font.DemiBold
                         color: Appearance.colors.colOnLayer1
                     }
                     StyledText {
@@ -180,38 +185,63 @@ RowLayout {
                     StyledText {
                         anchors.centerIn: parent
                         text: PomodoroService.rotations
-                        font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold
+                        font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold
                         color: Appearance.m3colors.m3onSecondaryContainer
                     }
                 }
             }
 
-            // -- Mode selector --
+            // ── Pomodoro Type Selector ──
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 4 * Appearance.effectiveScale
+                spacing: 6 * Appearance.effectiveScale
                 Repeater {
                     model: [
-                        { icon: "alarm", name: "Focus", mode: 0 },
-                        { icon: "coffee", name: "Short", mode: 1 },
-                        { icon: "self_improvement", name: "Long", mode: 2 }
+                        { icon: "schedule", name: "Clásico", type: 0, tooltip: "Pomodoro Clásico (25/5 min)" },
+                        { icon: "hourglass_empty", name: "Extendido", type: 1, tooltip: "Pomodoro Extendido (50/10 min)" }
                     ]
                     delegate: SegmentedButton {
                         Layout.fillWidth: true
                         implicitHeight: 32 * Appearance.effectiveScale
-                        isHighlighted: PomodoroService.mode === modelData.mode
+                        isHighlighted: PomodoroService.pomodoroType === modelData.type
                         iconName: modelData.icon
-                        iconSize: 18 * Appearance.effectiveScale
-                        spacing: 5 * Appearance.effectiveScale
+                        iconSize: 16 * Appearance.effectiveScale
+                        spacing: 6 * Appearance.effectiveScale
                         buttonText: modelData.name
                         colInactive: Appearance.m3colors.m3surfaceContainerHigh
-                        onClicked: PomodoroService.setMode(modelData.mode)
-                        StyledToolTip { text: modelData.name }
+                        onClicked: PomodoroService.setPomodoroType(modelData.type)
+                        StyledToolTip { text: modelData.tooltip }
                     }
                 }
             }
 
-            // -- Controls --
+            // ── Session State Selector ──
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 6 * Appearance.effectiveScale
+                Repeater {
+                    model: [
+                        { icon: "work", name: "Trabajo", mode: 0, tooltip: "Sesión de Trabajo" },
+                        { icon: "coffee", name: "Descanso", mode: 1, tooltip: "Sesión de Descanso" }
+                    ]
+                    delegate: SegmentedButton {
+                        Layout.fillWidth: true
+                        implicitHeight: 28 * Appearance.effectiveScale
+                        isHighlighted: PomodoroService.mode === modelData.mode
+                        iconName: modelData.icon
+                        iconSize: 14 * Appearance.effectiveScale
+                        spacing: 6 * Appearance.effectiveScale
+                        buttonText: modelData.name
+                        colInactive: Appearance.m3colors.m3surfaceContainerHigh
+                        colActive: Appearance.m3colors.m3secondary
+                        colActiveText: Appearance.m3colors.m3onSecondary
+                        onClicked: PomodoroService.setMode(modelData.mode)
+                        StyledToolTip { text: modelData.tooltip }
+                    }
+                }
+            }
+
+            // ── Controls ──
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 12 * Appearance.effectiveScale
@@ -248,64 +278,28 @@ RowLayout {
                 }
             }
 
-            // -- Auto-continue toggle + next-break selector --
-            ColumnLayout {
+            // ── Auto-continue toggle ──
+            RowLayout {
                 Layout.fillWidth: true
-                spacing: 6 * Appearance.effectiveScale
-
-                RowLayout {
+                StyledText {
                     Layout.fillWidth: true
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: "Auto-continue"
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colSubtext
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                    RippleButton {
-                        implicitWidth: 40 * Appearance.effectiveScale; implicitHeight: 22 * Appearance.effectiveScale; buttonRadius: 11 * Appearance.effectiveScale
-                        colBackground: PomodoroService.autoContinue
-                            ? Appearance.m3colors.m3primary : Appearance.m3colors.m3surfaceContainerHigh
-                        onClicked: PomodoroService.autoContinue = !PomodoroService.autoContinue
-                        Rectangle {
-                            x: PomodoroService.autoContinue ? parent.width - width - 3 * Appearance.effectiveScale : 3 * Appearance.effectiveScale
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 16 * Appearance.effectiveScale; height: 16 * Appearance.effectiveScale; radius: 8 * Appearance.effectiveScale
-                            color: PomodoroService.autoContinue
-                                ? Appearance.m3colors.m3onPrimary : Appearance.colors.colSubtext
-                            Behavior on x { NumberAnimation { duration: 180 } }
-                        }
-                    }
+                    text: "Auto-continue"
+                    font.pixelSize: Appearance.font.pixelSize.smaller
+                    color: Appearance.colors.colSubtext
+                    verticalAlignment: Text.AlignVCenter
                 }
-
-                // Next break selector (shown when auto-continue is on)
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: PomodoroService.autoContinue
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: "Next Break"
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colSubtext
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                    RowLayout {
-                        spacing: 4 * Appearance.effectiveScale
-                        Repeater {
-                            model: [
-                                { icon: "coffee", name: "Short", mode: 1 },
-                                { icon: "self_improvement", name: "Long", mode: 2 }
-                            ]
-                            delegate: SegmentedButton {
-                                implicitWidth: 72 * Appearance.effectiveScale; implicitHeight: 24 * Appearance.effectiveScale
-                                isHighlighted: PomodoroService.nextBreakMode === modelData.mode
-                                iconName: modelData.icon; buttonText: modelData.name; iconSize: 11 * Appearance.effectiveScale
-                                colInactive: Appearance.m3colors.m3surfaceContainerHigh
-                                colActive: Appearance.m3colors.m3secondary
-                                colActiveText: Appearance.m3colors.m3onSecondary
-                                onClicked: PomodoroService.nextBreakMode = modelData.mode
-                            }
-                        }
+                RippleButton {
+                    implicitWidth: 40 * Appearance.effectiveScale; implicitHeight: 22 * Appearance.effectiveScale; buttonRadius: 11 * Appearance.effectiveScale
+                    colBackground: PomodoroService.autoContinue
+                        ? Appearance.m3colors.m3primary : Appearance.m3colors.m3surfaceContainerHigh
+                    onClicked: PomodoroService.autoContinue = !PomodoroService.autoContinue
+                    Rectangle {
+                        x: PomodoroService.autoContinue ? parent.width - width - 3 * Appearance.effectiveScale : 3 * Appearance.effectiveScale
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 16 * Appearance.effectiveScale; height: 16 * Appearance.effectiveScale; radius: 8 * Appearance.effectiveScale
+                        color: PomodoroService.autoContinue
+                            ? Appearance.m3colors.m3onPrimary : Appearance.colors.colSubtext
+                        Behavior on x { NumberAnimation { duration: 180 } }
                     }
                 }
             }

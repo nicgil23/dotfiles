@@ -1,7 +1,7 @@
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 
@@ -27,7 +27,7 @@ Rectangle {
         anchors.margins: 14 * Appearance.effectiveScale
         spacing: 12 * Appearance.effectiveScale
 
-        // -- Header --
+        // ── Header ──
         RowLayout {
             Layout.fillWidth: true
             spacing: 12 * Appearance.effectiveScale
@@ -72,7 +72,7 @@ Rectangle {
             }
         }
 
-        // -- Separator --
+        // ── Separator ──
         Rectangle {
             Layout.fillWidth: true
             height: 1
@@ -80,7 +80,7 @@ Rectangle {
         }
 
 
-        // -- Color temperature slider --
+        // ── Color temperature slider ──
         Column {
             Layout.fillWidth: true
             Layout.topMargin: 8 * Appearance.effectiveScale
@@ -139,7 +139,7 @@ Rectangle {
 
         Item { Layout.fillHeight: true }
 
-        // -- Footer --
+        // ── Footer ──
         Rectangle {
             Layout.fillWidth: true
             height: 1

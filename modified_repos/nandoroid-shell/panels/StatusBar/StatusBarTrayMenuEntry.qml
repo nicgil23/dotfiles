@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
-import qs.core
-import qs.widgets
+import "../../core"
+import "../../widgets"
 
 RippleButton {
     id: root
@@ -61,10 +61,8 @@ RippleButton {
             implicitWidth: 16 * Appearance.effectiveScale
             implicitHeight: 16 * Appearance.effectiveScale
             
-            Image {
+            IconImage {
                 anchors.fill: parent
-                sourceSize: Qt.size(width, height)
-                fillMode: Image.PreserveAspectFit
                 source: root.menuEntry.icon
                 asynchronous: true
                 visible: source.length > 0

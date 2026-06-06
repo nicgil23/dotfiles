@@ -1,6 +1,6 @@
-import qs.core
-import qs.core.functions as Functions
-import qs.services
+import "../core"
+import "../core/functions" as Functions
+import "../services"
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects

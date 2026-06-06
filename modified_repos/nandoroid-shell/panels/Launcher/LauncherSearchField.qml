@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import qs.widgets
-import qs.core
-import qs.services
+import "../../widgets"
+import "../../core"
+import "../../services"
 
 Rectangle {
     id: root
@@ -15,6 +15,8 @@ Rectangle {
     readonly property bool isSpotlightMode: root.launcherContent && root.launcherContent.isSpotlight
     
     color: Appearance.m3colors.m3surfaceContainerHigh
+    
+    // Removed the separator line as it was causing visual issues.
     
     property var launcherContent
 

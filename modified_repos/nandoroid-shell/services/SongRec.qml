@@ -1,7 +1,7 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import qs.core
+import "../core"
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -44,53 +44,25 @@ Singleton {
     property bool manuallyStopped: false
 
     function handleRecognition(jsonText) {
-        if (!jsonText || jsonText.trim() === "") {
-            Quickshell.execDetached(["notify-send", "-a", "NAnDoroid", "-i", root.nandoroidIcon, "--", "No music detected", "The recognizer finished without finding any matches."])
-            return;
-        }
-
         try {
-            // songrec might output multiple JSON objects separated by newlines
-            var lines = jsonText.split("\n");
-            var found = false;
-
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim();
-                if (line === "") continue;
-
-                var obj = JSON.parse(line);
-                if (obj.track) {
-                    root.recognizedTrack = {
-                        title: obj.track.title,
-                        subtitle: obj.track.subtitle,
-                        url: obj.track.url
-                    }
-                    musicRecognizedProc.running = true
-                    found = true;
-                    break;
+            var obj = JSON.parse(jsonText);
+            if (obj.track) {
+                root.recognizedTrack = {
+                    title: obj.track.title,
+                    subtitle: obj.track.subtitle,
+                    url: obj.track.url
                 }
-            }
-
-            if (!found) {
-                Quickshell.execDetached(["notify-send", "-a", "NAnDoroid", "-i", root.nandoroidIcon, "--", "Music not recognized", "Shazam couldn't find a match for this audio."])
+                musicRecognizedProc.running = true
             }
         } catch(e) {
-            console.error("Error parsing music recognition JSON: " + e);
-            Quickshell.execDetached(["notify-send", "-a", "NAnDoroid", "-i", root.nandoroidIcon, "--", "Recognition Error", "Failed to parse recognition results."])
+            Quickshell.execDetached(["notify-send", "-a", "NAnDoroid", "-i", root.nandoroidIcon, "--", "Couldn't recognize music", "Perhaps what you're listening to is too niche"])
         }
     }
 
     Process {
         id: recognizeMusicProc
         running: false
-        command: ["bash", Quickshell.shellPath("scripts/musicRecognition/recognize-music.sh"), "-i", root.timeoutInterval, "-t", root.timeoutDuration, "-s", root.monitorSourceString]
-        
-        onRunningChanged: {
-            if (running) {
-                Quickshell.execDetached(["notify-send", "-a", "NAnDoroid", "-i", root.nandoroidIcon, "-t", "2000", "--", "Music Recognition", "Listening for music..."])
-            }
-        }
-
+        command: [Quickshell.shellPath("scripts/musicRecognition/recognize-music.sh"), "-i", root.timeoutInterval, "-t", root.timeoutDuration, "-s", root.monitorSourceString]
         stdout: StdioCollector {
             onStreamFinished: {
                 if (root.manuallyStopped) {
@@ -104,7 +76,7 @@ Singleton {
         }
         onExited: (exitCode, exitStatus) => {
             if (exitCode === 1) {
-                Quickshell.execDetached(["notify-send", "-a", "NAnDoroid", "-i", root.nandoroidIcon, "--", "Couldn't recognize music", "Make sure you have songrec installed and script permissions are correct"])
+                Quickshell.execDetached(["notify-send", "-a", "NAnDoroid", "-i", root.nandoroidIcon, "--", "Couldn't recognize music", "Make sure you have songrec installed"])
             }
         }
     }

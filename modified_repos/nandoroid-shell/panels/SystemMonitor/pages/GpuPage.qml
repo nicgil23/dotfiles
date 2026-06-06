@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.services
-import qs.widgets
+import "../../../core"
+import "../../../services"
+import "../../../widgets"
 import ".."
 
 /**
@@ -19,7 +19,7 @@ Item {
         StyledText {
             text: "GPU Performance"
             font.pixelSize: Appearance.font.pixelSize.huge
-            font.weight: Font.Bold
+            font.weight: Font.DemiBold
         }
 
         Repeater {
@@ -39,7 +39,7 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         ColumnLayout {
-                            StyledText { text: modelData.name; font.pixelSize: Appearance.font.pixelSize.large; font.weight: Font.Bold; color: Appearance.m3colors.m3primaryContainer }
+                            StyledText { text: modelData.name; font.pixelSize: Appearance.font.pixelSize.large; font.weight: Font.DemiBold; color: Appearance.m3colors.m3primaryContainer }
                             StyledText { text: modelData.vendor; color: Appearance.m3colors.m3onSurfaceVariant; font.pixelSize: Appearance.font.pixelSize.smaller }
                         }
                         Item { Layout.fillWidth: true }

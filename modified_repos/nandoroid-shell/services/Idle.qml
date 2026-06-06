@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
+import "../core"
 
 Singleton {
     id: root
@@ -57,7 +57,10 @@ Singleton {
                 root.toggle();
             }
         }
+    }
 
+    Connections {
+        target: Config.options.quickSettings
         function onCaffeineActiveChanged() {
             if (Config.ready && Config.options.quickSettings.caffeineActive !== root.active) {
                 root.toggle();

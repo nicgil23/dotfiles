@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
-import qs.core
-import qs.core.functions as Functions
+import "../core"
+import "../core/functions" as Functions
 import "."
 
 /**
@@ -55,7 +55,7 @@ Button {
     
     property color textColor: root.toggled ? colTextToggled : colText
 
-    // -- Animations --
+    // ── Animations ──
     Behavior on opacity { animation: Appearance.animation.elementResize.numberAnimation.createObject(root) }
     Behavior on topLeftRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
     Behavior on topRightRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
@@ -131,7 +131,7 @@ Button {
         }
     }
 
-    // -- STABLE BACKGROUND --
+    // ── STABLE BACKGROUND ──
     background: Rectangle {
         id: bgContainer
         color: root.baseColor
@@ -169,7 +169,7 @@ Button {
             id: ripple
             width: ripple.implicitWidth; height: ripple.implicitHeight
             opacity: 0; visible: width > 0 && height > 0
-            property real implicitWidth: 0; property real implicitHeight: 0
+            implicitWidth: 0; implicitHeight: 0
             Behavior on opacity { NumberAnimation { duration: 150 } }
             RadialGradient {
                 anchors.fill: parent

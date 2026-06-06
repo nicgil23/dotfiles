@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
 
-import qs.core
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -41,16 +41,17 @@ Scope {
         Item {
             id: maskItem
             anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: (listview.activeDelegate) ? listview.activeDelegate.currentXOffset : 0
             width: listview.width
-            anchors.top: parent.top
-            anchors.topMargin: ((Config.options?.statusBar?.height ?? 40) * Appearance.effectiveScale) - (20 * Appearance.effectiveScale)
-            height: listview.contentHeight + (100 * Appearance.effectiveScale)
+            anchors.top: listview.top
+            height: listview.contentHeight
         }
 
         color: "transparent"
 
         ListView {
             id: listview
+            property var activeDelegate: null
             anchors {
                 top: parent.top
                 horizontalCenter: parent.horizontalCenter
@@ -63,8 +64,12 @@ Scope {
             
             model: Notifications.activePopup ? [Notifications.activePopup] : []
             delegate: NotificationPopupItem {
+                id: delegateItem
                 width: listview.width
                 notificationObject: modelData
+
+                Component.onCompleted: listview.activeDelegate = delegateItem
+                Component.onDestruction: if (listview.activeDelegate == delegateItem) listview.activeDelegate = null
             }
 
             // Transitions for replacement
@@ -77,10 +82,7 @@ Scope {
             }
 
             remove: Transition {
-                ParallelAnimation {
-                    NumberAnimation { property: "opacity"; to: 0; duration: 250 }
-                    NumberAnimation { property: "x"; to: 500; duration: 300; easing.type: Easing.InQuint }
-                }
+                NumberAnimation { property: "opacity"; to: 0; duration: 200 }
             }
         }
     }

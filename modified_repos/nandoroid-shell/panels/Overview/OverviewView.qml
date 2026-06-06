@@ -1,6 +1,6 @@
 import QtQuick
-import qs.services
-import qs.core
+import "../../services"
+import "../../core"
 
 /**
  * Overview View Switcher

@@ -17,26 +17,23 @@ while getopts "i:t:s:" opt; do
 done
 
 # Try to find the device string for songrec
-# Note: songrec outputs its device list to stderr, so we must redirect it.
 if [ "$SOURCE_TYPE" = "monitor" ]; then
     # Look for the default sink's monitor
-    DEFAULT_SINK=$(pactl get-default-sink 2>/dev/null)
-    # The grep pattern handles both pulseaudio: prefix and direct alsa: names
-    # We look for Available device: and then the sink name
-    DEVICE_STRING=$(songrec recognize -l 2>&1 | grep "Available device:" | grep "$DEFAULT_SINK" | head -n 1 | sed -n 's/.*Available device: \([^ ]*\).*/\1/p')
+    DEFAULT_SINK=$(pactl get-default-sink)
+    DEVICE_STRING=$(songrec recognize -l | grep "$DEFAULT_SINK.monitor" | head -n 1 | awk '{print $4}')
     
     # Fallback: just search for any monitor if specific one fails
     if [ -z "$DEVICE_STRING" ]; then
-        DEVICE_STRING=$(songrec recognize -l 2>&1 | grep "Available device:" | grep ".monitor" | head -n 1 | sed -n 's/.*Available device: \([^ ]*\).*/\1/p')
+        DEVICE_STRING=$(songrec recognize -l | grep ".monitor" | head -n 1 | awk '{print $4}')
     fi
 else
     # Look for default input source
-    DEFAULT_SOURCE=$(pactl get-default-source 2>/dev/null)
-    DEVICE_STRING=$(songrec recognize -l 2>&1 | grep "Available device:" | grep "$DEFAULT_SOURCE" | head -n 1 | sed -n 's/.*Available device: \([^ ]*\).*/\1/p')
+    DEFAULT_SOURCE=$(pactl get-default-source)
+    DEVICE_STRING=$(songrec recognize -l | grep "$DEFAULT_SOURCE" | head -n 1 | awk '{print $4}')
     
     # Fallback: search for any analog-stereo input
     if [ -z "$DEVICE_STRING" ]; then
-        DEVICE_STRING=$(songrec recognize -l 2>&1 | grep "Available device:" | grep "input" | grep -v ".monitor" | head -n 1 | sed -n 's/.*Available device: \([^ ]*\).*/\1/p')
+        DEVICE_STRING=$(songrec recognize -l | grep "input" | grep -v ".monitor" | head -n 1 | awk '{print $4}')
     fi
 fi
 
@@ -46,10 +43,9 @@ fi
 
 # Run songrec directly. -j for JSON, -i for interval.
 # We use timeout command to limit the duration.
-# We also use 'grep --line-buffered' to ensure we only output valid JSON lines
 if [ -n "$DEVICE_STRING" ]; then
-    timeout "$TOTAL_DURATION" songrec recognize -j -d "$DEVICE_STRING" -i "$INTERVAL" | grep --line-buffered "^{"
+    timeout "$TOTAL_DURATION" songrec recognize -j -d "$DEVICE_STRING" -i "$INTERVAL"
 else
     # Last resort: just use default mic
-    timeout "$TOTAL_DURATION" songrec recognize -j -i "$INTERVAL" | grep --line-buffered "^{"
+    timeout "$TOTAL_DURATION" songrec recognize -j -i "$INTERVAL"
 fi

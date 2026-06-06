@@ -1,8 +1,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
-import qs.core.functions as Functions
+import "../../../core"
+import "../../../core/functions" as Functions
 
 Process {
     id: screenshotProc

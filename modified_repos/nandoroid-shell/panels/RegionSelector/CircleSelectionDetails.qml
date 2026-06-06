@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Shapes
 import Quickshell
-import qs.core
+import "../../core"
 
 Item {
     id: root

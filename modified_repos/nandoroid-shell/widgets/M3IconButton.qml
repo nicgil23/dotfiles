@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import qs.core
+import "../core"
 
 RippleButton {
     id: root

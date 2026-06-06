@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
-import qs.core
-import qs.services
+import Qt5Compat.GraphicalEffects
+import "../../core"
+import "../../services"
 
 /**
  * Animated Weather Background - Overlay version for Android 16.

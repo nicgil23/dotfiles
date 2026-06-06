@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import Quickshell.Widgets
-import qs.core
-import qs.core.functions as Functions
-import qs.services
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
 import ".."
 import "."
-import qs.shapes
+import "../shapes"
 
 Item {
     id: root
@@ -88,7 +88,7 @@ Item {
                 implicitSize: root.width
                 color: root.colBackground
                 shapeString: Config.ready ? root.cfg.shape : "Circle"
-                borderWidth: Math.max(2, 2 * Appearance.effectiveScale)
+                borderWidth: 0
                 borderColor: Appearance.colors.colOutlineVariant
             }
         }

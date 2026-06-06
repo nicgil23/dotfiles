@@ -1,11 +1,12 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import qs.core
-import "../core/functions/NotificationUtils.js" as NotificationUtils
+import "../core"
+import "../services"
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 
 /**
@@ -22,22 +23,21 @@ Singleton {
     property list<QtObject> list: []
     property var activePopup: null
     property var popupList: list.filter(n => n.popup) // Still used for sidebar/history logic
-    property bool silent: Config.ready ? Config.options.notifications.silent : false
-    onSilentChanged: if (Config.ready) Config.options.notifications.silent = silent
+    property bool silent: false
     property int idOffset: 0
 
     onListChanged: if (list.length === 0) activePopup = null;
 
-    // -- Grouping Logic --
+    // ── Grouping Logic ──
     property var groupsByAppName: {
         const groups = {};
         for (let i = 0; i < list.length; i++) {
             const n = list[i];
-            const name = n.appName || "Unknown";
+            const name = n.isRestartRequired ? "System" : (n.appName || "Unknown");
             if (!groups[name]) {
                 groups[name] = {
                     appName: name,
-                    appIcon: n.appIcon, 
+                    appIcon: n.isRestartRequired ? "restart_alt" : n.appIcon, 
                     time: n.time,
                     notifications: []
                 };
@@ -53,11 +53,11 @@ Singleton {
         const popupList = list.filter(n => n.popup);
         for (let i = 0; i < popupList.length; i++) {
             const n = popupList[i];
-            const name = n.appName || "Unknown";
+            const name = n.isRestartRequired ? "System" : (n.appName || "Unknown");
             if (!groups[name]) {
                 groups[name] = {
                     appName: name,
-                    appIcon: n.appIcon, 
+                    appIcon: n.isRestartRequired ? "restart_alt" : n.appIcon, 
                     time: n.time,
                     notifications: []
                 };
@@ -72,6 +72,12 @@ Singleton {
     
     function sortApps(apps, groups) {
         return apps.sort((a, b) => {
+            const anyRestartA = groups[a]?.notifications.some(n => n.isRestartRequired) || false;
+            const anyRestartB = groups[b]?.notifications.some(n => n.isRestartRequired) || false;
+            
+            if (anyRestartA && !anyRestartB) return -1;
+            if (!anyRestartA && anyRestartB) return 1;
+
             const timeA = groups[a]?.time || 0;
             const timeB = groups[b]?.time || 0;
             return timeB - timeA; // Newest first
@@ -97,8 +103,8 @@ Singleton {
         return count;
     }
 
-    // -- Notification wrapper component --
-    // -- Notification wrapper component --
+    // ── Notification wrapper component ──
+    // ── Notification wrapper component ──
     component Notif: QtObject {
         required property int notificationId
         property Notification notification
@@ -116,6 +122,7 @@ Singleton {
         property double time
         property Timer timer
         property bool expanded: false
+        property bool isRestartRequired: false
 
         property list<var> actions: {
             if (notification && notification.actions) {
@@ -135,7 +142,7 @@ Singleton {
 
 
 
-    // -- Popup timeout timer component --
+    // ── Popup timeout timer component ──
     component NotifTimer: Timer {
         required property int notificationId
         interval: Config.options.notifications.timeout_ms
@@ -152,7 +159,7 @@ Singleton {
     Component { id: notifComponent; Notif {} }
     Component { id: notifTimerComponent; NotifTimer {} }
 
-    // -- D-Bus Notification Server --
+    // ── D-Bus Notification Server ──
     NotificationServer {
         id: notifServer
         actionsSupported: true
@@ -171,16 +178,57 @@ Singleton {
                 root.activePopup = null;
             }
 
+            const summaryLower = (notification.summary || "").toLowerCase();
+            const bodyLower = (notification.body || "").toLowerCase();
+            const appNameLower = (notification.appName || "").toLowerCase();
+            
+            // Check if this is a system/PC/device restart requirement
+            let isRestart = false;
+
+            // 1. Explicit system restart/reboot triggers
+            const systemRestartPhrases = [
+                "restart pc", "restart system", "restart computer", "restart device",
+                "reboot pc", "reboot system", "reboot computer", "reboot device",
+                "system restart", "system reboot", "kernel update",
+                "system needs to be restarted", "computer needs to be restarted",
+                "device needs to be restarted"
+            ];
+            const hasExplicitSystemRestart = systemRestartPhrases.some(phrase => 
+                summaryLower.includes(phrase) || bodyLower.includes(phrase)
+            );
+
+            // 2. Generic restart/reboot keywords that might indicate system restart
+            const genericRestartKeywords = ["restart", "reboot", "kernel update", "needs to be restarted"];
+            const hasGenericRestart = genericRestartKeywords.some(kw => 
+                summaryLower.includes(kw) || bodyLower.includes(kw)
+            );
+
+            // 3. Exclude indicators that point to an application restart
+            const appPattern = /\b(app|apps|application|applications|vesktop|discord|spotify|steam|firefox|chrome|chromium|brave|slack|signal|telegram|service|quickshell|hyprland|cava|extension)\b/i;
+            const isAppRelated = appPattern.test(summaryLower) || appPattern.test(bodyLower) || appPattern.test(appNameLower);
+
+            if (hasExplicitSystemRestart) {
+                isRestart = true;
+            } else if (hasGenericRestart && !isAppRelated) {
+                // If it's not app-related and has a restart keyword, check if it's sent by a system app/empty app name
+                const systemApps = ["", "system", "systemd", "update", "package", "software", "discover", "pkcon", "pacman", "dnf", "yay", "nandoroid", "notify-send", "bash", "sh"];
+                const isSystemApp = systemApps.some(app => appNameLower.includes(app));
+                if (isSystemApp) {
+                    isRestart = true;
+                }
+            }
+
             const newNotif = notifComponent.createObject(root, {
                 "notificationId": notification.id + root.idOffset,
                 "notification": notification,
-                "appIcon":  NotificationUtils.mapAppIcon(notification.appIcon  ?? ""),
-                "appName":  NotificationUtils.mapAppName(notification.appName  ?? ""),
+                "appIcon":  notification.appIcon  ?? "",
+                "appName":  notification.appName  ?? "",
                 "body":     notification.body     ?? "",
                 "image":    notification.image    ?? "",
                 "summary":  notification.summary  ?? "",
                 "urgency":  notification.urgency?.toString() ?? "normal",
                 "time":     Date.now(),
+                "isRestartRequired": isRestart
             });
             
             // Add to list and handle popup state
@@ -205,7 +253,7 @@ Singleton {
         }
     }
 
-    // -- Public API --
+    // ── Public API ──
     function markAllRead() { root.unread = 0; }
 
     function discardNotification(id) {
@@ -258,33 +306,103 @@ Singleton {
         const serverIndex = notifServer.trackedNotifications.values.findIndex(
             n => n.id + root.idOffset === id
         );
+        
         if (serverIndex !== -1) {
             const notif = notifServer.trackedNotifications.values[serverIndex];
-            let invoked = false;
             
             if (actionIdentifier === "default") {
+                // --- Smart Focus Logic (Enhanced with Overview-style Fuzzy Matching) ---
+                const appName = (notif.appName || "").toLowerCase();
+                const summary = (notif.summary || "").toLowerCase();
+                const body = (notif.body || "").toLowerCase();
+                
+                // ── NANDOROID INTERNAL ROUTING ──
+                if (appName === "nandoroid") {
+                    if (summary.includes("update") || body.includes("update")) {
+                        GlobalStates.settingsPageIndex = 7; // About page
+                        GlobalStates.settingsAboutView = "update"; // Directly to Update sub-page
+                        GlobalStates.settingsOpen = true;
+                    } else if (summary.includes("schedule") || summary.includes("event") || body.includes("schedule") || body.includes("event")) {
+                        GlobalStates.dashboardOpen = true;
+                    } else if (summary.includes("wallpaper") || summary.includes("theming") || body.includes("wallpaper") || body.includes("theming")) {
+                        GlobalStates.settingsPageIndex = 4; // Wallpaper & Style
+                        GlobalStates.settingsOpen = true;
+                    } else if (summary.includes("audio") || summary.includes("sound") || body.includes("audio") || body.includes("sound")) {
+                        GlobalStates.settingsPageIndex = 2; // Audio
+                        GlobalStates.settingsOpen = true;
+                    } else if (summary.includes("settings") || body.includes("settings") || summary.includes("system") || body.includes("system")) {
+                        GlobalStates.settingsOpen = true;
+                    }
+                    
+                    GlobalStates.notificationCenterOpen = false;
+                    root.discardNotification(id);
+                    return;
+                }
+
+                if (appName !== "" || summary !== "") {
+                    let bestMatch = null;
+                    let highestScore = -1;
+
+                    const fuzzyScore = (query, target) => {
+                        if (!query || !target) return -1;
+                        const lowQuery = query.toLowerCase();
+                        const lowTarget = target.toLowerCase();
+                        
+                        if (lowTarget === lowQuery) return 2000; // Perfect match
+                        if (lowTarget.includes(lowQuery)) return 1000 + (100 - lowTarget.length); // Substring match
+                        
+                        let queryIndex = 0, consecutiveMatches = 0, maxConsecutive = 0, score = 0;
+                        for (let i = 0; i < lowTarget.length && queryIndex < lowQuery.length; i++) {
+                            if (lowTarget[i] === lowQuery[queryIndex]) {
+                                queryIndex++; consecutiveMatches++;
+                                maxConsecutive = Math.max(maxConsecutive, consecutiveMatches);
+                                if (i === 0 || lowTarget[i - 1] === ' ' || lowTarget[i - 1] === '-' || lowTarget[i - 1] === '_') score += 50;
+                            } else { consecutiveMatches = 0; }
+                        }
+                        return queryIndex === lowQuery.length ? score + maxConsecutive * 5 : -1;
+                    };
+
+                    for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
+                        const tl = Hyprland.toplevels.values[i];
+                        const cClass = tl.class || "";
+                        const cTitle = tl.title || "";
+                        const cInitial = tl.initialClass || "";
+
+                        // Calculate scores for various properties
+                        const classScore = fuzzyScore(appName, cClass);
+                        const initialScore = fuzzyScore(appName, cInitial);
+                        const titleScore = Math.max(fuzzyScore(appName, cTitle), fuzzyScore(summary, cTitle) * 0.8);
+                        
+                        const currentMax = Math.max(classScore, initialScore, titleScore);
+
+                        if (currentMax > highestScore) {
+                            highestScore = currentMax;
+                            bestMatch = tl;
+                        }
+                    }
+
+                    if (bestMatch && highestScore > 0) {
+                        Hyprland.dispatch(HyprlandCompat.dspFocusWindow(`address:0x${bestMatch.address}`));
+                        GlobalStates.notificationCenterOpen = false;
+                        GlobalStates.dashboardOpen = false;
+                    }
+                }
+
                 if (typeof notif.invokeDefaultAction === "function") {
                     notif.invokeDefaultAction();
-                    invoked = true;
+                } else {
+                    const action = notif.actions.find(a => a.identifier === "default" || a.identifier === "");
+                    if (action) action.invoke();
                 }
-            }
-            
-            if (!invoked && typeof notif.invokeAction === "function") {
-                notif.invokeAction(actionIdentifier);
-                invoked = true;
-            }
-            
-            if (!invoked) {
+            } else {
                 const action = notif.actions.find(a => a.identifier === actionIdentifier);
-                if (action && typeof action.invoke === "function") {
-                    action.invoke();
-                }
+                if (action) action.invoke();
             }
         }
         root.discardNotification(id);
     }
 
-    // -- Serialization --
+    // ── Serialization ──
     function stringifyList(list) {
         return JSON.stringify(list.map(n => ({
             notificationId: n.notificationId,
@@ -295,10 +413,11 @@ Singleton {
             summary: n.summary,
             time: n.time,
             urgency: n.urgency,
+            isRestartRequired: n.isRestartRequired
         })), null, 2);
     }
 
-    // -- Persistent storage --
+    // ── Persistent storage ──
     Component.onCompleted: notifFileView.reload()
 
     FileView {
@@ -317,6 +436,7 @@ Singleton {
                     "summary": n.summary ?? "",
                     "time": n.time ?? 0,
                     "urgency": n.urgency ?? "normal",
+                    "isRestartRequired": n.isRestartRequired ?? false
                 }));
                 // Find max ID to avoid collisions
                 let maxId = 0;

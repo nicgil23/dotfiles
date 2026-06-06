@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Io
-import qs.core
+import "../core"
 
 /**
  * Real Bluetooth status service using Quickshell.Bluetooth.

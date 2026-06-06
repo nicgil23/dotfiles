@@ -20,9 +20,8 @@ Singleton {
 
     function updateScale() {
         if (!Config.ready) {
-            // Try to guess scale from screen height even if config isn't ready
             const screenHeight = Quickshell.screens[0]?.height ?? 1080;
-            effectiveScale = Math.max(0.5, Math.min(2.5, screenHeight / 1080.0));
+            effectiveScale = Math.round(Math.max(0.5, Math.min(2.5, screenHeight / 1080.0)) * 20) / 20;
             return;
         }
         const appearance = Config.options.appearance;
@@ -30,7 +29,15 @@ Singleton {
         
         if (appearance.autoScale === true) {
             const screenHeight = Quickshell.screens[0]?.height ?? 1080;
-            effectiveScale = Math.max(0.5, Math.min(2.5, screenHeight / 1080.0));
+            const rawScale = Math.max(0.5, Math.min(2.5, screenHeight / 1080.0));
+            
+            if (screenHeight < 1000) {
+                // Low Res (720p, etc): Force 0.25 steps to ensure sharp pixels.
+                effectiveScale = Math.round(rawScale * 4) / 4;
+            } else {
+                // High Res (1080p, 2K, 4K): 0.05 steps for smooth & precise scaling.
+                effectiveScale = Math.round(rawScale * 20) / 20;
+            }
         } else {
             effectiveScale = appearance.globalScale ?? 1.0;
         }
@@ -51,77 +58,77 @@ Singleton {
     // --- Material 3 Color Tokens (populated by MaterialThemeLoader) ---
     m3colors: QtObject {
         property bool darkmode: true
-        property color m3background: "#1e1e2e"
-        property color m3onBackground: "#cdd6f4"
-        property color m3surface: "#181825"
-        property color m3surfaceDim: "#11111b"
-        property color m3surfaceBright: "#313244"
-        property color m3surfaceContainerLowest: "#11111b"
-        property color m3surfaceContainerLow: "#181825"
-        property color m3surfaceContainer: "#313244"
-        property color m3surfaceContainerHigh: "#45475a"
-        property color m3surfaceContainerHighest: "#585b70"
-        property color m3onSurface: "#cdd6f4"
-        property color m3surfaceVariant: "#313244"
-        property color m3onSurfaceVariant: "#a6adc8"
-        property color m3inverseSurface: "#cdd6f4"
-        property color m3inverseOnSurface: "#1e1e2e"
-        property color m3outline: "#6c7086"
-        property color m3outlineVariant: "#585b70"
+        property color m3background: "#141313"
+        property color m3onBackground: "#e6e1e1"
+        property color m3surface: "#141313"
+        property color m3surfaceDim: "#141313"
+        property color m3surfaceBright: "#3a3939"
+        property color m3surfaceContainerLowest: "#0f0e0e"
+        property color m3surfaceContainerLow: "#1c1b1c"
+        property color m3surfaceContainer: "#201f20"
+        property color m3surfaceContainerHigh: "#2b2a2a"
+        property color m3surfaceContainerHighest: "#363435"
+        property color m3onSurface: "#e6e1e1"
+        property color m3surfaceVariant: "#49464a"
+        property color m3onSurfaceVariant: "#cbc5ca"
+        property color m3inverseSurface: "#e6e1e1"
+        property color m3inverseOnSurface: "#313030"
+        property color m3outline: "#948f94"
+        property color m3outlineVariant: "#49464a"
         property color m3shadow: "#000000"
         property color m3scrim: "#000000"
-        property color m3surfaceTint: "#cdd6f4"
-        property color m3primary: "#cdd6f4"
-        property color m3onPrimary: "#1e1e2e"
-        property color m3primaryContainer: "#313244"
-        property color m3onPrimaryContainer: "#cdd6f4"
-        property color m3inversePrimary: "#cdd6f4"
-        property color m3secondary: "#89b4fa"
-        property color m3onSecondary: "#1e1e2e"
-        property color m3secondaryContainer: "#313244"
-        property color m3onSecondaryContainer: "#89b4fa"
-        property color m3tertiary: "#94e2d5"
-        property color m3onTertiary: "#1e1e2e"
-        property color m3tertiaryContainer: "#313244"
-        property color m3onTertiaryContainer: "#94e2d5"
-        property color m3error: "#f38ba8"
-        property color m3onError: "#cdd6f4"
-        property color m3errorContainer: "#7f849c"
-        property color m3onErrorContainer: "#f38ba8"
-        property color m3primaryFixed: "#cdd6f4"
-        property color m3primaryFixedDim: "#cdd6f4"
-        property color m3onPrimaryFixed: "#1e1e2e"
-        property color m3onPrimaryFixedVariant: "#1e1e2e"
-        property color m3secondaryFixed: "#89b4fa"
-        property color m3secondaryFixedDim: "#89b4fa"
-        property color m3onSecondaryFixed: "#1e1e2e"
-        property color m3onSecondaryFixedVariant: "#1e1e2e"
-        property color m3tertiaryFixed: "#94e2d5"
-        property color m3tertiaryFixedDim: "#94e2d5"
-        property color m3onTertiaryFixed: "#1e1e2e"
-        property color m3onTertiaryFixedVariant: "#1e1e2e"
-        property color m3success: "#a6e3a1"
-        property color m3onSuccess: "#1e1e2e"
-        property color m3successContainer: "#313244"
-        property color m3onSuccessContainer: "#a6e3a1"
+        property color m3surfaceTint: "#cbc4cb"
+        property color m3primary: "#cbc4cb"
+        property color m3onPrimary: "#322f34"
+        property color m3primaryContainer: "#2d2a2f"
+        property color m3onPrimaryContainer: "#bcb6bc"
+        property color m3inversePrimary: "#615d63"
+        property color m3secondary: "#cac5c8"
+        property color m3onSecondary: "#323032"
+        property color m3secondaryContainer: "#4d4b4d"
+        property color m3onSecondaryContainer: "#ece6e9"
+        property color m3tertiary: "#d1c3c6"
+        property color m3onTertiary: "#372e30"
+        property color m3tertiaryContainer: "#31292b"
+        property color m3onTertiaryContainer: "#c1b4b7"
+        property color m3error: "#ffb4ab"
+        property color m3onError: "#690005"
+        property color m3errorContainer: "#93000a"
+        property color m3onErrorContainer: "#ffdad6"
+        property color m3primaryFixed: "#e7e0e7"
+        property color m3primaryFixedDim: "#cbc4cb"
+        property color m3onPrimaryFixed: "#1d1b1f"
+        property color m3onPrimaryFixedVariant: "#49454b"
+        property color m3secondaryFixed: "#e6e1e4"
+        property color m3secondaryFixedDim: "#cac5c8"
+        property color m3onSecondaryFixed: "#1d1b1d"
+        property color m3onSecondaryFixedVariant: "#484648"
+        property color m3tertiaryFixed: "#eddfe1"
+        property color m3tertiaryFixedDim: "#d1c3c6"
+        property color m3onTertiaryFixed: "#211a1c"
+        property color m3onTertiaryFixedVariant: "#4e4447"
+        property color m3success: "#B5CCBA"
+        property color m3onSuccess: "#213528"
+        property color m3successContainer: "#374B3E"
+        property color m3onSuccessContainer: "#D1E9D6"
 
-        // Base16 Catppuccin Mocha
-        property color m3base00: "#1e1e2e"
-        property color m3base01: "#181825"
-        property color m3base02: "#313244"
-        property color m3base03: "#45475a"
-        property color m3base04: "#585b70"
-        property color m3base05: "#cdd6f4"
-        property color m3base06: "#f5e0dc"
-        property color m3base07: "#b4befe"
-        property color m3base08: "#f38ba8"
-        property color m3base09: "#fab387"
-        property color m3base0a: "#f9e2af"
-        property color m3base0b: "#a6e3a1"
-        property color m3base0c: "#94e2d5"
-        property color m3base0d: "#89b4fa"
-        property color m3base0e: "#cba6f7"
-        property color m3base0f: "#f2cdcd"
+        // Base16
+        property color m3base00: "#141313"
+        property color m3base01: "#1c1b1c"
+        property color m3base02: "#201f20"
+        property color m3base03: "#2b2a2a"
+        property color m3base04: "#363435"
+        property color m3base05: "#e6e1e1"
+        property color m3base06: "#49464a"
+        property color m3base07: "#948f94"
+        property color m3base08: "#cbc4cb"
+        property color m3base09: "#e7e0e7"
+        property color m3base0a: "#cac5c8"
+        property color m3base0b: "#d1c3c6"
+        property color m3base0c: "#ffb4ab"
+        property color m3base0d: "#cbc4cb"
+        property color m3base0e: "#e6e1e4"
+        property color m3base0f: "#eddfe1"
     }
 
     // --- Derived Layer Colors ---
@@ -177,13 +184,16 @@ Singleton {
         property color colOnError: m3colors.m3onError
         property color colErrorContainer: m3colors.m3errorContainer
         property color colOnErrorContainer: m3colors.m3onErrorContainer
-        // Warning (Mapped to Tertiary in M3 if not specific)
-        property color colWarning: m3colors.m3tertiary 
-
+        // Warning Colors (Vivid Orange/Red standard)
+        property color colWarning: "#FF5722"
+        property color colOnWarning: "#FFFFFF"
+        property color colWarningContainer: m3colors.darkmode ? "#3E1A11" : "#FFDAD5"
+        property color colOnWarningContainer: m3colors.darkmode ? "#FFCCBC" : "#410001"
+        
         // Battery Indicator (Enhanced visibility)
         property color colBatteryTrack: Functions.ColorUtils.applyAlpha(colStatusBarText, 0.35)
-        property color colBatteryLow: m3colors.m3error
-        property color colBatteryLowTrack: Functions.ColorUtils.applyAlpha(m3colors.m3error, 0.4)
+        property color colBatteryLow: "#f38ba8"
+        property color colBatteryLowTrack: Functions.ColorUtils.applyAlpha("#f38ba8", 0.4)
         property color colBatteryCharging: m3colors.m3success
 
         // Background alias
@@ -215,13 +225,12 @@ Singleton {
             return statusBarDarkText; // adaptive
         }
 
-        property color colStatusBarText: m3colors.m3onSurface
+        property color colStatusBarText: resolvedStatusBarDarkText ? "#1E1E1E" : "#F5F5F5"
         property color colStatusBarSubtext: Functions.ColorUtils.applyAlpha(colStatusBarText, 0.7)
         property color colStatusBarGradientStart: {
             if (!statusBarGradientActive) return "transparent";
-            let baseColor = "#000000"; // Always use a dark shadow/scrim for the top
-            let alpha = 0.35; // Fixed subtle alpha for light text
-            return Functions.ColorUtils.applyAlpha(baseColor, alpha);
+            let baseColor = resolvedStatusBarDarkText ? "#FFFFFF" : "#000000";
+            return Functions.ColorUtils.applyAlpha(baseColor, resolvedStatusBarDarkText ? 0.35 : 0.45);
         }
         property color colStatusBarGradientEnd: "transparent"
         // Solid bar color (used when backgroundStyle > 0)
@@ -285,19 +294,15 @@ Singleton {
             }
         }
         
-        onExited: (exitCode) => {
-            if (exitCode === 0) {
-                let meanStr = wpLightnessStdout.text.trim();
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let meanStr = this.text.trim();
                 let mean = parseFloat(meanStr);
                 if (!isNaN(mean)) {
-                    // if mean lightness > 0.45, consider the wallpaper light and use dark text
-                    root.colors.statusBarDarkText = mean > 0.45;
+                    // if mean lightness > 0.6, consider the wallpaper light and use dark text
+                    root.colors.statusBarDarkText = mean > 0.6;
                 }
             }
-        }
-        
-        stdout: StdioCollector {
-            id: wpLightnessStdout
         }
     }
 
@@ -330,19 +335,15 @@ Singleton {
             }
         }
         
-        onExited: (exitCode) => {
-            if (exitCode === 0) {
-                let meanStr = lockLightnessStdout.text.trim();
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let meanStr = this.text.trim();
                 let mean = parseFloat(meanStr);
                 if (!isNaN(mean)) {
                     // if mean lightness > 0.55 (slightly adjusted to account for scrim), use dark text
                     root.colors.lockscreenDarkText = mean > 0.55;
                 }
             }
-        }
-
-        stdout: StdioCollector {
-            id: lockLightnessStdout
         }
     }
 
@@ -362,18 +363,13 @@ Singleton {
         property int button: Math.round(20 * scale)
     }
 
-    FontLoader {
-        id: sfProRounded
-        source: "file:///usr/share/fonts/apple-fonts/SF-Pro-Rounded-Regular.otf"
-    }
-
     // --- Typography ---
     font: QtObject {
         property QtObject family: QtObject {
             id: typoFamily
-            property string main: Config.ready ? Config.options.appearance.fonts.main : (sfProRounded.name !== "" ? sfProRounded.name : "SF Pro Rounded")
-            property string numbers: Config.ready ? Config.options.appearance.fonts.numbers : (sfProRounded.name !== "" ? sfProRounded.name : "SF Pro Rounded")
-            property string title: Config.ready ? Config.options.appearance.fonts.title : (sfProRounded.name !== "" ? sfProRounded.name : "SF Pro Rounded")
+            property string main: Config.ready ? Config.options.appearance.fonts.main : "Google Sans Flex"
+            property string numbers: Config.ready ? Config.options.appearance.fonts.numbers : "Google Sans Flex"
+            property string title: Config.ready ? Config.options.appearance.fonts.title : "Google Sans Flex"
             property string iconMaterial: "Material Symbols Rounded"
             property string expressive: typoFamily.title
             property string monospace: Config.ready ? Config.options.appearance.fonts.monospace : "JetBrains Mono NF"

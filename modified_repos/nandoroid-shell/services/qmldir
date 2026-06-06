@@ -2,36 +2,45 @@ singleton Audio Audio.qml
 singleton Battery Battery.qml
 singleton BluetoothStatus BluetoothStatus.qml
 singleton Brightness Brightness.qml
-singleton CavaService 1.0 CavaService.qml
-singleton ConservationMode 1.0 ConservationMode.qml
 singleton DateTime DateTime.qml
-singleton DisplayService DisplayService.qml
-singleton EasyEffects EasyEffects.qml
-singleton GameMode 1.0 GameMode.qml
 singleton HyprlandData HyprlandData.qml
+singleton HyprlandCompat HyprlandCompat.qml
 singleton Hyprsunset Hyprsunset.qml
-singleton Idle Idle.qml
 singleton MaterialThemeLoader MaterialThemeLoader.qml
 singleton MprisController MprisController.qml
 singleton Network Network.qml
 singleton Notifications Notifications.qml
-singleton PowerProfileService 1.0 PowerProfileService.qml
-singleton Privacy Privacy.qml
-singleton RegionManager RegionManager.qml
-singleton RegionService 1.0 RegionService.qml
-singleton ScreenRecord 1.0 ScreenRecord.qml
-singleton SongRec SongRec.qml
-singleton SystemData SystemData.qml
 singleton SystemInfo SystemInfo.qml
-singleton TaskbarApps TaskbarApps.qml
 singleton Wallpapers Wallpapers.qml
+
+singleton Session Session.qml
 singleton Weather 1.0 Weather.qml
-singleton AppSearch 1.0 AppSearch.qml
-singleton LauncherSearch 1.0 LauncherSearch.qml
-singleton SearchRegistry 1.0 SearchRegistry.qml
-singleton Session 1.0 Session.qml
-# singleton PolkitService 1.0 PolkitService.qml
-singleton PomodoroService 1.0 PomodoroService.qml
+singleton LauncherSearch LauncherSearch.qml
+singleton PomodoroService PomodoroService.qml
+singleton SystemData SystemData.qml
+singleton PolkitService PolkitService.qml
+singleton DisplayService DisplayService.qml
+singleton Privacy Privacy.qml
+singleton SongRec SongRec.qml
+singleton EasyEffects EasyEffects.qml
+singleton GameMode 1.0 GameMode.qml
+singleton ScreenRecord 1.0 ScreenRecord.qml
+singleton RegionService 1.0 RegionService.qml
+singleton CavaService 1.0 CavaService.qml
+singleton ConservationMode 1.0 ConservationMode.qml
+singleton PowerProfileService 1.0 PowerProfileService.qml
+singleton TaskbarApps TaskbarApps.qml
+singleton AppSearch AppSearch.qml
+singleton SearchRegistry SearchRegistry.qml
+singleton ScheduleService ScheduleService.qml
+singleton SmartAutomation SmartAutomation.qml
+singleton TranslationService TranslationService.qml
+singleton WallhavenService WallhavenService.qml
+singleton WallpaperEngineService WallpaperEngineService.qml
+singleton NaIveWallpaperService NaIveWallpaperService.qml
+singleton SysCheckService SysCheckService.qml
+singleton Idle Idle.qml
 singleton VpnUcmService VpnUcmService.qml
-singleton MpdService MpdService.qml
 singleton AutoRotation AutoRotation.qml
+singleton TimerService TimerService.qml
+singleton StopwatchService StopwatchService.qml

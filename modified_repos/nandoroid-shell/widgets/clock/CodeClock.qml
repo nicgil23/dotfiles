@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import ".."
-import qs.core
-import qs.services
+import "../../core"
+import "../../services"
 
 ColumnLayout {
     id: root
@@ -19,7 +19,7 @@ ColumnLayout {
         return Config.options.appearance.clock.code
     }
 
-    // -- Color resolver ------------------------------------------
+    // ── Color resolver ──────────────────────────────────────────
     function resolveColor(style) {
         if (isLockscreen) return Appearance.colors.colLockscreenClock
         switch (style) {
@@ -32,12 +32,12 @@ ColumnLayout {
         }
     }
 
-    // -- Three independent colors --------------------------------
+    // ── Three independent colors ────────────────────────────────
     readonly property color valueColor:   resolveColor(Config.ready ? cfg.valueColorStyle   : "primary")
     readonly property color keywordColor: resolveColor(Config.ready ? cfg.keywordColorStyle : "tertiary")
     readonly property color blockColor:   resolveColor(Config.ready ? cfg.blockColorStyle   : "primary")
 
-    // -- Config --------------------------------------------------
+    // ── Config ──────────────────────────────────────────────────
     readonly property int    cfgSize:    Config.ready ? cfg.fontSize  : 18 * Appearance.effectiveScale
     readonly property string blockType:  Config.ready ? cfg.blockType : "js"
     readonly property bool   showDate:   Config.ready && Config.options.appearance.clock.showDate
@@ -46,7 +46,7 @@ ColumnLayout {
     readonly property string currentTime: DateTime.currentTime
     readonly property string currentDate: DateTime.currentDate
 
-    // -- Language templates --------------------------------------
+    // ── Language templates ──────────────────────────────────────
     readonly property var lang: {
         switch (blockType) {
             case "python":
@@ -62,7 +62,7 @@ ColumnLayout {
         }
     }
 
-    // -- Reusable code line component ----------------------------
+    // ── Reusable code line component ────────────────────────────
     component CodeLine: RowLayout {
         id: cl
         property string keyword: ""
@@ -101,12 +101,12 @@ ColumnLayout {
             color: root.valueColor
             font.family: root.fontFamily
             font.pixelSize: cl.isValue ? Math.max(root.cfgSize * 1.45, 22 * Appearance.effectiveScale) : root.cfgSize
-            font.weight: Font.Bold
+            font.weight: Font.DemiBold
             renderType: Text.NativeRendering
         }
     }
 
-    // -- Opening block lines -------------------------------------
+    // ── Opening block lines ─────────────────────────────────────
     Repeater {
         model: lang.open
         delegate: Text {
@@ -120,14 +120,14 @@ ColumnLayout {
         }
     }
 
-    // -- time = "..." --------------------------------------------
+    // ── time = "..." ────────────────────────────────────────────
     CodeLine {
         keyword: "time"
         value:   root.currentTime
         isValue: true
     }
 
-    // -- date = "..." --------------------------------------------
+    // ── date = "..." ────────────────────────────────────────────
     CodeLine {
         visible: root.showDate
         keyword: "date"
@@ -135,7 +135,7 @@ ColumnLayout {
         isValue: false
     }
 
-    // -- Closing block lines -------------------------------------
+    // ── Closing block lines ─────────────────────────────────────
     Repeater {
         model: lang.close
         delegate: Text {

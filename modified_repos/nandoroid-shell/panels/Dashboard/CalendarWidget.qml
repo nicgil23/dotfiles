@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.widgets
-import qs.core
-import qs.services
+import "../../widgets"
+import "../../core"
+import "../../services"
 import "calendar_layout.js" as CalendarLayout
 
 Item {
@@ -80,11 +80,27 @@ Item {
             else if (event.angleDelta.y < 0)
                 monthShift++;
         }
-        // Dismiss popup when clicking outside
+        // Dismiss popup when clicking outside the grid/buttons
         onClicked: eventPopup.visible = false
     }
 
-    // -- Event click popup --
+    Connections {
+        target: GlobalStates
+        function onDashboardOpenChanged() {
+            if (!GlobalStates.dashboardOpen) {
+                eventPopup.visible = false
+            }
+        }
+        function onClosePopups() {
+            eventPopup.visible = false
+        }
+    }
+
+    onVisibleChanged: {
+        if (!visible) eventPopup.visible = false
+    }
+
+    // ── Event click popup ──
     Rectangle {
         id: eventPopup
         visible: false
@@ -116,7 +132,7 @@ Item {
                 Layout.fillWidth: true
                 text: eventPopup.dateStr
                 font.pixelSize: Appearance.font.pixelSize.smaller
-                font.weight: Font.Bold
+                font.weight: Font.DemiBold
                 color: Appearance.colors.colSubtext
             }
 
@@ -196,6 +212,7 @@ Item {
                 colBackgroundHover: Appearance.colors.colLayer2Hover
                 onClicked: {
                     root.monthShift = 0;
+                    eventPopup.visible = false;
                 }
             }
 
@@ -207,6 +224,7 @@ Item {
                 forceCircle: true
                 onClicked: {
                     root.monthShift--;
+                    eventPopup.visible = false;
                 }
 
                 contentItem: MaterialSymbol {
@@ -221,6 +239,7 @@ Item {
                 forceCircle: true
                 onClicked: {
                     root.monthShift++;
+                    eventPopup.visible = false;
                 }
 
                 contentItem: MaterialSymbol {
@@ -291,24 +310,35 @@ Item {
                             }
 
                             onClicked: {
-                                if (cell.today === -1) return  // greyed out
+                                if (cell.today === -1) {
+                                    eventPopup.visible = false
+                                    return  // greyed out
+                                }
                                 const m = root.viewingDate.getMonth() + 1
                                 const y = root.viewingDate.getFullYear()
                                 const mm = String(m).padStart(2, '0')
                                 const dd = String(cell.day).padStart(2, '0')
                                 const dateStr = y + "-" + mm + "-" + dd
+                                
                                 if (!root.hasEvent(y, m, cell.day)) {
                                     eventPopup.visible = false
                                     return
                                 }
+
                                 // mapToItem(root, x, y): map button's bottom-center
                                 // from button-local coords → CalendarWidget root coords
                                 const pos = mapToItem(root, width / 2, height + 4 * Appearance.effectiveScale)
-                                eventPopup._popX = pos.x - eventPopup.width / 2
-                                eventPopup._popY = pos.y
-                                eventPopup.dateStr = dateStr
-                                eventPopup.events = root.getEventsForDate(dateStr)
-                                eventPopup.visible = !eventPopup.visible
+                                
+                                // Toggle if same date, update and ensure visible if different date
+                                if (eventPopup.visible && eventPopup.dateStr === dateStr) {
+                                    eventPopup.visible = false
+                                } else {
+                                    eventPopup._popX = pos.x - eventPopup.width / 2
+                                    eventPopup._popY = pos.y
+                                    eventPopup.dateStr = dateStr
+                                    eventPopup.events = root.getEventsForDate(dateStr)
+                                    eventPopup.visible = true
+                                }
                             }
 
 

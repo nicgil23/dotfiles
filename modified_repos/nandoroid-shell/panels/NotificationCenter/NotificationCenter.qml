@@ -1,6 +1,6 @@
-import qs.core
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -23,10 +23,10 @@ Variants {
         readonly property bool isActive: GlobalStates.activeScreen === modelData
         visible: (GlobalStates.notificationCenterOpen && isActive) || contentLoader.opacity > 0
         
-        exclusiveZone: 0
+        exclusiveZone: (GlobalStates.notificationCenterOpen && isActive) && contentLoader.item ? contentLoader.item.implicitWidth : 0
         WlrLayershell.namespace: "nandoroid:notificationCenter"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+        WlrLayershell.layer: ((GlobalStates.notificationCenterOpen || contentLoader.opacity > 0) && isActive) ? WlrLayer.Top : WlrLayer.Background
+        WlrLayershell.keyboardFocus: (GlobalStates.notificationCenterOpen && isActive) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         color: "transparent"
 
         readonly property bool isCentered: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.layoutStyle === "centered" : false
@@ -35,18 +35,16 @@ Variants {
 
         anchors {
             top: true
-            bottom: true
             left: true
         }
 
         WlrLayershell.margins {
-            left: 10 * Appearance.effectiveScale
-            top: 10 * Appearance.effectiveScale
-            bottom: 10 * Appearance.effectiveScale
+            left: panelWindow.sidePadding
+            top: 4 * Appearance.effectiveScale
         }
 
-        implicitWidth: Appearance.sizes.notificationCenterWidth
-        implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 600 * Appearance.effectiveScale
+        implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth : 0
+        implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 0
 
         HyprlandFocusGrab {
             id: focusGrab

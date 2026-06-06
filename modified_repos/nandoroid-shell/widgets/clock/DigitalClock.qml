@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.core.functions as Functions
-import qs.services
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
 import ".."
 
 ColumnLayout {
@@ -19,7 +19,7 @@ ColumnLayout {
         return Config.options.appearance.clock.digital
     }
 
-    // -- Color --------------------------------------------------
+    // ── Color ──────────────────────────────────────────────────
     readonly property color color: {
         if (isLockscreen) return Appearance.colors.colLockscreenClock
         if (!Config.ready) return Appearance.m3colors.m3onSurface
@@ -32,7 +32,7 @@ ColumnLayout {
     }
     readonly property color dateColor: isLockscreen ? Appearance.colors.colLockscreenDate : color
 
-    // -- Font helpers -------------------------------------------
+    // ── Font helpers ───────────────────────────────────────────
     function fontW(w) {
         if (w === "Thin")     return Font.Thin
         if (w === "Light")    return Font.Light
@@ -40,13 +40,13 @@ ColumnLayout {
         if (w === "Medium")   return Font.Medium
         if (w === "DemiBold") return Font.DemiBold
         if (w === "Black")    return Font.Black
-        return Font.Bold
+        return Font.DemiBold
     }
 
-    // -- Config props -------------------------------------------
+    // ── Config props ───────────────────────────────────────────
     readonly property real  cfgSize:       Config.ready ? cfg.fontSize     : 84 * Appearance.effectiveScale
-    readonly property real  cfgDateSize:   14 * Appearance.effectiveScale
-    readonly property int   cfgDateGap:    4 * Appearance.effectiveScale
+    readonly property real  cfgDateSize:   Config.ready ? (cfg.dateFontSize || 24) * Appearance.effectiveScale : 24 * Appearance.effectiveScale
+    readonly property int   cfgDateGap:    Config.ready ? (cfg.dateGap || 4) * Appearance.effectiveScale : 4 * Appearance.effectiveScale
     readonly property string cfgWeight:    "Bold"
     readonly property string cfgDateWeight:"Medium"
     readonly property string cfgFamily:    Appearance.font.family.title
@@ -55,7 +55,7 @@ ColumnLayout {
     readonly property bool showDate:   Config.ready && Config.options.appearance.clock.showDate
     readonly property bool hideAmPm:   Config.ready && cfg.hideAmPm
 
-    // -- Time strings -------------------------------------------
+    // ── Time strings ───────────────────────────────────────────
     readonly property string displayHours: {
         const h = DateTime.hours
         const is24 = Config.ready && Config.options.time ? Config.options.time.timeStyle === "24H" : true
@@ -69,7 +69,7 @@ ColumnLayout {
         return t
     }
 
-    // -- Time (top / horizontal) ---------------------------------
+    // ── Time (top / horizontal) ─────────────────────────────────
     Text {
         id: timeTextTop
         text:        root.isVertical ? root.displayHours : root.timeString
@@ -82,7 +82,7 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
     }
 
-    // -- Minutes (vertical only) ---------------------------------
+    // ── Minutes (vertical only) ─────────────────────────────────
     Text {
         visible: root.isVertical
         text:    root.displayMinutes
@@ -96,7 +96,7 @@ ColumnLayout {
         Layout.topMargin: -24 * Appearance.effectiveScale
     }
 
-    // -- Date ----------------------------------------------------
+    // ── Date ────────────────────────────────────────────────────
     Text {
         visible: root.showDate
         text:    DateTime.currentDate

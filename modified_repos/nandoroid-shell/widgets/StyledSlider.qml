@@ -1,5 +1,5 @@
 pragma ComponentBehavior: Bound
-import qs.core
+import "../core"
 import "."
 import QtQuick
 import QtQuick.Controls
@@ -15,7 +15,8 @@ import Quickshell.Widgets
 Slider {
     id: root
 
-    property list<real> stopIndicatorValues: []
+    property real defaultValue: -1
+    property list<real> stopIndicatorValues: defaultValue >= 0 ? [defaultValue] : []
     enum Configuration {
         Wavy = 4,
         X0 = 3,

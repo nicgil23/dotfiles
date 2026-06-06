@@ -1,6 +1,6 @@
-import qs.services
+import "../../../services"
 import QtQuick
-import qs.widgets
+import "../../widgets"
 import ".." 
 
 OsdValueIndicator {

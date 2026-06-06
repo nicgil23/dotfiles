@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.services
-import qs.widgets
+import "../../../core"
+import "../../../services"
+import "../../../widgets"
 import ".."
 
 /**
@@ -19,7 +19,7 @@ Item {
         StyledText {
             text: "Memory Performance"
             font.pixelSize: Appearance.font.pixelSize.huge
-            font.weight: Font.Bold
+            font.weight: Font.DemiBold
         }
 
         Rectangle {
@@ -59,7 +59,7 @@ Item {
                 
                 RowLayout {
                     Layout.fillWidth: true
-                    StyledText { text: "Swap Usage: " + Math.round(SystemData.swapUsage * 100) + "%"; font.weight: Font.Bold; font.pixelSize: Appearance.font.pixelSize.small }
+                    StyledText { text: "Swap Usage: " + Math.round(SystemData.swapUsage * 100) + "%"; font.weight: Font.DemiBold; font.pixelSize: Appearance.font.pixelSize.small }
                     Item { Layout.fillWidth: true }
                 }
             }

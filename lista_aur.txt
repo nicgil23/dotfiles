@@ -38,6 +38,9 @@ iio-hyprland-git-debug
 libcava-debug
 libretro-azahar-bin-debug
 libsoup
+linux-wallpaper-engine-bin
+linux-wallpaperengine-git
+linux-wallpaperengine-git-debug
 melonds-bin
 melonds-bin-debug
 minecraft-launcher
@@ -49,8 +52,6 @@ mongodb-tools-bin-debug
 mongosh-bin
 mongosh-bin-debug
 neovim-symlinks
-paru
-paru-debug
 pipes-rs
 pipes-rs-debug
 python-dash
@@ -59,9 +60,11 @@ python-pprintpp
 python-utm
 qt5-location
 qt5-sensors
+quickshell-git
 ripdrag
 ripdrag-debug
 soulseekqt
+steamcmd-debug
 swww
 todoist-bin-debug
 ttf-apple-emoji

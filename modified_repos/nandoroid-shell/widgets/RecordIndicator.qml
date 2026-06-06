@@ -1,6 +1,6 @@
-import qs.core
-import qs.core.functions as Functions
-import qs.services
+import "../core"
+import "../core/functions" as Functions
+import "../services"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -40,7 +40,7 @@ Item {
             StyledText {
                 text: Functions.General.formatDuration(ScreenRecord.seconds)
                 font.pixelSize: 12 * Appearance.effectiveScale
-                font.weight: Font.Bold
+                font.weight: Font.DemiBold
                 color: Appearance.m3colors.m3onPrimary
             }
         }

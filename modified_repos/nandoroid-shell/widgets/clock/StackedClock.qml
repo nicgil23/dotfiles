@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.services
+import "../../core"
+import "../../services"
 
 ColumnLayout {
     id: root
@@ -62,7 +62,7 @@ ColumnLayout {
         if (w === "Normal")   return Font.Normal
         if (w === "Medium")   return Font.Medium
         if (w === "DemiBold") return Font.DemiBold
-        if (w === "Bold")     return Font.Bold
+        if (w === "Bold")     return Font.DemiBold
         if (w === "Black")    return Font.Black
         return Font.Normal
     }

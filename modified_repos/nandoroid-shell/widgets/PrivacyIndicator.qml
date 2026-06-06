@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.services
+import "../core"
+import "../services"
 
 /**
  * Android-style Privacy Indicator.

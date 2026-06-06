@@ -54,6 +54,9 @@ function getDateInXMonthsTime(x) {
     // Create a new date object with the target year and month
     var targetDate = new Date(targetYear, targetMonth, 1);
 
+    // Set the day to the last day of the month to get the desired date
+    // targetDate.setDate(0);
+
     return targetDate;
 }
 

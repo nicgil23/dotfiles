@@ -1,10 +1,10 @@
 import QtQuick
 import Quickshell
 import QtQuick.Layouts
-import qs.widgets
-import qs.core
-import qs.core.functions as Functions
-import qs.services
+import "../../widgets"
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
 
 Rectangle {
     id: root
@@ -100,7 +100,7 @@ Rectangle {
             launcherContent: root
         }
 
-        // -- Category Switcher --
+        // ── Category Switcher ──
         Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 36 * Appearance.effectiveScale
@@ -130,14 +130,14 @@ Rectangle {
                         anchors.centerIn: parent
                         text: modelData
                         font.pixelSize: 12 * Appearance.effectiveScale
-                        font.weight: LauncherSearch.selectedCategory === modelData ? Font.Bold : Font.Normal
+                        font.weight: LauncherSearch.selectedCategory === modelData ? Font.DemiBold : Font.Normal
                         color: LauncherSearch.selectedCategory === modelData ? Appearance.m3colors.m3onPrimary : Appearance.m3colors.m3onSurface
                     }
                 }
             }
         }
         
-        // -- Main Content Container (Grid or List) --
+        // ── Main Content Container (Grid or List) ──
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -158,13 +158,12 @@ Rectangle {
                     }
                 }
                 
-                cellWidth: width / gridColumns
+                cellWidth: 100 * Appearance.effectiveScale
                 cellHeight: (110 + 24) * Appearance.effectiveScale
                 
                 // Simplified margin calculation to be more robust
-                // Using dynamic cellWidth fills the space, no extra margins needed
-                leftMargin: 0
-                rightMargin: 0
+                leftMargin: Math.max(0, (width - (gridColumns * cellWidth)) / 2)
+                rightMargin: leftMargin
                 
                 model: visible ? root.resultsProxy : []
                 delegate: Item {

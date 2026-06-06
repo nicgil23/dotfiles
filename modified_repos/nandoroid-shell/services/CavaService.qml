@@ -10,18 +10,28 @@ Singleton {
 
     property list<int> values: []
     property int barCount: 128
+    property bool _internalRestart: true
     property int refCount: 0
     property bool cavaAvailable: false
+    property bool pausedBySystem: false
 
     onRefCountChanged: {
         if (refCount < 0) refCount = 0;
     }
 
-    onBarCountChanged: {
+    function restart() {
         if (cavaProcess.running) {
             cavaProcess.running = false;
-            Qt.callLater(() => { if (root.refCount > 0) cavaProcess.running = true; });
+            Qt.callLater(() => { cavaProcess.running = true; });
         }
+    }
+
+    function stop() {
+        pausedBySystem = true;
+    }
+
+    function start() {
+        pausedBySystem = false;
     }
 
     Process {
@@ -33,19 +43,14 @@ Singleton {
         }
     }
 
-    Component.onCompleted: {
-        cavaCheck.running = true;
-        // Initialize values
-        let arr = [];
-        for (let i = 0; i < barCount; i++) arr.push(0);
-        root.values = arr;
+    // Write a physical config file to avoid bash-heredoc overhead and orphan processes
+    FileView {
+        id: cavaConfigWriter
+        path: "/tmp/nandoroid_cava.conf"
     }
 
-    Process {
-        id: cavaProcess
-        // Re-evaluate running state whenever dependencies change
-        running: root.cavaAvailable && root.refCount > 0
-        command: ["bash", "-c", `cat <<'CAVACONF' | cava -p /dev/stdin
+    function updateCavaConfig() {
+        const config = `
 [general]
 framerate=60
 bars=${root.barCount}
@@ -65,11 +70,37 @@ integral=80
 gravity=100
 ignore=0
 monstercat=1
-CAVACONF`]
+`;
+        cavaConfigWriter.setText(config);
+    }
+
+    Component.onCompleted: {
+        // Initial cleanup and setup
+        root.updateCavaConfig();
+        
+        // Wait for system audio to stabilize
+        startupTimer.start();
+        
+        let arr = [];
+        for (let i = 0; i < barCount; i++) arr.push(0);
+        root.values = arr;
+    }
+
+    Timer {
+        id: startupTimer
+        interval: 1500 // Reduced from 2.5s since new logic is cleaner
+        repeat: false
+        onTriggered: cavaCheck.running = true;
+    }
+
+    Process {
+        id: cavaProcess
+        // Directly call cava with config file - more stable than bash pipe
+        running: root.cavaAvailable && root.refCount > 0 && !root.pausedBySystem
+        command: ["cava", "-p", "/tmp/nandoroid_cava.conf"]
 
         onRunningChanged: {
             if (!running) {
-                // Clear values when stopped to prevent "frozen" look
                 let arr = [];
                 for (let i = 0; i < barCount; i++) arr.push(0);
                 root.values = arr;

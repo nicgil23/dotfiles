@@ -4,7 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
+import "../core"
 
 /**
  * Handles VPN UCM (GlobalProtect) state and toggle.

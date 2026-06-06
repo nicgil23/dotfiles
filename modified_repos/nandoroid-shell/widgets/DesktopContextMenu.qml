@@ -5,28 +5,48 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.services
+import "../core"
+import "../services"
 
 /**
  * DesktopContextMenu.qml
  * A modern, premium right-click menu for the desktop.
+ * Uses PanelWindow pattern for better focus and auto-close behavior.
  */
-PopupWindow {
+PanelWindow {
     id: root
     visible: false
     
+    anchors {
+        top: true
+        bottom: true
+        left: true
+        right: true
+    }
+    
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.namespace: "nandoroid:desktop-context-menu"
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    exclusionMode: ExclusionMode.Ignore
+    
     property bool isClockMenu: false
+    property real targetX: 0
+    property real targetY: 0
+    property real _mouseX: 0
+    property real _mouseY: 0
     
     color: "transparent"
-    
-    // Width and height based on content
-    implicitWidth: menuContainer.implicitWidth
-    implicitHeight: menuContainer.implicitHeight
+
+    // Click outside to close
+    MouseArea {
+        anchors.fill: parent
+        onPressed: root.close()
+    }
 
     Rectangle {
         id: menuContainer
-        anchors.fill: parent
+        x: root.targetX
+        y: root.targetY
         implicitWidth: Appearance.sizes.contextMenuWidth
         implicitHeight: menuLayout.implicitHeight + (12 * Appearance.effectiveScale)
         
@@ -36,8 +56,9 @@ PopupWindow {
         border.width: Math.max(1, 1 * Appearance.effectiveScale)
         
         // Glassmorphism effect
-        opacity: 0
-        scale: 0.95
+        opacity: root.visible ? 0.98 : 0
+        scale: root.visible ? 1 : 0.95
+        visible: opacity > 0
 
         Behavior on opacity {
             NumberAnimation {
@@ -51,6 +72,12 @@ PopupWindow {
                 duration: root.isClosing ? Appearance.animation.elementMoveExit.duration : Appearance.animation.elementMoveEnter.duration
                 easing.bezierCurve: root.isClosing ? Appearance.animationCurves.emphasizedAccel : Appearance.animationCurves.expressiveDefaultSpatial
             }
+        }
+
+        // Prevent clicks on the menu from closing it
+        MouseArea {
+            anchors.fill: parent
+            onPressed: (mouse) => mouse.accepted = true
         }
 
         ColumnLayout {
@@ -76,7 +103,6 @@ PopupWindow {
                 menuIcon: "schedule"
                 onClicked: {
                     GlobalStates.settingsPageIndex = 4 // Wallpaper & Style
-                    // Force a change signal by clearing it first in case it's already "Clock Style"
                     SearchRegistry.currentSearch = "" 
                     SearchRegistry.currentSearch = "Clock Style"
                     GlobalStates.settingsOpen = true
@@ -163,7 +189,7 @@ PopupWindow {
                 menuIcon: "lock"
                 onClicked: {
                     GlobalStates.screenLocked = true
-                    root.close() // Use animated close
+                    root.close()
                 }
             }
         }
@@ -216,18 +242,36 @@ PopupWindow {
         onTriggered: {
             root.visible = false;
             root.isClosing = false;
+            GlobalStates.desktopContextMenuOpen = false;
         }
     }
 
-    function openAt(x, y, isClock) {
+    function openAt(mouseX, mouseY, isClock) {
         hideTimer.stop();
         isClosing = false;
         isClockMenu = isClock;
-        root.anchor.rect = Qt.rect(x, y, 0, 0);
+        root._mouseX = mouseX;
+        root._mouseY = mouseY;
         root.visible = true;
-        // Use callLater to ensure properties are applied after visible = true
+        GlobalStates.desktopContextMenuOpen = true;
+        
         Qt.callLater(() => {
-            menuContainer.opacity = 0.98; // Adjusted from 1 to keep slight glass effect
+            if (!root.visible) return;
+            const screenWidth = root.screen.width;
+            const screenHeight = root.screen.height;
+            const menuWidth = Appearance.sizes.contextMenuWidth;
+            const menuHeight = menuLayout.implicitHeight + (12 * Appearance.effectiveScale);
+            
+            // Constrain to screen
+            root.targetX = Math.min(root._mouseX, screenWidth - menuWidth - 10 * Appearance.effectiveScale);
+            if (root._mouseY + menuHeight > screenHeight - 10 * Appearance.effectiveScale) {
+                root.targetY = root._mouseY - menuHeight;
+            } else {
+                root.targetY = root._mouseY;
+            }
+            root.targetY = Math.max(10 * Appearance.effectiveScale, root.targetY);
+            
+            menuContainer.opacity = 0.98;
             menuContainer.scale = 1;
         });
     }

@@ -1,6 +1,6 @@
-import qs.core
-import qs.widgets
-import qs.services
+import "../../core"
+import "../../widgets"
+import "../../services"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -38,7 +38,7 @@ Item {
         contribProc.running = true;
     }
 
-    // -- Data Processors --
+    // ── Data Processors ──
     
     // 1. User Profile
     Process {
@@ -88,7 +88,7 @@ Item {
         onExited: (code) => { root.loading = false }
     }
 
-    // -- Empty state (no username) --
+    // ── Empty state (no username) ──
     ColumnLayout {
         anchors.centerIn: parent; spacing: 16 * Appearance.effectiveScale
         visible: !root.username && !root.loading
@@ -97,7 +97,7 @@ Item {
         StyledText {
             Layout.alignment: Qt.AlignHCenter
             text: "GitHub Profile Tracker"
-            font.pixelSize: Appearance.font.pixelSize.large; font.weight: Font.Bold
+            font.pixelSize: Appearance.font.pixelSize.large; font.weight: Font.DemiBold
             color: Appearance.colors.colOnLayer1
         }
         StyledText {
@@ -107,7 +107,7 @@ Item {
         }
     }
 
-    // -- Loading spinner --
+    // ── Loading spinner ──
     Item {
         anchors.centerIn: parent; visible: root.loading
         implicitWidth: 44 * Appearance.effectiveScale; implicitHeight: 44 * Appearance.effectiveScale
@@ -136,7 +136,7 @@ Item {
         }
     }
 
-    // -- Error state --
+    // ── Error state ──
     ColumnLayout {
         anchors.centerIn: parent; spacing: 12 * Appearance.effectiveScale
         visible: root.errorMsg !== "" && !root.loading
@@ -151,12 +151,12 @@ Item {
         }
     }
 
-    // -- Profile content --
+    // ── Profile content ──
     ColumnLayout {
         anchors.fill: parent; spacing: 10 * Appearance.effectiveScale
         visible: root.profile !== null && !root.loading
 
-        // - Profile header card -
+        // ─ Profile header card ─
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: profileRow.implicitHeight + 20 * Appearance.effectiveScale
@@ -211,7 +211,7 @@ Item {
                     Layout.fillWidth: true; spacing: 2 * Appearance.effectiveScale
                     StyledText {
                         text: root.profile ? (root.profile.name || root.profile.login) : ""
-                        font.pixelSize: Appearance.font.pixelSize.large; font.weight: Font.Bold
+                        font.pixelSize: Appearance.font.pixelSize.large; font.weight: Font.DemiBold
                         color: Appearance.colors.colOnLayer1; elide: Text.ElideRight; Layout.fillWidth: true
                     }
                     StyledText {
@@ -250,7 +250,7 @@ Item {
             }
         }
 
-        // - Contribution heatmap -
+        // ─ Contribution heatmap ─
         ColumnLayout {
             Layout.fillWidth: true; spacing: 4 * Appearance.effectiveScale
             visible: root.contribWeeks.length > 0

@@ -1,5 +1,5 @@
 import QtQuick
-import qs.services
+import "../services"
 
 /**
  * Lightweight search handler for deep-linking.
@@ -29,15 +29,15 @@ Item {
     Connections {
         target: SearchRegistry
         function onCurrentSearchChanged() {
-            const query = SearchRegistry.currentSearch;
+            const query = SearchRegistry.currentSearch.toLowerCase();
             if (query === "" || root.searchString === "") return;
             
-            // Match canonical name OR any alias
-            const isCanonicalMatch = (query.toLowerCase() === root.searchString.toLowerCase());
+            // Match canonical name OR any alias (with substring support)
+            const isCanonicalMatch = root.searchString.toLowerCase().includes(query);
             let isAliasMatch = false;
             if (root.aliases) {
                 for (let i = 0; i < root.aliases.length; i++) {
-                    if (query.toLowerCase() === root.aliases[i].toLowerCase()) {
+                    if (root.aliases[i].toLowerCase().includes(query)) {
                         isAliasMatch = true;
                         break;
                     }

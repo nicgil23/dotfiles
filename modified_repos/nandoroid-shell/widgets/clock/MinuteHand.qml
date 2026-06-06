@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import ".."
-import qs.core
+import "../../core"
 
 Item {
     id: root
@@ -16,7 +16,7 @@ Item {
 
     rotation: -90 + (360 / 60) * root.clockMinute
     Behavior on rotation {
-        animation: RotationAnimation {
+        RotationAnimation {
             direction: RotationAnimation.Clockwise
             duration: 300
             easing.type: Easing.BezierSpline

@@ -1,8 +1,3 @@
-import QtQuick
-import Quickshell
-import Quickshell.Io
-
-Item {
     Process {
         id: setVolumeProc
         property real value: 0.5
@@ -16,4 +11,3 @@ Item {
             onRead: data => { /* set volume slider value if needed */ }
         }
     }
-}

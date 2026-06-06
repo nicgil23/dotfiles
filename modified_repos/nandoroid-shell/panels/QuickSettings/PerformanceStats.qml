@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../services"
+import "../../widgets"
 
 /**
  * Refined Performance monitor island for the Quick Settings panel.
@@ -57,7 +57,6 @@ Rectangle {
                 statIcon: "memory"
                 label: "RAM"
                 value: SystemData.memUsage
-                valText: (SystemData.usedMemoryMB / 1024).toFixed(1) + "GB"
                 Layout.fillWidth: true
                 onClicked: {
                     GlobalStates.systemMonitorIndex = 0;
@@ -79,6 +78,77 @@ Rectangle {
             }
         }
 
+        // Bottom Section: Multiple Disk monitors
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 8 * Appearance.effectiveScale
+
+            Repeater {
+                model: SystemData.diskStats
+                delegate: RippleButton {
+                    Layout.fillWidth: true
+                    implicitHeight: 60 * Appearance.effectiveScale
+                    buttonRadius: 12 * Appearance.effectiveScale
+                    colBackground: "transparent"
+                    colBackgroundHover: Appearance.colors.colLayer2
+                    
+                    onClicked: {
+                        GlobalStates.systemMonitorIndex = 0;
+                        GlobalStates.performanceSubIndex = 5;
+                        GlobalStates.activateSystemMonitor();
+                    }
+
+                    contentItem: ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 4 * Appearance.effectiveScale
+                        spacing: 4 * Appearance.effectiveScale
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            MaterialSymbol {
+                                text: "storage"
+                                iconSize: 14 * Appearance.effectiveScale
+                                color: Appearance.m3colors.m3primary
+                            }
+                            StyledText {
+                                text: modelData.hasAlias ? `${modelData.label} DISK USAGE` : `"${modelData.label}" DISK USAGE`
+                                font.pixelSize: 10 * Appearance.effectiveScale
+                                font.weight: Font.DemiBold
+                                color: Appearance.m3colors.m3outline
+                            }
+                            Item { Layout.fillWidth: true }
+                            StyledText {
+                                text: `${Math.round(modelData.usage * 100)}%`
+                                font.pixelSize: 10 * Appearance.effectiveScale
+                                font.weight: Font.DemiBold
+                                color: Appearance.m3colors.m3onSurface
+                            }
+                        }
+
+                        // Large Disk Bar
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: 8 * Appearance.effectiveScale
+                            radius: 4 * Appearance.effectiveScale
+                            color: Appearance.colors.colLayer2
+                            clip: true
+
+                            Rectangle {
+                                width: parent.width * Math.max(0, Math.min(1, modelData.usage))
+                                height: parent.height
+                                radius: 4 * Appearance.effectiveScale
+                                color: Appearance.m3colors.m3primary
+                                visible: modelData.usage > 0
+
+                                Behavior on width {
+                                    NumberAnimation { duration: 500; easing.type: Easing.OutCubic }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // StatItem: Icon, Label, and Value inside a stylized pill container
@@ -87,7 +157,6 @@ Rectangle {
         property string statIcon
         property string label
         property real value: 0
-        property string valText: ""
         property bool isTemperature: false
         
         implicitHeight: 64 * Appearance.effectiveScale
@@ -109,7 +178,7 @@ Rectangle {
                 StyledText {
                     text: statItem.label
                     font.pixelSize: 10 * Appearance.effectiveScale
-                    font.weight: Font.Bold
+                    font.weight: Font.DemiBold
                     color: Appearance.m3colors.m3outline
                 }
             }
@@ -122,13 +191,9 @@ Rectangle {
 
                 StyledText {
                     anchors.centerIn: parent
-                    text: {
-                        if (statItem.valText !== "") return statItem.valText;
-                        if (statItem.isTemperature) return (statItem.value > 0 ? `${Math.round(statItem.value)}°C` : "--");
-                        return `${Math.round(statItem.value * 100)}%`;
-                    }
+                    text: statItem.isTemperature ? (statItem.value > 0 ? `${Math.round(statItem.value)}°C` : "--") : `${Math.round(statItem.value * 100)}%`
                     font.pixelSize: 10 * Appearance.effectiveScale
-                    font.weight: Font.Black
+                    font.weight: Font.DemiBold
                     color: Appearance.m3colors.m3onSurface
                 }
             }

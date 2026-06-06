@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
+import "../core"
 
 /**
  * Service to manage iio-hyprland (auto-rotation daemon).
@@ -20,6 +20,7 @@ Singleton {
         active = true
     }
 
+    // Terminate AutoRotation
     function disable() {
         Quickshell.execDetached(["pkill", "iio-hyprland"])
         active = false

@@ -27,7 +27,7 @@ Scope {
             screen: modelData
             exclusionMode: ExclusionMode.Ignore
             
-            readonly property bool autoHide: ((Config.ready && Config.options.statusBar ? Config.options.statusBar.autoHide : false) && hasAnyWindows) || GameMode.active
+            readonly property bool autoHide: Config.ready && Config.options.statusBar ? Config.options.statusBar.autoHide : false
             property bool forceShowByHover: false
             readonly property bool barAreaHovered: barHoverHandler.hovered
 
@@ -78,7 +78,7 @@ Scope {
                 height: (autoHide && !mustShow) ? 3 * Appearance.effectiveScale : parent.height
             }
 
-            // -- Hover Detection Infrastructure ------------------
+            // ── Hover Detection Infrastructure ──────────────────
             HoverHandler {
                 id: barHoverHandler
             }
@@ -98,19 +98,11 @@ Scope {
                 z: 100 
             }
 
-            // -- Background visibility ----------------------------------
+            // ── Background visibility ──────────────────────────────────
             readonly property int bgStyle: Config.ready && Config.options.statusBar
                 ? (Config.options.statusBar.backgroundStyle ?? 0) : 0
             readonly property int cornerRadius: Math.round((Config.ready && Config.options.statusBar
                 ? (Config.options.statusBar.backgroundCornerRadius ?? 20) : 20) * Appearance.effectiveScale)
-
-            readonly property bool hasAnyWindows: {
-                if ((Hyprland.monitorFor(modelData)?.activeWorkspace?.id ?? -1) === -1) return false;
-                const wsId = Hyprland.monitorFor(modelData).activeWorkspace.id;
-                return HyprlandData.windowList.some(w => 
-                    w.workspace.id === wsId && w.monitor === monitorIndex && (w.mapped || w.initialTitle !== "") && !w.hidden
-                );
-            }
 
             readonly property bool hasTiledWindows: {
                 if (bgStyle !== 2 || (Hyprland.monitorFor(modelData)?.activeWorkspace?.id ?? -1) === -1) return false;
@@ -129,7 +121,7 @@ Scope {
             readonly property bool isCentered: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.layoutStyle === "centered" : false
             readonly property real centeredWidth: Math.round((Config.ready && Config.options.statusBar ? Config.options.statusBar.centeredWidth : 1200) * Appearance.effectiveScale)
 
-            // -- Main Content Container (Animated) --
+            // ── Main Content Container (Animated) ──
             Item {
                 id: mainContainer
                 anchors.fill: parent
@@ -142,7 +134,7 @@ Scope {
                     }
                 }
 
-                // -- Background Layer --
+                // ── Background Layer ──
                 Item {
                     id: barBackgroundLayer
                     anchors.fill: parent
@@ -164,7 +156,7 @@ Scope {
                         
                         readonly property real targetHeight: Appearance.sizes.statusBarHeight + (barWindow.isCentered ? barWindow.cornerRadius : 0)
                         readonly property real targetY: barWindow.showBackground 
-                            ? (barWindow.isCentered ? -barWindow.cornerRadius : 0)
+                            ? (barWindow.isCentered ? -barWindow.cornerRadius + Appearance.effectiveScale : -2 * Appearance.effectiveScale)
                             : -targetHeight - (10 * Appearance.effectiveScale)
 
                         y: targetY
@@ -219,7 +211,7 @@ Scope {
                     }
                 }
 
-                // -- Gradient overlay --
+                // ── Gradient overlay ──
                 Rectangle {
                     anchors {
                         left: parent.left
@@ -235,7 +227,7 @@ Scope {
                     }
                 }
 
-                // -- Content --
+                // ── Content ──
                 StatusBarContent {
                     anchors {
                         left: parent.left

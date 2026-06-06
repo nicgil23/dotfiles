@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.core
-import qs.services
-import qs.widgets
+import "../../../core"
+import "../../../services"
+import "../../../widgets"
 import ".."
 
 /**
@@ -19,7 +19,7 @@ Item {
         StyledText {
             text: "CPU Performance"
             font.pixelSize: Appearance.font.pixelSize.huge
-            font.weight: Font.Bold
+            font.weight: Font.DemiBold
         }
 
         Rectangle {
@@ -68,13 +68,13 @@ Item {
                     
                     ColumnLayout {
                         spacing: 0
-                        StyledText { text: "TEMPERATURE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: Appearance.m3colors.m3outline }
+                        StyledText { text: "TEMPERATURE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
                         StyledText { text: Math.round(SystemData.cpuTemperature) + "°C"; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small }
                     }
 
                     ColumnLayout {
                         spacing: 0
-                        StyledText { text: "LOAD AVERAGE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: Appearance.m3colors.m3outline }
+                        StyledText { text: "LOAD AVERAGE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
                         StyledText { text: SystemData.loadAverage; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small }
                     }
 
@@ -82,7 +82,7 @@ Item {
 
                     ColumnLayout {
                         spacing: 0
-                        StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Bold; color: Appearance.m3colors.m3outline }
+                        StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
                         StyledText { text: SystemData.uptime; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small; horizontalAlignment: Text.AlignRight }
                     }
                 }

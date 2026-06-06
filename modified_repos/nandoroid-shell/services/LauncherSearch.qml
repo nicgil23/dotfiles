@@ -3,8 +3,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
-import qs.core.functions as Functions
+import "../core"
+import "../core/functions"
 
 Singleton {
     id: root
@@ -45,7 +45,12 @@ Singleton {
         { name: "Bluetooth Settings", subtitle: "Shell Interface", id: "cmd-bluetooth", icon: "bluetooth", isPlugin: true, category: "Command", emoji: "", execute: () => { GlobalStates.settingsPageIndex = 1; GlobalStates.settingsOpen = true; root.closeAll(); } },
         { name: "Network Settings", subtitle: "Shell Interface", id: "cmd-network", icon: "wifi", isPlugin: true, category: "Command", emoji: "", execute: () => { GlobalStates.settingsPageIndex = 0; GlobalStates.settingsOpen = true; root.closeAll(); } },
         { name: "Quick Actions", subtitle: "Tools Menu", id: "cmd-tools", icon: "construction", isPlugin: true, category: "Command", emoji: "", execute: () => { GlobalStates.quickActionsOpen = true; root.closeAll(); } },
-        { name: "Restart Shell", subtitle: "Maintenance", id: "cmd-shell-restart", icon: "refresh", isPlugin: true, category: "Command", emoji: "", execute: () => { Quickshell.execDetached([Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/scripts/restartshell.sh"]); root.closeAll(); } }
+        { name: "Edit Config", subtitle: "Configuration File", id: "cmd-edit-config", icon: "edit_note", isPlugin: true, category: "Command", emoji: "", execute: () => { Quickshell.execDetached(["xdg-open", Directories.home.replace("file://", "") + "/.config/nandoroid/config.json"]); root.closeAll(); } },
+        { name: "Clear All Clipboard", subtitle: "Clipboard Action", id: "cmd-clip-wipe", icon: "delete_sweep", isPlugin: true, category: "Command", emoji: "", execute: () => { Quickshell.execDetached(["cliphist", "wipe"]); root.closeAll(); } },
+        { name: "Clear Old Clipboard", subtitle: "Keep 100 newest", id: "cmd-clip-clear-old", icon: "mop", isPlugin: true, category: "Command", emoji: "", execute: () => { Quickshell.execDetached(["sh", "-c", "cliphist list | tail -n +101 | cliphist delete"]); root.closeAll(); } },
+        { name: "Clear New Clipboard", subtitle: "Clear last 10 entries", id: "cmd-clip-clear-new", icon: "history", isPlugin: true, category: "Command", emoji: "", execute: () => { Quickshell.execDetached(["sh", "-c", "cliphist list | head -n 10 | cliphist delete"]); root.closeAll(); } },
+        { name: "Restart Shell", subtitle: "Maintenance (Fast)", id: "cmd-shell-restart", icon: "refresh", isPlugin: true, category: "Command", emoji: "", execute: () => { Quickshell.execDetached([Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/scripts/restartshell.sh"]); root.closeAll(); } },
+        { name: "Restart Shell (Fix Tray)", subtitle: "Maintenance (Deep)", id: "cmd-shell-restart-fix", icon: "build", isPlugin: true, category: "Command", emoji: "", execute: () => { Quickshell.execDetached([Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/scripts/restart_fix.sh"]); root.closeAll(); } }
     ]
 
     readonly property var quickTools: [
@@ -105,35 +110,24 @@ Singleton {
         }
         function runSearch(term) {
             running = false;
-            const home = Functions.FileUtils.trimFileProtocol(Directories.home.toString());
+            const home = FileUtils.trimFileProtocol(Directories.home.toString());
             command = ["fd", "-i", "-t", "f", "--max-results", "20", term, home];
             running = true;
         }
     }
 
-    function refreshClipboard() {
-        cliphistProc.running = false;
-        cliphistProc.running = true;
-    }
-
     onQueryChanged: {
-        if (!Config.ready || !Config.options.search) return;
-        const q = query.trim();
-        if (q.startsWith(Config.options.search.filePrefix)) {
+        if (Config.ready && Config.options.search && query.trim().startsWith(Config.options.search.filePrefix)) {
             fileSearchTimer.restart();
-        }
-        if (q.startsWith(Config.options.search.clipboardPrefix)) {
-            root.refreshClipboard();
         }
     }
 
     Process {
         id: cliphistProc
-        command: ["/usr/bin/cliphist", "list"]
+        command: ["cliphist", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = this.text.split("\n").filter(l => l.trim().length > 0);
-                console.log("[Clipboard] Received " + lines.length + " lines from cliphist");
                 const newHistory = lines.slice(0, 50).map(line => {
                     const id = line.split("\t")[0];
                     const isImage = line.includes("[[ binary data");
@@ -142,30 +136,17 @@ Singleton {
                 
                 if (JSON.stringify(newHistory) !== JSON.stringify(root.clipboardHistory)) {
                     root.clipboardHistory = newHistory;
-                    _triggerVal++;
                 }
-            }
-        }
-        stderr: StdioCollector {
-            onStreamFinished: {
-                if (this.text.trim().length > 0) {
-                    console.error("[Clipboard] cliphist error:", this.text.trim());
-                }
-            }
-        }
-        onExited: (exitCode) => {
-            if (exitCode !== 0) {
-                console.error("[Clipboard] cliphist exited with code:", exitCode);
             }
         }
     }
 
     Timer {
         id: cliphistTimer
-        interval: 3000
+        interval: 2500
         running: GlobalStates.launcherOpen || GlobalStates.spotlightOpen
         repeat: true
-        onTriggered: root.refreshClipboard()
+        onTriggered: cliphistProc.running = true
     }
 
     FileView {
@@ -188,7 +169,6 @@ Singleton {
         root.usageData[appId] = currentCount + 1;
         const dataStr = JSON.stringify(root.usageData);
         const path = Quickshell.shellPath("data/app_usage.json");
-        Quickshell.execDetached(["mkdir", "-p", Quickshell.shellPath("data")]);
         Quickshell.execDetached(["sh", "-c", 'printf "%s" "$1" > "$2"', "sh", dataStr, path]);
         triggerUpdate();
     }
@@ -354,7 +334,8 @@ Singleton {
 
     readonly property bool isPluginSearch: {
         const stripped = query.trim();
-        const prefixes = (Config.ready && Config.options.search) ? [
+        if (!Config.ready || !Config.options.search) return false;
+        return [
             Config.options.search.mathPrefix,
             Config.options.search.webPrefix,
             Config.options.search.emojiPrefix,
@@ -362,8 +343,7 @@ Singleton {
             Config.options.search.filePrefix,
             Config.options.search.commandPrefix,
             Config.options.search.toolsPrefix
-        ] : ["=", "!", ":", ";", "?", ">", "."];
-        return prefixes.some(p => stripped.startsWith(p));
+        ].some(p => stripped.startsWith(p));
     }
 
     readonly property var results: {
@@ -380,16 +360,10 @@ Singleton {
         }
 
         const results = [];
-        const mathPrefix = (Config.ready && Config.options.search) ? Config.options.search.mathPrefix : "=";
-        const webPrefix = (Config.ready && Config.options.search) ? Config.options.search.webPrefix : "!";
-        const emojiPrefix = (Config.ready && Config.options.search) ? Config.options.search.emojiPrefix : ":";
-        const clipboardPrefix = (Config.ready && Config.options.search) ? Config.options.search.clipboardPrefix : ";";
-        const commandPrefix = (Config.ready && Config.options.search) ? Config.options.search.commandPrefix : ">";
-        const toolsPrefix = (Config.ready && Config.options.search) ? Config.options.search.toolsPrefix : ".";
-        const filePrefix = (Config.ready && Config.options.search) ? Config.options.search.filePrefix : "?";
+        if (!Config.ready || !Config.options.search) return allApps;
 
-        if (strippedQuery.startsWith(mathPrefix)) {
-            const mathExpr = strippedQuery.slice(mathPrefix.length).trim();
+        if (strippedQuery.startsWith(Config.options.search.mathPrefix)) {
+            const mathExpr = strippedQuery.slice(Config.options.search.mathPrefix.length).trim();
             if (mathExpr.length > 0) {
                 mathProc.calculate(mathExpr);
                 results.push({
@@ -399,16 +373,16 @@ Singleton {
                     execute: () => { Quickshell.clipboardText = mathProc.result; root.closeAll(); }
                 });
             }
-        } else if (strippedQuery.startsWith(webPrefix)) {
-            const webQuery = strippedQuery.slice(webPrefix.length).trim();
+        } else if (strippedQuery.startsWith(Config.options.search.webPrefix)) {
+            const webQuery = strippedQuery.slice(Config.options.search.webPrefix.length).trim();
             if (webQuery.length > 0) {
                 results.push({
                     name: "Search Web", subtitle: webQuery, id: "web-search", icon: "public", isPlugin: true, category: "Command", emoji: "",
                     execute: () => { Qt.openUrlExternally("https://www.google.com/search?q=" + encodeURIComponent(webQuery)); root.closeAll(); }
                 });
             }
-        } else if (strippedQuery.startsWith(emojiPrefix)) {
-            const emojiQuery = strippedQuery.slice(emojiPrefix.length).toLowerCase().trim();
+        } else if (strippedQuery.startsWith(Config.options.search.emojiPrefix)) {
+            const emojiQuery = strippedQuery.slice(Config.options.search.emojiPrefix.length).toLowerCase().trim();
             const emojiResults = [];
             for (const item of emojiList) {
                 if (item.name.includes(emojiQuery) || emojiQuery === "") {
@@ -426,13 +400,12 @@ Singleton {
                 return a.name.localeCompare(b.name);
             });
             results.push(...emojiResults.slice(0, 50));
-        } else if (strippedQuery.startsWith(clipboardPrefix)) {
-            const clipQuery = strippedQuery.slice(clipboardPrefix.length).toLowerCase().trim();
+        } else if (strippedQuery.startsWith(Config.options.search.clipboardPrefix)) {
+            const clipQuery = strippedQuery.slice(Config.options.search.clipboardPrefix.length).toLowerCase().trim();
             const clipResults = [];
-            for (const entryObj of root.clipboardHistory) {
+            for (const entryObj of clipboardHistory) {
                 const entry = entryObj.raw;
-                // More robust ID removal (handles both Tab and Space separators)
-                const cleanName = entry.replace(/^\d+(\s|\t)+/, "").trim();
+                const cleanName = entry.replace(/^\d+\t/, "").trim();
                 if (cleanName.toLowerCase().includes(clipQuery) || clipQuery === "") {
                     const thumbPath = entryObj.isImage ? (root.clipboardThumbnailDir + "/" + entryObj.id + ".png") : "";
                     clipResults.push({
@@ -440,37 +413,29 @@ Singleton {
                         subtitle: cleanName, rawValue: entry, id: "clip-" + entryObj.id, icon: entryObj.isImage ? "image" : "content_paste",
                         isPlugin: true, isImage: entryObj.isImage, imagePath: thumbPath, category: "Command", emoji: "",
                         execute: () => {
-                            Quickshell.execDetached(["sh", "-c", "/usr/bin/cliphist decode \"$1\" | wl-copy", "sh", entryObj.id]);
+                            Quickshell.execDetached(["sh", "-c", "cliphist decode \"$1\" | wl-copy", "sh", entryObj.id]);
                             root.closeAll();
                         }
                     });
                 }
             }
-            
-            if (clipResults.length === 0) {
-                results.push({
-                    name: "No history entries found",
-                    subtitle: clipQuery ? ("No match for: " + clipQuery) : "Clipboard is empty",
-                    id: "clip-empty", icon: "info", isPlugin: true, category: "Command", emoji: "",
-                    execute: () => {}
+            if (clipQuery !== "") {
+                clipResults.sort((a, b) => {
+                    const aStarts = a.subtitle.toLowerCase().startsWith(clipQuery);
+                    const bStarts = b.subtitle.toLowerCase().startsWith(clipQuery);
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+                    
+                    // If both start with query or both don't, maintain chronological order
+                    // We use the numeric ID from cliphist (higher is newer)
+                    const idA = parseInt(a.id.replace("clip-", ""));
+                    const idB = parseInt(b.id.replace("clip-", ""));
+                    return idB - idA;
                 });
-            } else {
-                if (clipQuery !== "") {
-                    clipResults.sort((a, b) => {
-                        const aStarts = a.subtitle.toLowerCase().startsWith(clipQuery);
-                        const bStarts = b.subtitle.toLowerCase().startsWith(clipQuery);
-                        if (aStarts && !bStarts) return -1;
-                        if (!aStarts && bStarts) return 1;
-                        
-                        const idA = parseInt(a.id.replace("clip-", ""));
-                        const idB = parseInt(b.id.replace("clip-", ""));
-                        return idB - idA;
-                    });
-                }
-                results.push(...clipResults.slice(0, 50));
             }
-        } else if (strippedQuery.startsWith(commandPrefix)) {
-            const cmdQuery = strippedQuery.slice(commandPrefix.length).toLowerCase().trim();
+            results.push(...clipResults.slice(0, 50));
+        } else if (strippedQuery.startsWith(Config.options.search.commandPrefix)) {
+            const cmdQuery = strippedQuery.slice(Config.options.search.commandPrefix.length).toLowerCase().trim();
             const cmdResults = [];
             for (const cmd of root.quickCommands) {
                 if (cmd.name.toLowerCase().includes(cmdQuery) || cmd.id.toLowerCase().includes(cmdQuery) || cmdQuery === "") {
@@ -485,8 +450,8 @@ Singleton {
                 return a.name.localeCompare(b.name);
             });
             results.push(...cmdResults);
-        } else if (strippedQuery.startsWith(toolsPrefix)) {
-            const toolQuery = strippedQuery.slice(toolsPrefix.length).toLowerCase().trim();
+        } else if (strippedQuery.startsWith(Config.options.search.toolsPrefix)) {
+            const toolQuery = strippedQuery.slice(Config.options.search.toolsPrefix.length).toLowerCase().trim();
             const toolResults = [];
             for (const tool of root.quickTools) {
                 if (tool.name.toLowerCase().includes(toolQuery) || tool.id.toLowerCase().includes(toolQuery) || toolQuery === "") {
@@ -501,8 +466,8 @@ Singleton {
                 return a.name.localeCompare(b.name);
             });
             results.push(...toolResults);
-        } else if (strippedQuery.startsWith(filePrefix)) {
-            const fileQuery = strippedQuery.slice(filePrefix.length).toLowerCase().trim();
+        } else if (strippedQuery.startsWith(Config.options.search.filePrefix)) {
+            const fileQuery = strippedQuery.slice(Config.options.search.filePrefix.length).toLowerCase().trim();
             const fileResults = fileSearchProc.results.slice();
             fileResults.sort((a, b) => {
                 const aStarts = a.name.toLowerCase().startsWith(fileQuery);
@@ -519,7 +484,7 @@ Singleton {
             }
         }
 
-        if (!root.isPluginSearch) {
+        if (!isPluginSearch) {
             const loweredQuery = strippedQuery.toLowerCase();
             const filteredApps = allApps.filter(app =>
                 app.name.toLowerCase().includes(loweredQuery) ||
@@ -533,7 +498,7 @@ Singleton {
                 if (aStarts && !bStarts) return -1;
                 if (!aStarts && bStarts) return 1;
 
-                if (Config.ready && Config.options.search && Config.options.search.enableUsageTracking) {
+                if (Config.options.search.enableUsageTracking) {
                     const countA = root.usageData[a.id] || 0;
                     const countB = root.usageData[b.id] || 0;
                     if (countB !== countA) return countB - countA;
@@ -544,6 +509,6 @@ Singleton {
             results.push(...filteredApps);
         }
 
-        return (results.length > 0 || (strippedQuery === "" && !root.isPluginSearch)) ? results : (root.isPluginSearch ? [] : allApps);
+        return (results.length > 0 || strippedQuery === "") ? results : allApps;
     }
 }

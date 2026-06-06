@@ -68,7 +68,7 @@ Singleton {
 
             getHostname.running = true
             
-            // -- Optimized Hardware Info Fetching --
+            // ── Optimized Hardware Info Fetching ──
             fileHwCache.reload()
             if (fileHwCache.exists) {
                 try {

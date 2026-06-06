@@ -1,6 +1,6 @@
-import qs.core
-import qs.widgets
-import qs.core.functions as Functions
+import "../../core"
+import "../../widgets"
+import "../../core/functions" as Functions
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -35,7 +35,7 @@ Item {
             anchors.rightMargin: 12 * Appearance.effectiveScale
             spacing: 12 * Appearance.effectiveScale
 
-            // -- Slot Kiri: Icon Wrapper --
+            // ── Slot Kiri: Icon Wrapper ──
             Item {
                 Layout.preferredWidth: 32 * Appearance.effectiveScale
                 Layout.preferredHeight: 32 * Appearance.effectiveScale
@@ -63,7 +63,7 @@ Item {
                 }
             }
 
-            // -- Slot Tengah: Main Content (Text Pill) --
+            // ── Slot Tengah: Main Content (Text Pill) ──
             Rectangle {
                 id: textWrapper
                 Layout.fillWidth: true
@@ -86,7 +86,7 @@ Item {
                 }
             }
 
-            // -- Slot Kanan: Category Label (Centered Square) --
+            // ── Slot Kanan: Category Label (Centered Square) ──
             Rectangle {
                 id: contextSlot
                 Layout.preferredWidth: 44 * Appearance.effectiveScale
@@ -99,7 +99,7 @@ Item {
                     anchors.centerIn: parent
                     text: root.name.substring(0, 2).toUpperCase()
                     font.pixelSize: 11 * Appearance.effectiveScale
-                    font.weight: Font.Bold
+                    font.weight: Font.DemiBold
                     color: Appearance.m3colors.m3onSecondaryContainer
                     opacity: 0.8
                     

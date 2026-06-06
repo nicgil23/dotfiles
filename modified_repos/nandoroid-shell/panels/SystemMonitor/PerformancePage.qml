@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 
 import "pages"
 
@@ -48,7 +48,8 @@ Item {
                         { name: "CPU", icon: "monitoring" },
                         { name: "GPU", icon: "videogame_asset" },
                         { name: "Memory", icon: "memory" },
-                        { name: "Network", icon: "public" }
+                        { name: "Network", icon: "public" },
+                        { name: "Disk", icon: "storage" }
                     ]
                     
                     delegate: RippleButton {
@@ -75,7 +76,7 @@ Item {
                             StyledText {
                                 text: modelData.name
                                 font.pixelSize: 13 * Appearance.effectiveScale
-                                font.weight: GlobalStates.performanceSubIndex === index ? Font.Bold : Font.Medium
+                                font.weight: GlobalStates.performanceSubIndex === index ? Font.DemiBold : Font.Medium
                                 color: GlobalStates.performanceSubIndex === index ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0
                             }
                         }
@@ -103,6 +104,7 @@ Item {
             GpuPage {}
             MemoryPage {}
             NetworkPage {}
+            DiskPage {}
         }
     }
 }

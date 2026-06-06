@@ -3,7 +3,9 @@ a52dec
 aalib
 aardvark-dns
 abseil-cpp
+accountsservice
 acl
+ada
 adwaita-cursors
 adwaita-fonts
 adwaita-icon-theme
@@ -125,6 +127,7 @@ elfutils
 ell
 enchant
 enet
+exempi
 exiv2
 expat
 extra-cmake-modules
@@ -163,15 +166,19 @@ gcc-libs
 gcr
 gcr-4
 gd
+gdb
+gdb-common
 gdbm
 gdk-pixbuf2
 gettext
+gexiv2
 ghostscript
 giflib
 girara
 git
 github-cli
 glew
+glfw
 glib-networking
 glib2
 glibc
@@ -181,7 +188,11 @@ glm
 glslang
 glu
 glycin
+glycin-gtk4
 gmp
+gnome-autoar
+gnome-desktop-4
+gnome-desktop-common
 gnome-keyring
 gnome-themes-extra
 gnu-free-fonts
@@ -230,6 +241,7 @@ gts
 guile
 gumbo-parser
 gupnp
+gupnp-dlna
 gupnp-igd
 gvfs
 gvfs-afc
@@ -354,6 +366,7 @@ libavif
 libayatana-appindicator
 libayatana-indicator
 libb2
+libblake3
 libblockdev
 libblockdev-crypto
 libblockdev-fs
@@ -380,6 +393,7 @@ libcdr
 libcloudproviders
 libcmis
 libcolord
+libcue
 libcups
 libdaemon
 libdatachannel
@@ -411,6 +425,7 @@ libepubgen
 libetonyek
 libevdev
 libevent
+libexif
 libexttextcat
 libfdk-aac
 libffi
@@ -431,7 +446,9 @@ libgnomekbd
 libgomp
 libgoom2
 libgpg-error
+libgsf
 libgudev
+libgxps
 libhandy
 libheif
 libice
@@ -444,6 +461,7 @@ libimobiledevice
 libimobiledevice-glue
 libinih
 libinput
+libiptcdata
 libisl
 libixion
 libjpeg-turbo
@@ -470,6 +488,7 @@ libmd
 libmfx
 libmgba
 libmicrodns
+libmicrohttpd
 libmikmod
 libmm-glib
 libmms
@@ -485,6 +504,7 @@ libmtp
 libmupdf
 libmwaw
 libmysofa
+libnautilus-extension
 libndp
 libnet
 libnetfilter_conntrack
@@ -502,6 +522,7 @@ libnma
 libnma-common
 libnotify
 libnsl
+libntfs-3g
 libnumbertext
 libnvme
 libobjc
@@ -509,6 +530,7 @@ libodfgen
 libogg
 libopenmpt
 liborcus
+libosinfo
 libp11-kit
 libpagemaker
 libpaper
@@ -519,6 +541,9 @@ libpipewire
 libplacebo
 libplist
 libpng
+libportal
+libportal-gtk4
+libprojectm
 libproxy
 libpsl
 libpulse
@@ -668,9 +693,11 @@ llhttp
 llvm-libs
 lm_sensors
 lmdb
+localsearch
 lpsolve
 lsof
 lua
+lua51
 lua51-lpeg
 lua54
 luajit
@@ -681,6 +708,7 @@ m4
 mailcap
 make
 marisa
+matugen
 maven
 mbedtls
 md4c
@@ -707,6 +735,7 @@ mujs
 muparser
 mupdf
 nasm
+nautilus
 ncurses
 ndctl
 neon
@@ -759,6 +788,7 @@ optipng
 opus
 opusfile
 orc
+osinfo-db
 ostree
 p11-kit
 pacman
@@ -1097,7 +1127,6 @@ qt6-webchannel
 qt6-webengine
 qt6ct
 quazip-qt6
-quickshell
 rapidjson
 raptor
 rasqal
@@ -1153,6 +1182,7 @@ sonnet
 sord
 sound-theme-freedesktop
 soundtouch
+source-highlight
 spandsp
 spdlog
 speex
@@ -1189,6 +1219,7 @@ timeshift
 tinysparql
 tomlplusplus
 tor
+totem-pl-parser
 tpm2-tss
 trash-cli
 tree
@@ -1242,6 +1273,7 @@ vlc-plugin-inflate
 vlc-plugin-journal
 vlc-plugin-jpeg
 vlc-plugin-lua
+vlc-plugin-matroska
 vlc-plugin-mpg123
 vlc-plugin-ogg
 vlc-plugin-opus
@@ -1304,6 +1336,8 @@ xdg-dbus-proxy
 xdg-desktop-portal
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
+xdg-user-dirs
+xdg-user-dirs-gtk
 xdg-utils
 xf86-input-libinput
 xf86-video-amdgpu
@@ -1319,6 +1353,7 @@ xorg-xinit
 xorg-xkbcomp
 xorg-xmodmap
 xorg-xprop
+xorg-xrandr
 xorg-xrdb
 xorg-xwayland
 xorgproto

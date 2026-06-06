@@ -1,7 +1,7 @@
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -72,9 +72,9 @@ Item {
     WheelHandler {
         onWheel: (event) => {
             if (event.angleDelta.y > 0) {
-                if (root.activeWsId > 1) Hyprland.dispatch("workspace r-1")
+                if (root.activeWsId > 1) Hyprland.dispatch(HyprlandCompat.dspWorkspace("r-1"))
             } else if (event.angleDelta.y < 0) {
-                Hyprland.dispatch("workspace r+1")
+                Hyprland.dispatch(HyprlandCompat.dspWorkspace("r+1"))
             }
         }
     }
@@ -192,7 +192,7 @@ Item {
                             return (dot.wsId).toString()
                         }
                         font.pixelSize: 10 * Appearance.effectiveScale
-                        font.weight: Font.DemiBold
+                        font.weight: isActive ? Font.DemiBold : Font.Normal
                         color: "#1E1E1E" 
                         opacity: (isActive || isHovered || isUnified) ? 1 : 0
                     }
@@ -207,7 +207,7 @@ Item {
                     anchors.margins: -4 * Appearance.effectiveScale
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Hyprland.dispatch(`workspace ${dot.wsId}`)
+                    onClicked: Hyprland.dispatch(HyprlandCompat.dspWorkspace(dot.wsId))
                 }
             }
         }

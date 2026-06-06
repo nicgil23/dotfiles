@@ -1,8 +1,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
-import qs.core
-import qs.widgets
+import "../../core"
+import "../../widgets"
 
 Rectangle {
     id: root

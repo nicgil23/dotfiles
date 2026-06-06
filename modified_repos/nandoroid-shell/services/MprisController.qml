@@ -5,9 +5,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Mpris
-import qs.core
-import qs.core.functions as Functions
-import qs.widgets
+import "../core"
+import "../core/functions" as Functions
+import "../widgets"
 
 /**
  * Simplified MPRIS controller — wraps Quickshell's Mpris service
@@ -15,13 +15,12 @@ import qs.widgets
  */
 Singleton {
     id: root
-    property var activePlayer: trackedPlayer ?? (MpdService.isPlaying ? MpdService : (Mpris.players.values[0] ?? null))
-    property var trackedPlayer: null
+    property MprisPlayer activePlayer: trackedPlayer ?? Mpris.players.values[0] ?? null
+    property MprisPlayer trackedPlayer: null
     property bool isPlaying: activePlayer && activePlayer.isPlaying
     property bool canTogglePlaying: activePlayer?.canTogglePlaying ?? false
     property bool canGoPrevious: activePlayer?.canGoPrevious ?? false
     property bool canGoNext: activePlayer?.canGoNext ?? false
-    property bool canSeek: activePlayer?.canSeek ?? false
 
     property string trackTitle: activePlayer?.trackTitle || "No media"
     property string trackArtist: activePlayer?.trackArtist || ""
@@ -108,7 +107,14 @@ Singleton {
 
     function startNextDownload() {
         if (_pendingUrl === "") return;
-        coverArtDownloader.exec(["sh", "-c", '[ -f "$2" ] || curl -sSL "$1" -o "$2"', "sh", _pendingUrl, _pendingDest]);
+        
+        // Safety check: Don't pass massive Base64 strings or non-URLs to curl
+        if (_pendingUrl.startsWith("data:") || _pendingUrl.length > 1024) {
+            _pendingUrl = "";
+            return;
+        }
+
+        coverArtDownloader.exec(["sh", "-c", '[ -f "$2" ] || curl -sSL "$1" -o "$2" > /dev/null 2>&1', "sh", _pendingUrl, _pendingDest]);
         _pendingUrl = "" 
     }
 
@@ -144,13 +150,7 @@ Singleton {
         running: root.isPlaying
         repeat: true
         onTriggered: {
-            if (root.activePlayer) {
-                if (typeof root.activePlayer.requestPositionUpdate === "function") {
-                    root.activePlayer.requestPositionUpdate();
-                } else if (typeof root.activePlayer.positionChanged === "function") {
-                    root.activePlayer.positionChanged();
-                }
-            }
+            if (root.activePlayer) root.activePlayer.positionChanged();
         }
     }
 
@@ -162,27 +162,6 @@ Singleton {
     }
     function next() {
         if (canGoNext) activePlayer.next();
-    }
-    
-    function setPosition(seconds) {
-        if (!activePlayer || !canSeek) return;
-        if (typeof activePlayer.setPosition === "function") {
-            activePlayer.setPosition(seconds);
-        } else {
-            activePlayer.position = seconds;
-        }
-    }
-
-    function seek(offset) {
-        if (!activePlayer || !canSeek) return;
-        if (typeof activePlayer.seek === "function") {
-            activePlayer.seek(offset);
-        } else if (typeof activePlayer.Seek === "function") {
-            activePlayer.Seek(offset * 1000000); // MPRIS standard uses microseconds
-        } else if (activePlayer.dbusName) {
-            // Fallback for raw MprisPlayer objects if the Seek method isn't directly exposed as a function
-            // (Though Quickshell usually exposes it)
-        }
     }
 
     property bool _manualOverride: false
@@ -209,10 +188,6 @@ Singleton {
             if ((p.trackTitle || "") === "" && (p.trackArtist || "") === "" && (p.trackArtUrl || "") === "") return false;
             return true;
         });
-
-        if (MpdService.isMpdAvailable) {
-            valid.push(MpdService);
-        }
 
         // Deduplicate browser proxy buses (e.g. native brave vs plasma-browser-integration)
         let unique = [];
@@ -303,14 +278,15 @@ Singleton {
         if (entry !== "" || identity !== "") {
             let target = entry.replace(".desktop", "") || identity;
             
-            // Try focusing by class (most reliable)
-            Quickshell.execDetached(["hyprctl", "dispatch", "focuswindow", `class:${target}`]);
+            // Use case-insensitive regex to find the window
+            // class:^(?i)(target)$ matches the class exactly but ignores case
+            Quickshell.execDetached(["hyprctl", "dispatch", HyprlandCompat.dspFocusWindow(`class:^(?i)(${target})$`)]);
             
-            // Also try focusing by title/name as a fallback (some apps don't match entry to class)
-            Quickshell.execDetached(["hyprctl", "dispatch", "focuswindow", `title:${target}`]);
+            // Fallback to substring match if exact match fails
+            Quickshell.execDetached(["hyprctl", "dispatch", HyprlandCompat.dspFocusWindow(`title:(?i)${target}`)]);
             
-            // Close the notification center to show the window
             GlobalStates.notificationCenterOpen = false;
+            GlobalStates.dashboardOpen = false;
         }
     }
 
@@ -334,11 +310,5 @@ Singleton {
                 root.autoReevaluatePlayer();
             }
         }
-    }
-
-    Connections {
-        target: MpdService
-        function onIsPlayingChanged() { root.autoReevaluatePlayer(); }
-        function onIsMpdAvailableChanged() { root.autoReevaluatePlayer(); }
     }
 }

@@ -1,5 +1,5 @@
 import QtQuick
-import qs.core
+import "../core"
 import "."
 
 Rectangle {

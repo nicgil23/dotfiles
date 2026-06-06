@@ -1,13 +1,15 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 
 /**
  * Scrolling Tape Overview
@@ -83,7 +85,7 @@ Rectangle {
     function navigateToSelectedWindow() {
         if (matchingWindows.length === 0 || selectedMatchIndex < 0) return;
         const win = matchingWindows[selectedMatchIndex]; if (!win) return;
-        GlobalStates.closeAllPanels(); Qt.callLater(() => { Hyprland.dispatch(`focuswindow address:${win.address}`); });
+        GlobalStates.closeAllPanels(); Qt.callLater(() => { Hyprland.dispatch(HyprlandCompat.dspFocusWindow(`address:${win.address}`)); });
     }
 
     function selectNextMatch() { if (matchingWindows.length > 0) selectedMatchIndex = (selectedMatchIndex + 1) % matchingWindows.length; }
@@ -132,7 +134,7 @@ Rectangle {
         anchors.margins: 24 * Appearance.effectiveScale
         spacing: 24 * Appearance.effectiveScale
 
-        // -- Search Bar Section --
+        // ── Search Bar Section ──
         Rectangle {
             // Match the width of the workspaces list + scrollbar area
             Layout.preferredWidth: mainContentRow.implicitWidth
@@ -158,10 +160,10 @@ Rectangle {
                     }
                     Keys.onPressed: (event) => {
                         if (event.key === Qt.Key_Tab || event.key === Qt.Key_Down || event.key === Qt.Key_Right) {
-                            if (searchInput.text === "") Hyprland.dispatch("workspace r+1"); else scrollingOverviewRoot.selectNextMatch();
+                            if (searchInput.text === "") Hyprland.dispatch(HyprlandCompat.dspWorkspace("r+1")); else scrollingOverviewRoot.selectNextMatch();
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Backtab || event.key === Qt.Key_Up || event.key === Qt.Key_Left) {
-                            if (searchInput.text === "") Hyprland.dispatch("workspace r-1"); else scrollingOverviewRoot.selectPrevMatch();
+                            if (searchInput.text === "") Hyprland.dispatch(HyprlandCompat.dspWorkspace("r-1")); else scrollingOverviewRoot.selectPrevMatch();
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Escape) {
                             if (searchInput.text !== "") searchInput.text = ""; else GlobalStates.closeAllPanels();
@@ -173,7 +175,7 @@ Rectangle {
             }
         }
 
-        // -- Scrolling Workspaces Section with Side-by-Side Scrollbar --
+        // ── Scrolling Workspaces Section with Side-by-Side Scrollbar ──
         RowLayout {
             id: mainContentRow
             Layout.alignment: Qt.AlignHCenter

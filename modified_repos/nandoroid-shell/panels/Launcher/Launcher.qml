@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.services
+import "../../core"
+import "../../services"
 
 PanelWindow {
     id: root
@@ -31,6 +31,11 @@ PanelWindow {
 
     color: "transparent"
     
+    onVisibleChanged: {
+        if (visible) {
+            LauncherSearch.query = "";
+        }
+    }
     
     // Close on click outside (on the window background)
     MouseArea {

@@ -1,6 +1,6 @@
-import qs.core
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -50,7 +50,6 @@ Item {
             Layout.fillWidth: true
             Layout.maximumWidth: root.maxWidth
             font.pixelSize: Appearance.font.pixelSize.smallest
-            font.weight: Font.DemiBold
             color: root.subtextColor
             elide: Text.ElideRight
             text: root.appClassText
@@ -61,7 +60,6 @@ Item {
             Layout.fillWidth: true
             Layout.maximumWidth: root.maxWidth
             font.pixelSize: Appearance.font.pixelSize.smaller
-            font.weight: Font.DemiBold
             color: root.color
             elide: Text.ElideRight
             text: root.appTitleText

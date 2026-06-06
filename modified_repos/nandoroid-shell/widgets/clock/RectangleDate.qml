@@ -1,7 +1,7 @@
 import QtQuick
 import ".."
-import qs.services
-import qs.core
+import "../../services"
+import "../../core"
 
 Rectangle {
     id: rect

@@ -51,11 +51,11 @@ getdate() {
 }
 
 getaudiooutput() {
-    pactl list sources | grep 'Name' | grep 'monitor' | cut -d ' ' -f2 | head -n 1
+    pactl list sources | grep 'Name' | grep 'monitor' | cut -d ' ' -f2
 }
 
 getactivemonitor() {
-    hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name' | head -n 1
+    hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name'
 }
 
 updatestate() {
@@ -107,16 +107,8 @@ if [[ -z "$RECORDING_DIR" ]]; then
     fi
 fi
 
-# Expand ~ manually if present at the start of the path
-RECORDING_DIR="${RECORDING_DIR/#\~/$HOME}"
-
-echo "Final Recording Directory: $RECORDING_DIR" >> "$DEBUG_LOG"
-
 mkdir -p "$RECORDING_DIR"
-if ! cd "$RECORDING_DIR"; then
-    echo "FAILED: Could not change directory to $RECORDING_DIR" >> "$DEBUG_LOG"
-    exit 1
-fi
+cd "$RECORDING_DIR" || exit
 
 if pgrep wf-recorder > /dev/null; then
     notify-send "Recording Stopped" "Video saved to $RECORDING_DIR" -a 'Recorder' -i media-record -t 5000 &
@@ -152,9 +144,9 @@ else
         notify-send "Starting recording" "$filename" -a 'Recorder' -i media-record -t 3000 & disown
         updatestate true "$geometry"
         if [[ $SOUND_FLAG -eq 1 ]]; then
-            wf-recorder --pixel-format yuv420p -f "$filename" --geometry "$geometry" --audio="$(getaudiooutput)"
+            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f "$filename" --geometry "$geometry" --audio="$(getaudiooutput)"
         else
-            wf-recorder --pixel-format yuv420p -f "$filename" --geometry "$geometry"
+            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f "$filename" --geometry "$geometry"
         fi
     fi
 fi

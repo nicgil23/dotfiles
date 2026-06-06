@@ -2,9 +2,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../services"
+import "../../widgets"
 
 Variants {
     id: root
@@ -26,7 +26,7 @@ Variants {
         }
 
         WlrLayershell.namespace: "quickshell:spotlight"
-        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.layer: (GlobalStates.spotlightOpen && isActive) ? WlrLayer.Overlay : WlrLayer.Background
         WlrLayershell.keyboardFocus: (GlobalStates.spotlightOpen && isActive) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         HyprlandFocusGrab {
@@ -37,6 +37,11 @@ Variants {
 
         color: "transparent"
         
+        onVisibleChanged: {
+            if (visible && isActive) {
+                LauncherSearch.query = "";
+            }
+        }
         
         MouseArea {
             anchors.fill: parent

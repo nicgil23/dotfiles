@@ -4,7 +4,7 @@ pragma Singleton
 // Manages night mode via hyprsunset with persistence in Config.
 
 import QtQuick
-import qs.core
+import "../core"
 import Quickshell
 import Quickshell.Io
 
@@ -16,19 +16,7 @@ Singleton {
     property bool active: ready && Config.options.nightMode ? Config.options.nightMode.active : false
 
     // Fetch current state from hyprctl on startup to reconcile with config
-    Component.onCompleted: {
-        if (root.ready) fetchState();
-    }
-
-    Connections {
-        target: Config
-        function onReadyChanged() {
-            if (Config.ready) {
-                // If config says active but system might not be (or vice versa), reconcile
-                fetchState();
-            }
-        }
-    }
+    Component.onCompleted: fetchState()
 
     function fetchState() {
         if (!root.ready) return;

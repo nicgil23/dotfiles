@@ -1,9 +1,9 @@
 pragma ComponentBehavior: Bound
 
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -11,6 +11,7 @@ import Quickshell.Wayland
 
 /**
  * Polkit authentication panel.
+ * Mirroring the 'ii' example's fullscreen overlay style.
  */
 Scope {
     id: root
@@ -37,10 +38,10 @@ Scope {
                 color: "transparent"
                 WlrLayershell.namespace: "nandoroid:polkit"
                 WlrLayershell.keyboardFocus: (PolkitService.active && isActive) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
-                WlrLayershell.layer: WlrLayer.Overlay
+                WlrLayershell.layer: (PolkitService.active && isActive) ? WlrLayer.Overlay : WlrLayer.Background
                 exclusionMode: ExclusionMode.Ignore
 
-                // -- Scrim --
+                // ── Scrim ──
                 Rectangle {
                     anchors.fill: parent
                     color: Functions.ColorUtils.applyAlpha(Appearance.colors.colLayer0, 0.6)
@@ -48,7 +49,7 @@ Scope {
                     Behavior on opacity { NumberAnimation { duration: 200 } }
                 }
 
-                // -- Auth Dialog --
+                // ── Auth Dialog ──
                 Rectangle {
                     id: dialog
                     anchors.centerIn: parent
@@ -77,7 +78,7 @@ Scope {
                             horizontalAlignment: Text.AlignHCenter
                             text: qsTr("Authentication Required")
                             font.pixelSize: Appearance.font.pixelSize.large
-                            font.weight: Font.Bold
+                            font.weight: Font.DemiBold
                             color: Appearance.colors.colOnLayer1
                         }
 
@@ -100,8 +101,8 @@ Scope {
                                 id: inputContainer
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 52 * Appearance.effectiveScale
-                                radius: 8 * Appearance.effectiveScale
-                                color: "transparent"
+                                radius: 8 * Appearance.effectiveScale // Reduced rounding as requested
+                                color: "transparent" // Same as background
                                 border.width: passwordInput.activeFocus || PolkitService.failed ? Math.max(1, 2 * Appearance.effectiveScale) : Math.max(1, 1 * Appearance.effectiveScale)
                                 border.color: PolkitService.failed ? Appearance.m3colors.m3error : (passwordInput.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline)
 
@@ -111,7 +112,7 @@ Scope {
                                     y: -8 * Appearance.effectiveScale
                                     width: labelText.width + (8 * Appearance.effectiveScale)
                                     height: 16 * Appearance.effectiveScale
-                                    color: Appearance.m3colors.m3surfaceContainerHigh
+                                    color: Appearance.m3colors.m3surfaceContainerHigh // Match dialog background
                                     
                                     StyledText {
                                         id: labelText

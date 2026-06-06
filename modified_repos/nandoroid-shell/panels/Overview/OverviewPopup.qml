@@ -5,10 +5,10 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 import "."
 
 /**
@@ -32,7 +32,7 @@ Variants {
         }
         color: "transparent"
 
-        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.layer: (GlobalStates.overviewOpen && isActive) ? WlrLayer.Overlay : WlrLayer.Background
         WlrLayershell.keyboardFocus: (GlobalStates.overviewOpen && isActive) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         exclusionMode: ExclusionMode.Ignore
@@ -62,6 +62,14 @@ Variants {
             opacity: (GlobalStates.overviewOpen && isActive) ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
             
+            focus: GlobalStates.overviewOpen && isActive
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Escape) {
+                    GlobalStates.closeAllPanels();
+                    event.accepted = true;
+                }
+            }
+
             // Close when clicking outside (on the backdrop)
             TapHandler {
                 onTapped: GlobalStates.closeAllPanels()

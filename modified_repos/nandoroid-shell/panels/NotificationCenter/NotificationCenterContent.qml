@@ -1,7 +1,7 @@
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -54,28 +54,30 @@ Item {
     ColumnLayout {
         id: contentColumn
         anchors {
-            fill: parent
+            left: parent.left
+            right: parent.right
+            top: parent.top
             margins: 12 * Appearance.effectiveScale
-            topMargin: 10 * Appearance.effectiveScale
+            topMargin: 12 * Appearance.effectiveScale
         }
         spacing: 12 * Appearance.effectiveScale
 
-        // -- Media Card --
+        // ── Media Card ──
         MediaCard {
             Layout.fillWidth: true
             visible: (Config.options.media?.showMediaCard ?? true) && MprisController.activePlayer !== null
         }
 
-        // -- Weather Card --
+        // ── Weather Card ──
         WeatherCard {
             Layout.fillWidth: true
             visible: Config.options.weather?.enable ?? true
         }
 
-        // -- Notification Island --
+        // ── Notification Island ──
         Rectangle {
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.preferredHeight: Appearance.sizes.notificationIslandMaxHeight
             
             color: Appearance.colors.colLayer1
             radius: Appearance.rounding.panel
@@ -86,7 +88,7 @@ Item {
                 anchors.margins: 12 * Appearance.effectiveScale
                 spacing: 8 * Appearance.effectiveScale
 
-                // -- Main Content (List or Placeholder) --
+                // ── Main Content (List or Placeholder) ──
                 Item {
                     id: listContainer
                     Layout.fillWidth: true
@@ -157,7 +159,7 @@ Item {
                     }
                 }
 
-                // -- Bottom Action Row --
+                // ── Bottom Action Row ──
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignHCenter

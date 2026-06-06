@@ -14,7 +14,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
+import "../core"
 import "."
 
 Item {
@@ -45,24 +45,30 @@ Item {
             { file: "panels/Settings/pages/WallpaperStyle/WsDock.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsScreenDecor.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsTypography.qml", pageIndex: 4 },
-            { file: "panels/Settings/pages/WallpaperStyle/WsDateTime.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsWallpaperCycle.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsLauncherIcons.qml", pageIndex: 4 },
-            { file: "panels/Settings/pages/Services/ServicesSettings.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesWeather.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesSearch.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesNetwork.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesDisk.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesPerformance.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesMedia.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesPower.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesSystem.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/Services/ServicesGitHub.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/About/AboutSettings.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/About/AboutCredits.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/About/AboutDependency.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/About/AboutUpdate.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/About/AboutMainView.qml", pageIndex: 6 }
+            // System Page components (pageIndex: 5)
+            { file: "panels/Settings/pages/System/SystemSettings.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/System/SysDateTime.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/System/SysLanguage.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/System/SysScreenshot.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/System/SysPerformance.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/System/SysPower.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/System/SysDisk.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/System/SysSystemInterface.qml", pageIndex: 5 },
+            // Services Page components (pageIndex: 6)
+            { file: "panels/Settings/pages/Services/ServicesSettings.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/Services/ServicesWeather.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/Services/ServicesSearch.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/Services/ServicesNetwork.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/Services/ServicesMedia.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/Services/ServicesGitHub.qml", pageIndex: 6 },
+            // About Page components (pageIndex: 7)
+            { file: "panels/Settings/pages/About/AboutSettings.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/About/AboutCredits.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/About/AboutDependency.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/About/AboutUpdate.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/About/AboutMainView.qml", pageIndex: 7 }
         ])
     }
 
@@ -144,7 +150,7 @@ Item {
     }
 
     function getPageName(index) {
-        const names = ["Network", "Bluetooth", "Audio", "Display", "Wallpaper & Style", "Services", "About"]
+        const names = ["Network", "Bluetooth", "Audio", "Display", "Wallpaper & Style", "System", "Services", "About"]
         return names[index] || "Unknown"
     }
 

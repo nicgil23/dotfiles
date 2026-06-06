@@ -1,15 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Services.SystemTray
-import qs.core
-import qs.core.functions as Functions
-import qs.services
-import qs.widgets
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 
 Variants {
     id: root
@@ -28,6 +28,18 @@ Variants {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
         exclusionMode: ExclusionMode.Ignore
         color: "transparent"
+
+        property var activeMenu: null
+
+        HyprlandFocusGrab {
+            id: focusGrab
+            active: panelWindow.activeMenu !== null
+            windows: [panelWindow.activeMenu]
+            onCleared: {
+                if (panelWindow.activeMenu) panelWindow.activeMenu.visible = false;
+                panelWindow.activeMenu = null;
+            }
+        }
 
         // PanelWindow supports anchors in this project
         anchors {
@@ -96,10 +108,22 @@ Variants {
                     id: overflowRepeater
                     model: panelWindow.overflowModel
                     delegate: StatusBarTrayItem {
+                        id: trayItem
                         required property SystemTrayItem modelData
                         item: modelData
                         implicitWidth: 24 * Appearance.effectiveScale
                         implicitHeight: 24 * Appearance.effectiveScale
+                        
+                        property var currentMenu: null
+
+                        onMenuOpened: (menu) => {
+                            panelWindow.activeMenu = menu;
+                            trayItem.currentMenu = menu;
+                        }
+                        onMenuClosed: () => {
+                            if (panelWindow.activeMenu === trayItem.currentMenu) panelWindow.activeMenu = null;
+                            trayItem.currentMenu = null;
+                        }
                     }
                 }
             }

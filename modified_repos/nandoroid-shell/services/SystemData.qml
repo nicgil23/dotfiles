@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.core
+import "../core"
 
 /**
  * Service providing system performance metrics using 'dgop'.
@@ -23,7 +23,6 @@ Singleton {
         id: coreDetectProc
         command: ["bash", "-c", "grep '^cpu cores' /proc/cpuinfo | head -n1 | awk '{print $4}' || echo 1"]
         running: true
-        
         stdout: StdioCollector {
             onStreamFinished: {
                 const val = parseInt(this.text.trim());
@@ -36,8 +35,6 @@ Singleton {
     property real swapUsage: 0
     property real totalMemoryMB: 0
     property real usedMemoryMB: 0
-    property real totalSwapMB: 0
-    property real usedSwapMB: 0
     
     property real networkRxRate: 0
     property real networkTxRate: 0
@@ -53,11 +50,13 @@ Singleton {
     property int threadCount: 0
     property string uptime: ""
     
+    // List of objects: { mount: string, usage: real, total: real, used: real }
+    property var diskStats: []
     
-    // Processes
+    // Processes (Disabled for now to fix SIGSEGV)
     property var allProcesses: []
     
-    // GPUs
+    // GPUs (Disabled for now to fix SIGSEGV)
     property var availableGpus: []
     readonly property bool hasValidGpuData: {
         if (availableGpus.length === 0) return false;
@@ -102,12 +101,12 @@ Singleton {
     readonly property string activeModules: {
         if (shouldPause) return "";
         // Fetch all modules when active, including processes and gpu
-        if (isMonitorActive) return "cpu,memory,network,disk,system,processes,gpu";
-        return "cpu,memory,network,disk,system";
+        if (isMonitorActive) return "cpu,memory,diskmounts,network,disk,system,processes,gpu";
+        
+        return "cpu,memory,diskmounts,network,disk,system";
     }
 
-    // Dynamic interval: faster when monitor is open (2s), slower otherwise (10s)
-    readonly property int activeInterval: isMonitorActive ? 2000 : 10000
+    readonly property int activeInterval: isMonitorActive ? 1000 : 2000
 
     // Internal state for rate calculations
     property var lastNetworkStats: null
@@ -115,11 +114,8 @@ Singleton {
     property var lastUpdateTime: 0
     property bool updatePending: false
 
-    property int consecutiveFailures: 0
-    readonly property bool isBackoffActive: consecutiveFailures >= 5
-
     function update() {
-        if (shouldPause || isBackoffActive) return;
+        if (shouldPause) return;
         if (!dgopProcess.running && !updatePending) {
             updatePending = true;
             dgopProcess.running = true;
@@ -156,6 +152,7 @@ Singleton {
                 root.updatePending = false; // Allow next update
                 
                 if (!results || results.trim() === "") return;
+                
                 // Offload processing to next event loop tick to avoid blocking/SIGSEGV in signal handler
                 Qt.callLater(() => {
                     try {
@@ -178,16 +175,12 @@ Singleton {
                         }
 
                         if (data.memory) {
+                            root.memUsage = (data.memory.usedPercent || 0) / 100;
                             root.totalMemoryMB = Math.round((data.memory.total || 0) / 1024);
                             root.usedMemoryMB = Math.round((data.memory.used || (data.memory.total - data.memory.available) || 0) / 1024);
-                            root.memUsage = root.totalMemoryMB > 0 ? root.usedMemoryMB / root.totalMemoryMB : 0;
-                            
                             const totalSwap = data.memory.swaptotal || 0;
                             const freeSwap = data.memory.swapfree || 0;
-                            root.totalSwapMB = Math.round(totalSwap / 1024);
-                            root.usedSwapMB = Math.round((totalSwap - freeSwap) / 1024);
-                            root.swapUsage = root.totalSwapMB > 0 ? root.usedSwapMB / root.totalSwapMB : 0;
-                            
+                            root.swapUsage = totalSwap > 0 ? (totalSwap - freeSwap) / totalSwap : 0;
                             root.memHistory = root.addToHistory(root.memHistory, root.memUsage * 100);
                         }
 
@@ -231,6 +224,23 @@ Singleton {
                             }
                         }
 
+                        if (data.diskmounts && Array.isArray(data.diskmounts)) {
+                            let monitored = [{ "path": "/", "alias": "System" }];
+                            if (Config.options.system && Config.options.system.monitoredDisks) {
+                                monitored = Config.options.system.monitoredDisks;
+                            }
+                            let newStats = [];
+                            monitored.forEach(diskInfo => {
+                                const path = diskInfo.path || "/", alias = diskInfo.alias || "", hasAlias = alias !== "" && alias !== path, displayLabel = hasAlias ? alias : path;
+                                const disk = data.diskmounts.find(m => m.mount === path || m.mountpoint === path);
+                                if (disk) {
+                                    let pctValue = disk.percent_used || 0;
+                                    if (typeof disk.percent === 'string') pctValue = parseFloat(disk.percent.replace('%', ''));
+                                    newStats.push({ path: path, label: displayLabel.toUpperCase(), hasAlias: hasAlias, usage: isNaN(pctValue) ? 0 : pctValue / 100, total: Math.round((disk.total_bytes || 0) / (1024 * 1024)) || 0, used: Math.round((disk.used_bytes || 0) / (1024 * 1024)) || 0 });
+                                }
+                            });
+                            if (JSON.stringify(root.diskStats) !== JSON.stringify(newStats)) root.diskStats = newStats;
+                        }
 
                         if (data.processes && Array.isArray(data.processes)) {
                             // Cap at top 150 by CPU to avoid inflating the ListView
@@ -245,8 +255,7 @@ Singleton {
                                 username: proc.username || ""
                             }));
                         } else if (!isMonitorActive) {
-                            root.allProcesses = [];
-                            // Clear when not monitoring to save memory
+                            root.allProcesses = []; // Clear when not monitoring to save memory
                         }
 
                         if (data.gpu && (data.gpu.gpus || Array.isArray(data.gpu))) {
@@ -258,8 +267,7 @@ Singleton {
                                 pciId: gpu.pciId || ""
                             }));
                         } else if (!isMonitorActive) {
-                            root.availableGpus = [];
-                            // Clear when not monitoring
+                            root.availableGpus = []; // Clear when not monitoring
                         }
                     } catch (e) {
 
@@ -268,21 +276,29 @@ Singleton {
             }
         }
         
-        onExited: (exitCode) => {
+        onExited: {
             dgopProcess.running = false;
             root.updatePending = false;
-            
-            if (exitCode !== 0) {
-                root.consecutiveFailures++;
-                console.warn(`dgop failed with exit code ${exitCode}. Failure count: ${root.consecutiveFailures}`);
-            } else {
-                root.consecutiveFailures = 0;
-            }
         }
     }
 
+    function prePopulateDisks() {
+        let monitored = [{ "path": "/", "alias": "System" }];
+        if (Config.options.system && Config.options.system.monitoredDisks) {
+            monitored = Config.options.system.monitoredDisks;
+        }
+        root.diskStats = monitored.map(d => ({
+            path: d.path || "/",
+            label: (d.alias || d.path || "/").toUpperCase(),
+            hasAlias: !!d.alias,
+            usage: 0,
+            total: 0,
+            used: 0
+        }));
+    }
 
     Component.onCompleted: {
+        root.prePopulateDisks();
         Qt.callLater(() => root.update());
     }
 

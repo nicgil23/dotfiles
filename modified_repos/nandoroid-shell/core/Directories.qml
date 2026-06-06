@@ -5,7 +5,6 @@ import "functions" as Functions
 import QtCore
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 Singleton {
     // XDG Dirs (with "file://")
@@ -18,30 +17,27 @@ Singleton {
     readonly property string config: StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0]
     readonly property string state: StandardPaths.standardLocations(StandardPaths.StateLocation)[0]
     readonly property string cache: StandardPaths.standardLocations(StandardPaths.CacheLocation)[0]
-    readonly property string genericCache: cache.toString().startsWith("file://") ? cache.toString().substring(7) : cache.toString()
+    readonly property string genericCache: Functions.FileUtils.trimFileProtocol(`${home}/.cache`)
 
     // NAnDoroid paths (without "file://")
     property string assetsPath: Quickshell.shellPath("assets")
     property string shellConfig: Functions.FileUtils.trimFileProtocol(`${home}/.config/nandoroid`)
     property string shellConfigName: "config.json"
-    
-    // Logic to detect local config override
-    property bool localConfigExists: false
-    Process {
-        command: ["test", "-f", Quickshell.shellPath("config.json")]
-        onExited: (exitCode) => { localConfigExists = (exitCode === 0); }
-        Component.onCompleted: running = true
-    }
+    property string shellConfigPath: `${shellConfig}/${shellConfigName}`
 
-    property string shellConfigPath: localConfigExists 
-        ? Quickshell.shellPath("config.json") 
-        : `${shellConfig}/${shellConfigName}`
+    // Dynamic IPC prefixes targeting this running shell instance
+    readonly property var ipcPrefix: ["qs", "-p", Quickshell.shellPath("shell.qml")]
+    readonly property string ipcCommandPrefixString: `qs -p '${Quickshell.shellPath("shell.qml")}'`
 
     // Matugen colors path
     property string generatedMaterialThemePath: Functions.FileUtils.trimFileProtocol(`${state}/user/generated/colors.json`)
 
     // Notifications cache
     property string notificationsPath: Functions.FileUtils.trimFileProtocol(`${cache}/notifications/notifications.json`)
+
+    // Favorites cache
+    property string favoritesPathRaw: genericCache + "/nandoroid/favorites.json"
+    property string favoritesPath: "file://" + favoritesPathRaw
 
     // Screenshots
     property string screenshotTemp: "/tmp/nandoroid/screenshots"
@@ -51,6 +47,7 @@ Singleton {
     Component.onCompleted: {
         Quickshell.execDetached(["mkdir", "-p", `${shellConfig}`])
         Quickshell.execDetached(["mkdir", "-p", `${screenshotTemp}`])
+        Quickshell.execDetached(["mkdir", "-p", `${cache.toString().substring(7)}/nandoroid`])
         
         // Ensure matugen output dir exists
         const matugenFile = generatedMaterialThemePath;
