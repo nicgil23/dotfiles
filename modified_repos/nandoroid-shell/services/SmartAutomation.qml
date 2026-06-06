@@ -122,7 +122,7 @@ Singleton {
     }
 
     function sendNotification(title, body) {
-        const iconPath = Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/assets/icons/NAnDoroid.svg";
+        const iconPath = Quickshell.shellPath("assets/icons/NAnDoroid.svg");
         const cmd = [
             "notify-send",
             "-a", "NAnDoroid",

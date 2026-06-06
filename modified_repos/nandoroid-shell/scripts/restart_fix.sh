@@ -23,7 +23,8 @@ fi
 sleep 1
 
 # 4. Start Quickshell in the background
-nohup quickshell -p /home/hypr/dotfiles/modified_repos/nandoroid-shell > /dev/null 2>&1 &
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+nohup quickshell -p "$PROJECT_ROOT" > /dev/null 2>&1 &
 
 # 5. Small delay to let the shell initialize
 sleep 2

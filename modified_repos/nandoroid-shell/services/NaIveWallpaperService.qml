@@ -12,7 +12,7 @@ Singleton {
     id: root
 
     property string wallpaperDir: Functions.FileUtils.trimFileProtocol(Directories.pictures) + "/wallpapers/downloads"
-    readonly property string nandoroidIcon: Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/assets/icons/NAnDoroid.svg"
+    readonly property string nandoroidIcon: Quickshell.shellPath("assets/icons/NAnDoroid.svg")
     readonly property alias results: naiveModel
     property bool loading: false
     property string errorMessage: ""

@@ -93,7 +93,43 @@ Singleton {
 
     Process {
         id: getHardwareInfo
-        command: ["/usr/bin/dgop", "meta", "--json", "--modules", "cpu,memory,diskmounts,gpu"]
+        command: [
+            "python3", "-c",
+            "import os, json, subprocess\n" +
+            "res = {'cpu': {'model': 'Unknown'}, 'gpu': {'gpus': []}, 'memory': {'total': 0}, 'diskmounts': []}\n" +
+            "try:\n" +
+            "    with open('/proc/cpuinfo') as f:\n" +
+            "        for line in f:\n" +
+            "            if line.startswith('model name'):\n" +
+            "                res['cpu']['model'] = line.split(':', 1)[1].strip()\n" +
+            "                break\n" +
+            "except: pass\n" +
+            "try:\n" +
+            "    with open('/proc/meminfo') as f:\n" +
+            "        for line in f:\n" +
+            "            if line.startswith('MemTotal:'):\n" +
+            "                res['memory']['total'] = int(line.split()[1])\n" +
+            "                break\n" +
+            "except: pass\n" +
+            "try:\n" +
+            "    st = os.statvfs('/')\n" +
+            "    total_space = st.f_blocks * st.f_frsize\n" +
+            "    if total_space >= 1024**4:\n" +
+            "        size_str = f'{total_space / (1024**4):.1f} TB'\n" +
+            "    else:\n" +
+            "        size_str = f'{total_space / (1024**3):.1f} GB'\n" +
+            "    res['diskmounts'].append({'mount': '/', 'size': size_str})\n" +
+            "except: pass\n" +
+            "try:\n" +
+            "    out = subprocess.check_output('lspci', shell=True).decode('utf-8')\n" +
+            "    gpu_lines = [line for line in out.splitlines() if any(x in line.lower() for x in ['vga', '3d', 'display'])]\n" +
+            "    if gpu_lines:\n" +
+            "        parts = gpu_lines[0].split(':', 2)\n" +
+            "        gpu_name = parts[2].strip() if len(parts) >= 3 else parts[-1].strip()\n" +
+            "        res['gpu']['gpus'].append({'fullName': gpu_name, 'vendor': ''})\n" +
+            "except: pass\n" +
+            "print(json.dumps(res))"
+        ]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {

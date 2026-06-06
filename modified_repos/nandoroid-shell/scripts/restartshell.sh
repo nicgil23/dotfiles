@@ -11,6 +11,7 @@ pkill -9 cava 2>/dev/null
 sleep 1
 
 # 3. Start new instance
-nohup quickshell -p /home/hypr/dotfiles/modified_repos/nandoroid-shell > /dev/null 2>&1 &
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+nohup quickshell -p "$PROJECT_ROOT" > /dev/null 2>&1 &
 
 exit 0

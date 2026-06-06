@@ -39,7 +39,7 @@ Singleton {
     }
 
     readonly property string monitorSourceString: monitorSourceToString(monitorSource)
-    readonly property string nandoroidIcon: Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/assets/icons/NAnDoroid.svg"
+    readonly property string nandoroidIcon: Quickshell.shellPath("assets/icons/NAnDoroid.svg")
     property var recognizedTrack: ({ title:"", subtitle:"", url:""})
     property bool manuallyStopped: false
 

@@ -190,11 +190,11 @@ PanelWindow {
                 Layout.fillWidth: true; spacing: 1 * Appearance.effectiveScale
                 MenuItem {
                     menuText: "Restart Shell"; menuIcon: "refresh"
-                    onClicked: { Quickshell.execDetached([Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/scripts/restartshell.sh"]); root.close() }
+                    onClicked: { Quickshell.execDetached([Quickshell.shellPath("scripts/restartshell.sh")]); root.close() }
                 }
                 MenuItem {
                     menuText: "Restart Fix"; menuIcon: "build"
-                    onClicked: { Quickshell.execDetached([Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/scripts/restart_fix.sh"]); root.close() }
+                    onClicked: { Quickshell.execDetached([Quickshell.shellPath("scripts/restart_fix.sh")]); root.close() }
                 }
                 MenuItem {
                     menuText: "Settings"; menuIcon: "settings"

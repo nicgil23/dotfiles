@@ -3,7 +3,11 @@
 # NANDOROID Screen Recorder
 # Ported from 'ii' with adjustments for nandoroid paths
 
-CONFIG_FILE="$HOME/.config/quickshell/nandoroid/config.json"
+if [ -f "$HOME/.config/nandoroid/config.json" ]; then
+    CONFIG_FILE="$HOME/.config/nandoroid/config.json"
+else
+    CONFIG_FILE="$HOME/.config/quickshell/nandoroid/config.json"
+fi
 STATE_FILE="/tmp/nandoroid_states.json"
 STATE_JSON_PATH=".screenRecord.active"
 

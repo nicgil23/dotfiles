@@ -13,7 +13,7 @@ Singleton {
     id: root
 
     property bool active: false
-    readonly property string scriptPath: "/home/hypr/dotfiles/hyprland/.config/hypr/scripts/vpn-ucm.sh"
+    readonly property string scriptPath: Directories.home.replace("file://", "") + "/.config/hypr/scripts/vpn-ucm.sh"
 
     function toggle() {
         Quickshell.execDetached(["bash", root.scriptPath]);
