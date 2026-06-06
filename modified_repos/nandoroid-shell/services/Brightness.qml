@@ -65,7 +65,7 @@ Singleton {
     Process {
         id: ddcProc
 
-        command: ["ddcutil", "detect", "--brief"]
+        command: ["sh", "-c", "if command -v ddcutil >/dev/null; then ddcutil detect --brief; fi"]
         stdout: SplitParser {
             splitMarker: "\n\n"
             onRead: data => {
@@ -131,8 +131,7 @@ Singleton {
             // We can just trust `brightnessctl -m` which gives: name,class,current,max_percent,max_absolute
             // e.g. amdgpu_bl1,backlight,38211,59%,64764
             // Wait, output format of -m: `name,class,current,max,percent`
-            initProc.command = isDdc ? ["ddcutil", "-b", busNum, "getvcp", "10", "--brief"] : ["sh", "-c", `brightnessctl -m | head -n 1`];
-            // initProc.command = isDdc ? ["ddcutil", "-b", busNum, "getvcp", "10", "--brief"] : ["sh", "-c", `echo "a b c $(brightnessctl g) $(brightnessctl m)"`];
+            initProc.command = isDdc ? ["ddcutil", "-b", busNum, "getvcp", "10", "--brief"] : ["sh", "-c", `OUT=$(brightnessctl -c backlight -m | head -n 1); [ -n "$OUT" ] && echo "$OUT" || brightnessctl -m | head -n 1`];
             initProc.running = true;
         }
 
@@ -218,7 +217,11 @@ Singleton {
                 const valuePercentNumber = Math.round(brightnessValue * 100); // Use round to avoid drift
                 let valuePercent = `${valuePercentNumber}%`;
                 if (valuePercentNumber == 0) valuePercent = "1"; // Prevent fully black
-                setProc.exec(["brightnessctl", "--class", "backlight", "s", valuePercent, "--quiet"])
+                if (monitor.busNum) {
+                    setProc.exec(["brightnessctl", "-d", monitor.busNum, "s", valuePercent, "--quiet"]);
+                } else {
+                    setProc.exec(["brightnessctl", "--class", "backlight", "s", valuePercent, "--quiet"]);
+                }
             }
         }
 

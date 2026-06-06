@@ -27,10 +27,32 @@ if [[ "$current_gtk_theme" == "adw-gtk3-dark" || "$current_gtk_theme" == "adw-gt
     if [[ "$DARK_MODE" == "true" ]]; then
         gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
         gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3-dark"
+        current_gtk_theme="adw-gtk3-dark"
     else
         gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
         gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3"
+        current_gtk_theme="adw-gtk3"
     fi
+else
+    # Support other themes and respect dark/light mode preference
+    if [[ "$DARK_MODE" == "true" ]]; then
+        gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+    else
+        gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
+    fi
+fi
+
+# Force running GTK applications (like Helium browser) to reload the updated CSS.
+# Toggling the theme from its current value to a fallback and back triggers a D-Bus reload signal.
+if [[ -n "$current_gtk_theme" ]]; then
+    if [[ "$current_gtk_theme" == "Default" ]]; then
+        fallback_theme="Adwaita"
+    else
+        fallback_theme="Default"
+    fi
+    gsettings set org.gnome.desktop.interface gtk-theme "$fallback_theme"
+    sleep 0.2
+    gsettings set org.gnome.desktop.interface gtk-theme "$current_gtk_theme"
 fi
 
 # 2. Update KDE

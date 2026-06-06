@@ -604,10 +604,24 @@ Item {
                         if (!screen) return null;
                         return Brightness.getMonitorByName(screen.name);
                     }
-                    value: mon ? mon.brightness : 0.5
+                    property bool isDragging: false
+                    onPressedChanged: {
+                        if (!pressed) timerRelease.restart();
+                        else isDragging = true;
+                    }
+                    Timer {
+                        id: timerRelease
+                        interval: 100
+                        onTriggered: brightnessSlider.isDragging = false
+                    }
                     materialSymbol: "brightness_6"
                     onMoved: {
                         if (mon) mon.setBrightness(value);
+                    }
+                    Binding on value {
+                        when: !brightnessSlider.isDragging && brightnessSlider.mon !== null
+                        value: brightnessSlider.mon ? brightnessSlider.mon.brightness : 0.5
+                        restoreMode: Binding.RestoreBindingOrValue
                     }
                 }
 
@@ -623,9 +637,23 @@ Item {
                             visible: true
                             from: 0.0
                             to: 1.0
-                            value: Audio.volume
+                            property bool isDragging: false
+                            onPressedChanged: {
+                                if (!pressed) timerReleaseVol.restart();
+                                else isDragging = true;
+                            }
+                            Timer {
+                                id: timerReleaseVol
+                                interval: 100
+                                onTriggered: volumeSlider.isDragging = false
+                            }
                             materialSymbol: Audio.muted ? "volume_off" : "volume_up"
                             onMoved: Audio.setVolume(value)
+                            Binding on value {
+                                when: !volumeSlider.isDragging
+                                value: Audio.volume
+                                restoreMode: Binding.RestoreBindingOrValue
+                            }
                         }
                     
                     
@@ -636,9 +664,23 @@ Item {
                             visible: true
                             from: 0.0
                             to: 1.0
-                            value: Audio.microphoneVolume
+                            property bool isDragging: false
+                            onPressedChanged: {
+                                if (!pressed) timerReleaseMic.restart();
+                                else isDragging = true;
+                            }
+                            Timer {
+                                id: timerReleaseMic
+                                interval: 100
+                                onTriggered: micSlider.isDragging = false
+                            }
                             materialSymbol: Audio.microphoneMuted ? "mic_off" : "mic"
                             onMoved: Audio.setMicrophoneVolume(value)
+                            Binding on value {
+                                when: !micSlider.isDragging
+                                value: Audio.microphoneVolume
+                                restoreMode: Binding.RestoreBindingOrValue
+                            }
                         }
                 }
             }
