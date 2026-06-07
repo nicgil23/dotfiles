@@ -126,6 +126,26 @@ ColumnLayout {
                             }
                         }
                     }
+
+                    // ── Foreground Isolation ──────────────
+                    SegmentedWrapper {
+                        Layout.fillWidth: true
+                        implicitHeight: showFgRow.implicitHeight + (32 * Appearance.effectiveScale)
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+                        RowLayout {
+                            id: showFgRow
+                            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 16 * Appearance.effectiveScale
+                            MaterialSymbol { text: "depth_anchor"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { text: "Foreground Isolation (3D effect)"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            AndroidToggle {
+                                checked: Config.ready && Config.options.lock.useForegroundIsolation
+                                onToggled: if(Config.ready) Config.options.lock.useForegroundIsolation = !Config.options.lock.useForegroundIsolation
+                            }
+                        }
+                    }
                 }
             }
     

@@ -74,3 +74,6 @@ bindkey '^[[3;5~' kill-word
 
 # Antigravity
 alias antigravity='/home/hypr/Applications/Antigravity/bin/antigravity'
+
+# Created by `pipx` on 2026-06-07 01:33:26
+export PATH="$PATH:/home/hypr/.local/bin"

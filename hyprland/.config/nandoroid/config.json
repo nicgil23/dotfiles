@@ -16,7 +16,7 @@
             "matugenSource": "desktop",
             "matugenThemeFile": "",
             "showCava": false,
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg"
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg"
         },
         "clock": {
             "analog": {
@@ -201,6 +201,7 @@
     },
     "lock": {
         "cavaOpacity": 0.15,
+        "foregroundPath": "",
         "launchOnStartup": false,
         "security": {
             "requirePasswordToPower": true
@@ -208,9 +209,10 @@
         "showCava": true,
         "showMediaCard": true,
         "showWeather": true,
+        "useForegroundIsolation": true,
         "useHyprlock": false,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg",
         "weather": {
             "textColorMode": "adaptive"
         }

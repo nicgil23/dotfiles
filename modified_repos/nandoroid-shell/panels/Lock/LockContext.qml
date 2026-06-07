@@ -20,6 +20,85 @@ Scope {
     signal failed()
 
     property string currentText: ""
+    property string maskedText: ""
+    readonly property list<string> kokomi: ["k", "o", "k", "o", "m", "i"]
+    property string wallFg: ""
+    property bool fgGenerating: false
+
+    property string lockscreenWallpaper: {
+        if (!Config.ready) return "";
+        if (Config.options.lock.useSeparateWallpaper && Config.options.lock.wallpaperPath !== "") {
+            return Config.options.lock.wallpaperPath;
+        }
+        return Config.options.appearance?.background?.wallpaperPath ?? "";
+    }
+
+    function trimFileProtocol(path) {
+        return path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString();
+    }
+
+    function triggerForegroundExtraction() {
+        if (!Config.ready) return;
+        if (!Config.options.lock.useForegroundIsolation) {
+            root.wallFg = "";
+            return;
+        }
+        const path = trimFileProtocol(root.lockscreenWallpaper);
+        if (path === "") return;
+        
+        generateFgProc.command = [
+            "bash",
+            Quickshell.shellPath("scripts/extractFg.sh"),
+            path,
+            Directories.genericCache + "/nandoroid"
+        ];
+        generateFgProc.running = false;
+        Qt.callLater(() => { generateFgProc.running = true; });
+    }
+
+    Process {
+        id: generateFgProc
+        
+        onRunningChanged: {
+            root.fgGenerating = running;
+        }
+
+        stdout: SplitParser {
+            onRead: data => {
+                if (data.includes("FOREGROUND")) {
+                    root.wallFg = "file://" + data.split(" ")[1];
+                }
+            }
+        }
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready) {
+                root.triggerForegroundExtraction();
+            }
+        }
+    }
+
+    Connections {
+        target: (Config.ready && Config.options.lock) ? Config.options.lock : null
+        ignoreUnknownSignals: true
+        function onWallpaperPathChanged() { root.triggerForegroundExtraction(); }
+        function onUseSeparateWallpaperChanged() { root.triggerForegroundExtraction(); }
+        function onUseForegroundIsolationChanged() { root.triggerForegroundExtraction(); }
+    }
+
+    Connections {
+        target: (Config.ready && Config.options.appearance?.background) ? Config.options.appearance.background : null
+        ignoreUnknownSignals: true
+        function onWallpaperPathChanged() {
+            if (!Config.options.lock.useSeparateWallpaper) {
+                root.triggerForegroundExtraction();
+            }
+        }
+    }
+
     property bool unlockInProgress: false
     property bool showFailure: false
     property bool fingerprintsConfigured: false
@@ -41,6 +120,7 @@ Scope {
     function reset() {
         root.resetTargetAction()
         root.clearText()
+        root.maskedText = ""
         root.unlockInProgress = false
         stopFingerPam()
     }
@@ -59,6 +139,14 @@ Scope {
         }
         GlobalStates.screenLockContainsCharacters = currentText.length > 0
         passwordClearTimer.restart()
+
+        // Sync maskedText
+        while (maskedText.length > currentText.length) {
+            maskedText = maskedText.slice(0, -1);
+        }
+        while (maskedText.length < currentText.length) {
+            maskedText += kokomi[Math.floor(Math.random() * kokomi.length)];
+        }
     }
 
     function tryUnlock(alsoInhibitIdle = false) {
@@ -117,7 +205,7 @@ Scope {
     // Fingerprint PAM auth
     PamContext {
         id: fingerPam
-        configDirectory: "pam"
+        configDirectory: Quickshell.shellPath("panels/Lock/pam")
         config: "fprintd.conf"
         onCompleted: result => {
             if (result === PamResult.Success) {

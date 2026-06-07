@@ -112,6 +112,20 @@ Variants {
                 isDragging = true;
             }
             
+            onDoubleClicked: (mouse) => {
+                if (mouse.button === Qt.LeftButton && widgetRoot.isDesktopEmpty) {
+                    desktopContextMenu.openAt(mouse.x, mouse.y, false);
+                    mouse.accepted = true;
+                }
+            }
+            
+            onPressAndHold: (mouse) => {
+                if (widgetRoot.isDesktopEmpty) {
+                    desktopContextMenu.openAt(mouse.x, mouse.y, false);
+                    mouse.accepted = true;
+                }
+            }
+            
             onPositionChanged: (mouse) => {
                 if (isDragging) {
                     let deltaY = startY - mouse.y;
