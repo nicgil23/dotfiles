@@ -247,9 +247,9 @@ MouseArea {
         height: 44 * Appearance.effectiveScale
         radius: height / 2
         clip: true
-        color: root.context.showFailure ? Appearance.colors.colError : (root.context.unlockInProgress ? Appearance.colors.colPrimary : Appearance.m3colors.m3surfaceContainerHigh)
+        color: root.context.showFailure ? Appearance.colors.colError : (root.context.unlockSuccess ? Appearance.m3colors.m3success : (root.context.unlockInProgress ? Appearance.colors.colPrimary : Appearance.m3colors.m3surfaceContainerHigh))
 
-        readonly property color contentColor: root.context.showFailure ? Appearance.colors.colOnError : (root.context.unlockInProgress ? Appearance.colors.colOnPrimary : Appearance.m3colors.m3onSurface)
+        readonly property color contentColor: root.context.showFailure ? Appearance.colors.colOnError : (root.context.unlockSuccess ? Appearance.m3colors.m3onSuccess : (root.context.unlockInProgress ? Appearance.colors.colOnPrimary : Appearance.m3colors.m3onSurface))
 
         Behavior on color {
             ColorAnimation { duration: 200 }
@@ -307,18 +307,45 @@ MouseArea {
                     MaterialSymbol {
                         id: lockIcon
                         anchors.centerIn: parent
-                        text: root.context.unlockInProgress ? "sync" : "lock"
+                        text: root.context.unlockSuccess ? "lock_open" : "lock"
                         iconSize: 18 * Appearance.effectiveScale
                         color: root.context.passwordLocked ? Appearance.colors.colError : inputPill.contentColor
-                        fill: 1
+                        fill: (root.context.unlockInProgress || root.context.unlockSuccess) ? 1 : 0
 
-                        RotationAnimator on rotation {
-                            from: 0
-                            to: 360
-                            duration: 1000
-                            loops: Animation.Infinite
-                            running: root.context.unlockInProgress
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        Behavior on rotation {
+                            enabled: !root.context.unlockSuccess
+                            NumberAnimation {
+                                duration: lockRotatetimer.interval
+                                easing.type: Easing.Linear
+                            }
                         }
+
+                        NumberAnimation {
+                            id: successSpinAnim
+                            target: lockIcon
+                            property: "rotation"
+                            from: lockIcon.rotation
+                            to: lockIcon.rotation + 360
+                            duration: 450
+                            running: root.context.unlockSuccess
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
+                    Timer {
+                        id: lockRotatetimer
+                        interval: 500
+                        repeat: true
+                        running: root.context.unlockInProgress && !root.context.unlockSuccess
+                        triggeredOnStart: true
+
+                        onRunningChanged: if (lockIcon.rotation < 180) {
+                            lockIcon.rotation = 360;
+                        } else {
+                            lockIcon.rotation = 0;
+                        }
+                        onTriggered: lockIcon.rotation += 50
                     }
 
                     // Password attempt counter below lock icon
@@ -344,25 +371,27 @@ MouseArea {
                     MaterialSymbol {
                         id: fingerprintIcon
                         anchors.centerIn: parent
-                        text: root.context.fingerLocked ? "block" : "fingerprint"
+                        text: root.context.fingerLocked ? "block" : (reFingerTimer.running ? "fingerprint_off" : "fingerprint")
                         iconSize: 18 * Appearance.effectiveScale
-                        color: (root.context.fingerFailed || root.context.fingerLocked)
+                        color: (root.context.fingerFailed || root.context.fingerLocked || reFingerTimer.running)
                             ? Appearance.colors.colError
                             : inputPill.contentColor
 
                         Behavior on color { ColorAnimation { duration: 200 } }
-                        
-                        transformOrigin: Item.Bottom
                     }
 
-                    // Shake Animation for Fingerprint Icon (windshield wiper style)
-                    SequentialAnimation {
-                        id: fingerShakeAnim
-                        running: root.context.fingerFailed
-                        loops: 2
-                        NumberAnimation { target: fingerprintIcon; property: "rotation"; from: 0; to: -10; duration: 70; easing.type: Easing.InOutCubic }
-                        NumberAnimation { target: fingerprintIcon; property: "rotation"; from: -10; to: 10; duration: 140; easing.type: Easing.InOutCubic }
-                        NumberAnimation { target: fingerprintIcon; property: "rotation"; from: 10; to: 0; duration: 70; easing.type: Easing.InOutCubic }
+                    Timer {
+                        id: reFingerTimer
+                        interval: 300
+                    }
+
+                    Connections {
+                        target: root.context
+                        function onFingerFailedChanged() {
+                            if (root.context.fingerFailed) {
+                                reFingerTimer.start()
+                            }
+                        }
                     }
 
                     // Fingerprint attempt counter below fingerprint icon
@@ -373,7 +402,7 @@ MouseArea {
                         text: root.context.fingerFailCount + "/5"
                         font.pixelSize: 8 * Appearance.effectiveScale
                         font.weight: Font.Bold
-                        color: (root.context.fingerFailed || root.context.fingerLocked)
+                        color: (root.context.fingerFailed || root.context.fingerLocked || reFingerTimer.running)
                             ? Appearance.colors.colError
                             : inputPill.contentColor
                         opacity: root.showFingerCounter ? 0.7 : 0.0

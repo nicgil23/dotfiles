@@ -24,6 +24,7 @@ Scope {
     readonly property list<string> kokomi: ["k", "o", "k", "o", "m", "i"]
     property string wallFg: ""
     property bool fgGenerating: false
+    property bool unlockSuccess: false
 
     property string lockscreenWallpaper: {
         if (!Config.ready) return "";
@@ -171,6 +172,7 @@ Scope {
         root.clearText()
         root.maskedText = ""
         root.unlockInProgress = false
+        root.unlockSuccess = false
         root.fingerFailed = false
         stopFingerPam()
     }
@@ -180,6 +182,29 @@ Scope {
         id: passwordClearTimer
         interval: 10000
         onTriggered: root.reset()
+    }
+
+    Timer {
+        id: unlockDelayTimer
+        interval: 500
+        repeat: false
+        onTriggered: {
+            root.unlocked(root.targetAction)
+            root.unlockSuccess = false
+            root.unlockInProgress = false
+        }
+    }
+
+    function handleSuccess() {
+        root.passwordFailCount = 0
+        root.fingerFailCount = 0
+        root.passwordLocked = false
+        root.lockoutTimeRemaining = 0
+        root.fingerLocked = false
+        stopFingerPam()
+        
+        root.unlockSuccess = true
+        unlockDelayTimer.start()
     }
 
     onCurrentTextChanged: {
@@ -246,13 +271,7 @@ Scope {
         }
         onCompleted: result => {
             if (result === PamResult.Success) {
-                root.passwordFailCount = 0
-                root.fingerFailCount = 0
-                root.passwordLocked = false
-                root.lockoutTimeRemaining = 0
-                root.fingerLocked = false
-                root.unlocked(root.targetAction)
-                stopFingerPam()
+                root.handleSuccess()
             } else {
                 root.clearText()
                 root.unlockInProgress = false
@@ -271,7 +290,7 @@ Scope {
     // Fingerprint failure flash reset timer
     Timer {
         id: fingerFailResetTimer
-        interval: 800
+        interval: 1500
         onTriggered: root.fingerFailed = false
     }
 
@@ -317,13 +336,7 @@ Scope {
         config: "fprintd.conf"
         onCompleted: result => {
             if (result === PamResult.Success) {
-                root.passwordFailCount = 0
-                root.fingerFailCount = 0
-                root.passwordLocked = false
-                root.lockoutTimeRemaining = 0
-                root.fingerLocked = false
-                root.unlocked(root.targetAction)
-                stopFingerPam()
+                root.handleSuccess()
             } else {
                 if (root.manualAbort) {
                     root.manualAbort = false
