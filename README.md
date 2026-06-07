@@ -1,40 +1,62 @@
-# Guía de Instalación de Entorno Hyprland
+# Entorno Hyprland & Nandoroid Shell - Dotfiles (Optimizado para Portátiles Táctiles)
 
-## 1. Wifi con IWD e impala
+Este repositorio contiene la configuración completa y modular de mi entorno de escritorio en Arch Linux, diseñado específicamente para ordenadores portátiles con soporte para pantallas táctiles. Ofrece una experiencia interactiva híbrida excelente inspirada en la estética moderna de Android 16 y Material 3. 
 
-Instalación de herramientas de para la conexión Wifi:
+La interfaz principal es una versión personalizada y optimizada de **Nandoroid Shell**, impulsada por **Quickshell**, que se integra nativamente con gestos multitáctiles en pantalla, control dinámico de rotación física y esquemas de color dinámicos generados con **Matugen**.
 
+---
+
+## Utilidades Incluidas
+
+Este entorno está compuesto por una cuidada selección de herramientas y utilidades para productividad, desarrollo y multimedia, optimizadas para el uso portátil y táctil:
+
+1. **Hyprland**: Compositor Wayland dinámico tipo mosaico (tiling compositor) con animaciones fluidas y soporte completo para gestos multitáctiles en pantalla a través de `hyprgrass`.
+2. **Quickshell**: Framework basado en QML que renderiza y gestiona la barra superior, paneles flotantes, menús y widgets con interacción táctil directa y reactiva.
+3. **Nandoroid Shell**: Interfaz de usuario modificada basada en Material 3 y Android 16. Está optimizada para pantallas táctiles gracias a sus controles deslizables e interactivos (volumen, brillo, ajustes rápidos) de tipo móvil, junto con una **Isla Dinámica** (notificaciones, multimedia, pomodoro) y un Dashboard completo (calendario, traductor, GitHub).
+4. **Matugen**: Motor de generación de temas Material Design 3. Extrae automáticamente paletas armónicas de color del wallpaper seleccionado y las aplica en caliente a Hyprland, Kitty, VS Code y la shell.
+5. **Kitty**: Emulador de terminal rápido y ligero acelerado por GPU con integración dinámica de colores de Matugen.
+6. **Yazi**: Administrador de archivos en terminal extremadamente rápido escrito en Rust.
+7. **Tauon Music Box**: Reproductor de música moderno y eficiente para gestionar y reproducir tu biblioteca local de canciones.
+8. **NeoVim**: Editor de texto de terminal configurado con el tema Catppuccin Mocha.
+9. **MPV**: Reproductor de video optimizado con soporte para escalado en tiempo real mediante Anime4K.
+10. **Btop**: Monitor de sistema interactivo en terminal con paleta Catppuccin.
+11. **Vorta & BorgBackup**: Interfaz y motor para copias de seguridad de datos locales seguras y cifradas.
+12. **Rclone**: Herramienta de sincronización en la nube (utilizada para sincronizar el almacén de notas de Obsidian en Google Drive).
+13. **Hypridle & Hyprlock**: Gestores de inactividad de pantalla y pantalla de bloqueo moderna que adopta el fondo dinámico.
+14. **Impala & IWD**: Herramientas eficientes de terminal para conectar y administrar conexiones Wi-Fi de forma nativa.
+15. **auto-cpufreq**: Optimizador de energía y regulador de la frecuencia de la CPU para maximizar la batería del portátil de manera automática.
+16. **Widget de Rotación de Pantalla**: Utilidad integrada en el panel superior para cambiar la orientación de la pantalla, ideal para ordenadores convertibles o portátiles 2 en 1.
+17. **Componentes Clásicos (Fallback)**: Rofi, SwayNC, Wlogout y Waybar están configurados y disponibles como sistemas alternativos de respaldo únicamente en caso de que ocurra algún fallo de carga con Quickshell.
+
+---
+
+## Guía de Instalación desde Cero
+
+Sigue estos pasos ordenados para desplegar el entorno completo de forma segura en una instalación limpia de Arch Linux.
+
+### 1. Conexión a Internet (Wi-Fi con IWD e Impala)
+Instala las herramientas de red nativas para establecer la conexión Wi-Fi desde la TTY:
 ```bash
 sudo pacman -S iwd impala
 ```
-
-Vamos a modificar la configuración de red interna del portátil usando `sudo nvim /etc/iwd/main.conf`:
-
-```main.conf
+Edita la configuración de red con `sudo nvim /etc/iwd/main.conf` para activar la autoconfiguración DHCP:
+```ini
 [General]
 EnableNetworkConfiguration=true
 ```
-
-Habilitamos el daemon de iwd y configuramos la resolución DNS:
-
+Habilita y arranca el demonio de red y la resolución DNS del sistema:
 ```bash
 sudo systemctl enable --now systemd-resolved.service
 sudo systemctl enable --now iwd.service
 ```
+Por último, abre `impala` en tu terminal para buscar y conectarte a tu red Wi-Fi.
 
-Por último, usando el CLI de `impala`, vamos a conectarnos a la red Wifi. 
-
-## 2. Preparación del entorno base y gestores de paquetes
-
-El primer paso es asegurar que el sistema está actualizado y dispone de las herramientas fundamentales para compilar y gestionar repositorios.
-Se deben instalar las utilidades básicas como `git` para el control de versiones, `stow` para la gestión de los enlaces simbólicos de los archivos de configuración, y utilidades adicionales de red y empaquetado. Además, se requiere el grupo `base-devel` para poder compilar paquetes del AUR.
-
+### 2. Entorno Base y Gestor de Paquetes AUR (Yay)
+Asegura los paquetes esenciales de compilación y control del sistema base:
 ```bash
-sudo pacman -S --needed git stow base-devel flatpak rclone # Paquetes usados en esta guía
+sudo pacman -S --needed git stow base-devel flatpak rclone
 ```
-
-Tras esto, es necesario compilar un **gestor de paquetes AUR**, como `yay` o `paru`. En este flujo de ejecución utilizaremos `yay` como referencia.
-
+Clona y compila `yay` (o `paru`) para poder instalar aplicaciones del repositorio comunitario AUR:
 ```bash
 git clone https://aur.archlinux.org/yay.git
 cd yay
@@ -43,13 +65,50 @@ cd ..
 rm -rf yay
 ```
 
-Además, vamos a poner en nuestro .bash_profile (dentro de la carpeta del usuario) para que Hyprland se ejecute automaticamente:
-
+### 3. Clonación del Repositorio de Dotfiles
+Descarga esta configuración en la raíz de tu usuario para tener todas las utilidades listas:
 ```bash
-#
-# ~/.bash_profile
-#
+git clone https://github.com/nicgil23/dotfiles.git ~/dotfiles
+```
 
+### 4. Restauración Automática de Paquetes
+Con las listas guardadas en el repositorio, restaura toda la paquetería de forma automática:
+
+* **Paquetes del repositorio de Arch**:
+  ```bash
+  sudo pacman -S --needed - < ~/dotfiles/lista_pacman.txt
+  ```
+
+* **Paquetes de AUR (comunitario)**:
+  ```bash
+  yay -S --needed - < ~/dotfiles/lista_aur.txt
+  ```
+
+* **Fuentes y Tipografías Estéticas**:
+  Si no se instalaron en el paso de AUR, asegúrate de añadir las fuentes esenciales y actualizar la caché del sistema:
+  ```bash
+  yay -S ttf-jetbrains-mono-nerd catppuccin-gtk-theme-mocha ttf-apple-emoji apple-fonts
+  sudo pacman -S noto-fonts-cjk
+  fc-cache -fv
+  ```
+
+* **Aplicaciones Flatpak**:
+  Añade el repositorio de Flathub e instala las aplicaciones aisladas de la lista:
+  ```bash
+  flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+  flatpak install $(cat ~/dotfiles/lista_flatpak.txt)
+  ```
+
+### 5. Despliegue de Configuraciones con Stow
+Utiliza GNU Stow para crear enlaces simbólicos limpios desde la carpeta de dotfiles a tu directorio local sin mezclar archivos:
+```bash
+cd ~/dotfiles
+stow hyprland
+```
+*Esto enlazará automáticamente todos los directorios de configuración bajo `.config` y el archivo de sesión `.zshrc` en el directorio de usuario.*
+
+Para que Hyprland arranque automáticamente al iniciar sesión de terminal en la TTY1, añade esto a tu archivo `~/.bash_profile`:
+```bash
 [[ -f ~/.bashrc ]] && . ~/.bashrc
 
 if [ -z "${WAYLAND_DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
@@ -57,145 +116,72 @@ if [ -z "${WAYLAND_DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
 fi
 ```
 
-## 3. Restauración de la paquetería
-
-Con los gestores listos, se procede a la instalación masiva de los programas utilizando las listas previamente guardadas. Es crucial tener los archivos de texto con las listas en el directorio actual, por lo que primero vamos a bajarnos la carpeta de dotfiles:
-
+### 6. Habilitación de Servicios del Sistema
+Activa los demonios necesarios para el hardware, energía y sonido del entorno:
 ```bash
-git clone https://github.com/nicgil23/dotfiles.git ~/
-```
+# Hardware y Redes
+sudo systemctl enable --now auto-cpufreq
+sudo systemctl enable --now iio-sensor-proxy
+sudo systemctl enable --now bluetooth
+sudo systemctl enable --now NetworkManager
 
-Para los **repositorios oficiales**, se lee el archivo correspondiente y se instalan los paquetes ignorando los que ya estén presentes en el sistema base.
-
-```bash
-sudo pacman -S --needed - < lista_pacman.txt
-```
-
-Para los **paquetes del AUR**, se repite el proceso utilizando el gestor compilado en el paso anterior.
-
-```bash
-yay -S --needed - < lista_aur.txt
-```
-
-Es necesario asegurarse de que las dependencias estéticas centrales formaban parte de esa lista. Si no estaban anotadas, se deben instalar manualmente especificando sus nombres exactos en el AUR para asegurar la tipografía y el estilo de las aplicaciones.
-
-```bash
-yay -S ttf-jetbrains-mono-nerd catppuccin-gtk-theme-mocha ttf-apple-emoji apple-fonts
-sudo pacman -S noto-fonts-cjk
-fc-cache -fv
-```
-
-Finalmente, se restauran las **aplicaciones aisladas** en formato flatpak. Se requiere añadir el repositorio Flathub si no se configuró previamente en el sistema base.
-
-```bash
-flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install $(cat lista_flatpak.txt)
-```
-
-## 4. Despliegue de los Dotfiles con Stow
-
-La configuración del entorno gráfico, el tema Catppuccin, las fuentes y las aplicaciones de terminal reside en el repositorio de GitHub. Al usar `stow`, se crean enlaces simbólicos limpios desde el directorio clonado hacia las rutas correspondientes del sistema operativo.
-Se clona el repositorio en una carpeta dedicada, habitualmente en la raíz del usuario.
-
-```bash
-cd ~/dotfiles
-```
-
-Se ejecuta `stow` indicando el nombre de los directorios internos que coinciden con la estructura requerida por `.config` o el directorio del usuario. Por ejemplo, si hay carpetas llamadas `hypr`, `waybar` o `kitty`, el comando las enlazará automáticamente.
-
-```bash
-stow hyprland # Contiene todas las subcarpetas de configuración de las aplicaciones individuales
-```
-
-## 5. Habilitación de servicios
-
-Los servicios que vamos a habilitar en nuestra instalación limpia de Arch son:
-```bash
-# Hardware
-systemctl enable --now auto-cpufreq
-systemctl enable --now iio-sensor-proxy
-systemctl enable --now bluetooth
-systemctl enable --now NetworkManager
-
-# Audio
+# Servidor de Audio y Controladores
 systemctl --user enable --now pipewire pipewire-pulse wireplumber
 ```
 
-## 6. Configuración de plugins de Hyprland
-
-Para incorporar la interacción gestual en Hyprland de manera nativa, se debe inicializar el gestor de plugins oficial, `hyprpm`, y compilar el módulo correspondiente.
-Primero se actualizan las cabeceras de Hyprland para asegurar la **compatibilidad estricta de los plugins con la versión exacta** del compositor que se acaba de instalar.
-
+### 7. Configuración de Plugins de Hyprland (`hyprpm`)
+Inicializa el gestor de módulos de Hyprland y añade soporte para gestos táctiles en pantalla:
 ```bash
 hyprpm update
-```
-
-A continuación, se añade el repositorio de código, se habilita y se recarga el entorno.
-
-```bash
 hyprpm add https://github.com/horriblename/hyprgrass
 hyprpm enable hyprgrass
 hyprpm reload
-# Si al ejecutar lo de arriba da un error en hyprgrass-pulse, vamos a deshabilitar esa parte del servicio
-# hyprpm disable hyprgrass-pulse
 ```
+*(Si experimentas un error relacionado con `hyprgrass-pulse`, puedes desactivar ese subservicio ejecutando `hyprpm disable hyprgrass-pulse`)*
 
-## 7. Restauración de recursos estéticos
-
-Los fondos de pantalla seleccionados se deben clonar directamente desde su repositorio de origen hacia el directorio local donde el gestor de fondos `swww` los vaya a buscar.
-
+### 8. Fondos de Pantalla e Integración de Temas Dinámicos
+Descarga el pack inicial de fondos de pantalla para que funcionen con la herramienta de selección:
 ```bash
 mkdir -p ~/Pictures/wallpapers/
 git clone https://github.com/orangci/walls-catppuccin-mocha.git ~/Pictures/wallpapers
-swww img ~/Pictures/wallpapers/walls-catppuccin-mocha/horizon.jpg
 ```
+*(Nota: El selector de wallpapers del entorno incluye un botón con un icono de corazón para establecer un fondo de pantalla aleatorio de entre tus favoritos).*
 
-## 8. Recuperación de documentos locales con Vorta
-
-Para restaurar la información personal documentada se va a usar Vorta, que ya se ha instalado mediante las listas de paquetes previas.
-Se debe ejecutar `vorta` desde el menú de aplicaciones o la terminal. En la interfaz principal, dentro de la pestaña de configuración del repositorio, se selecciona la opción de **Añadir repositorio existente**. Tras apuntar a la ruta del disco de copia e introducir la contraseña de cifrado de Borg, se accede a la pestaña de "Archivos" (Archives) para montar el último respaldo y extraer directamente los documentos necesarios de vuelta en el disco duro.
-
-## 9. Sincronización en la nube con Rclone
-
-El último paso garantiza el enlace con la aplicación remota y los archivos críticos alojados en Google Drive.
-Se ejecuta la configuración interactiva de la herramienta para registrar las credenciales de la cuenta de Google.
-
+### 9. Sincronización en la Nube de Documentos (Rclone & Obsidian)
+Configura tu conexión segura a Google Drive para sincronizar tu almacén de Obsidian:
 ```bash
 rclone config
 ```
+* Elige **"New remote"** (`n`), nómbralo `Obsidian` y selecciona `drive` en la lista. Sigue las instrucciones del navegador para dar permisos.
+* Realiza la sincronización inicial de la carpeta remota a tu disco local:
+  ```bash
+  rclone sync "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" ~/Documents/Obsidian
+  ```
+* Automatiza o sincroniza en ambas direcciones en el futuro usando `bisync`:
+  ```bash
+  rclone bisync ~/Documents/Obsidian "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer
+  ```
 
-Se debe seleccionar **"New remote"** (pulsando `n`), asignarle como nombre `Obsidian`, seleccionar el tipo de almacenamiento `drive` en la lista que aparecerá, y seguir las instrucciones que se abrirán en el navegador web para otorgar los permisos. Una vez autenticado, se puede sincronizar la carpeta remota hacia el almacenamiento local.
+### 10. Optimizaciones de Arranque y Seguridad del Kernel
+Para un arranque ultrarrápido y evitar fallos críticos al actualizar el sistema:
 
-La primera vez que se sincroniza:
+* Desactiva los servicios de configuración TPM si no los usas:
+  ```bash
+  sudo systemctl mask systemd-tpm2-setup-early.service systemd-tpm2-setup.service systemd-pcrproduct.service
+  sudo systemctl mask systemd-pcrmachine.service systemd-pcrnvdone.service systemd-pcrphase-sysinit.service systemd-pcrphase.service
+  ```
 
-```bash
-rclone sync "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" ~/Documents/Obsidian
-```
+---
 
-Las próximas veces se mantendrá la sincronización con el comando:
+## Créditos y Coautores
 
-```bash
-rclone bisync ~/Documents/Obsidian "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal" --verbose --conflict-resolve newer
-# Comando si ocurre un error en la sincronización:
-# rclone bisync "/home/hypr/Documents/Obsidian/" "Obsidian:Mi unidad/DriveSyncFiles/La Enciclopedia del Conocimiento Universal/" --resync
-```
+Este proyecto ha sido desarrollado e integrado por **nicgil23**, y es posible gracias al trabajo extraordinario de los siguientes creadores de la comunidad cuyos proyectos han servido como base o inspiración:
 
-## 10. Optimización de arranque
+* **na-ive**: Creador de [nandoroid-shell](https://github.com/na-ive/nandoroid-shell), la base sobre la cual se ha modificado y expandido la interfaz de usuario en Quickshell con su icónica Isla Dinámica.
+* **Caelestia Shell (caelestia-dots)**: Inspiración fundamental para la integración de la tematización dinámica con Matugen, adoptada tras resolver los problemas de compatibilidad encontrados en la versión base de nandoroid-shell.
+* **end-4**: Desarrollador de [dots-hyprland](https://github.com/end-4/dots-hyprland), cuya arquitectura del shell y lógica estética sirvieron de profunda inspiración estructural.
+* **vaguesyntax (Vynx)**: Por las valiosas referencias de traducción y uso avanzado de Quickshell disponibles en su repositorio `ii-vynx`.
+* **AvengeMedia**: Por la lógica de monitoreo del sistema heredada de `DankMaterialShell` y `dgop`.
+* **Axenide**: Por el diseño y referencias espaciales del notch e isla dinámica en el proyecto `Ambxst`.
 
-Vamos a desactivar configuraciones que vienen por defecto para desencriptar discos que nosotros no vamos a usar:
-```bash
-sudo systemctl mask systemd-tpm2-setup-early.service systemd-tpm2-setup.service systemd-pcrproduct.service
-sudo systemctl mask systemd-pcrmachine.service systemd-pcrnvdone.service systemd-pcrphase-sysinit.service systemd-pcrphase.service
-```
-
-## 11. Ignorar paquetes
-
-Para que no ocurran catástrofes, vamos a cambiar los paquetes ignorados por Pacman:
-
-```bash
-sudo nano /etc/pacman.conf
-```
-
-```conf
-IgnorePkg = linux linux-headers linux-lts linux-lts-headers linux-zen linux-zen-headers
-```
+*Agradecimientos especiales también a los desarrolladores de **Quickshell**, **Hyprland**, **Matugen**, y la comunidad del tema **Catppuccin** por proveer herramientas de personalización de software libre excepcionales.*
