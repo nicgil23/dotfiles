@@ -144,5 +144,9 @@ Scope {
         function focus(): void {
             LockContext.shouldReFocus()
         }
+
+        function abortFingerPam(): void {
+            LockContext.stopFingerPam()
+        }
     }
 }

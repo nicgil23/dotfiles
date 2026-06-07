@@ -170,8 +170,11 @@ Scope {
         pam.start()
     }
 
+    property double lastFingerPamStartTime: 0
+
     function tryFingerUnlock() {
         if (root.fingerprintsConfigured && !root.fingerLocked && !fingerPam.active) {
+            root.lastFingerPamStartTime = Date.now()
             fingerPam.start()
         }
     }
@@ -290,6 +293,14 @@ Scope {
                     root.manualAbort = false
                     return
                 }
+
+                var elapsed = Date.now() - root.lastFingerPamStartTime
+                if (elapsed < 500) {
+                    // Ignore instant failures caused by daemon restart/initialization
+                    fingerRetryTimer.restart()
+                    return
+                }
+
                 root.fingerFailCount++
                 root.fingerFailed = true
                 fingerFailResetTimer.restart()
