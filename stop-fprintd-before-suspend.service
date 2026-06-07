@@ -1,0 +1,13 @@
+[Unit]
+Description=Stop fprintd before sleep and restart on resume
+Before=sleep.target
+StopWhenUnneeded=yes
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/systemctl stop fprintd.service
+ExecStop=/usr/bin/systemctl start fprintd.service
+
+[Install]
+WantedBy=sleep.target

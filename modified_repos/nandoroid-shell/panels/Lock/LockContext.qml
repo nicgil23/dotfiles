@@ -105,6 +105,19 @@ Scope {
     property var targetAction: LockContext.ActionEnum.Unlock
     property bool alsoInhibitIdle: false
 
+    // Fingerprint failure tracking
+    property int fingerFailCount: 0
+    readonly property int maxFingerAttempts: 5
+    property bool fingerFailed: false   // momentary flash on each failure
+    property bool fingerLocked: false   // true after maxFingerAttempts reached
+    property bool manualAbort: false
+
+    // Password failure and lockout tracking
+    property int passwordFailCount: 0
+    readonly property int maxPasswordAttempts: 5
+    property bool passwordLocked: false
+    property int lockoutTimeRemaining: 0
+
     function resetTargetAction() {
         root.targetAction = LockContext.ActionEnum.Unlock
     }
@@ -122,6 +135,7 @@ Scope {
         root.clearText()
         root.maskedText = ""
         root.unlockInProgress = false
+        root.fingerFailed = false
         stopFingerPam()
     }
 
@@ -150,19 +164,21 @@ Scope {
     }
 
     function tryUnlock(alsoInhibitIdle = false) {
+        if (root.passwordLocked) return
         root.alsoInhibitIdle = alsoInhibitIdle
         root.unlockInProgress = true
         pam.start()
     }
 
     function tryFingerUnlock() {
-        if (root.fingerprintsConfigured) {
+        if (root.fingerprintsConfigured && !root.fingerLocked && !fingerPam.active) {
             fingerPam.start()
         }
     }
 
     function stopFingerPam() {
         if (fingerPam.active) {
+            root.manualAbort = true
             fingerPam.abort()
         }
     }
@@ -191,6 +207,11 @@ Scope {
         }
         onCompleted: result => {
             if (result === PamResult.Success) {
+                root.passwordFailCount = 0
+                root.fingerFailCount = 0
+                root.passwordLocked = false
+                root.lockoutTimeRemaining = 0
+                root.fingerLocked = false
                 root.unlocked(root.targetAction)
                 stopFingerPam()
             } else {
@@ -198,6 +219,54 @@ Scope {
                 root.unlockInProgress = false
                 GlobalStates.screenUnlockFailed = true
                 root.showFailure = true
+
+                root.passwordFailCount++
+                if (root.passwordFailCount >= root.maxPasswordAttempts) {
+                    root.passwordLocked = true
+                    root.lockoutTimeRemaining = 180 // 3 minutes
+                }
+            }
+        }
+    }
+
+    // Fingerprint failure flash reset timer
+    Timer {
+        id: fingerFailResetTimer
+        interval: 800
+        onTriggered: root.fingerFailed = false
+    }
+
+    // Fingerprint retry delay timer
+    Timer {
+        id: fingerRetryTimer
+        interval: 900
+        onTriggered: root.tryFingerUnlock()
+    }
+
+    // Lockout countdown timer
+    Timer {
+        id: lockoutTimer
+        interval: 1000
+        repeat: true
+        running: root.lockoutTimeRemaining > 0
+        onTriggered: {
+            root.lockoutTimeRemaining--
+            if (root.lockoutTimeRemaining <= 0) {
+                root.passwordLocked = false
+                root.passwordFailCount = 0
+            }
+        }
+    }
+
+    // Watchdog to ensure fingerprint polling is active when locked
+    Timer {
+        id: fingerWatchdogTimer
+        interval: 2000
+        repeat: true
+        running: GlobalStates.screenLocked && root.fingerprintsConfigured && !root.fingerLocked
+        onTriggered: {
+            if (!fingerPam.active) {
+                root.tryFingerUnlock()
             }
         }
     }
@@ -209,10 +278,27 @@ Scope {
         config: "fprintd.conf"
         onCompleted: result => {
             if (result === PamResult.Success) {
+                root.passwordFailCount = 0
+                root.fingerFailCount = 0
+                root.passwordLocked = false
+                root.lockoutTimeRemaining = 0
+                root.fingerLocked = false
                 root.unlocked(root.targetAction)
                 stopFingerPam()
-            } else if (result === PamResult.Error) {
-                tryFingerUnlock()  // retry on timeout/error
+            } else {
+                if (root.manualAbort) {
+                    root.manualAbort = false
+                    return
+                }
+                root.fingerFailCount++
+                root.fingerFailed = true
+                fingerFailResetTimer.restart()
+
+                if (root.fingerFailCount >= root.maxFingerAttempts) {
+                    root.fingerLocked = true
+                } else {
+                    fingerRetryTimer.restart()
+                }
             }
         }
     }

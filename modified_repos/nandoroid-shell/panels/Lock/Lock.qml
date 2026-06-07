@@ -48,9 +48,9 @@ Scope {
             WlSessionLockSurface {
                 color: "transparent"
                 Loader {
-                    active: GlobalStates.screenLocked
+                    active: true
                     anchors.fill: parent
-                    opacity: active ? 1 : 0
+                    opacity: GlobalStates.screenLocked ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation {
                             duration: Appearance.animation.elementMoveFast.duration

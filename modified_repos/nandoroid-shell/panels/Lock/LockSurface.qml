@@ -29,15 +29,56 @@ MouseArea {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(screen)
 
     function forceFieldFocus() { passwordInput.forceActiveFocus() }
+
+    property bool showPasswordCounter: false
+    property bool showFingerCounter: false
+
+    Timer {
+        id: passwordCounterTimer
+        interval: 1500
+        onTriggered: root.showPasswordCounter = false
+    }
+
+    Timer {
+        id: fingerCounterTimer
+        interval: 1500
+        onTriggered: root.showFingerCounter = false
+    }
+
     Connections {
         target: context
         function onShouldReFocus() { root.forceFieldFocus() }
+
+        function onPasswordFailCountChanged() {
+            if (root.context.passwordFailCount > 0) {
+                root.showPasswordCounter = true
+                passwordCounterTimer.restart()
+            } else {
+                root.showPasswordCounter = false
+            }
+        }
+
+        function onFingerFailCountChanged() {
+            if (root.context.fingerFailCount > 0) {
+                root.showFingerCounter = true
+                fingerCounterTimer.restart()
+            } else {
+                root.showFingerCounter = false
+            }
+        }
     }
 
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton
-    onPressed: forceFieldFocus()
-    onPositionChanged: forceFieldFocus()
+
+    onPressed: {
+        forceFieldFocus()
+        root.context.tryFingerUnlock()
+    }
+    onPositionChanged: {
+        forceFieldFocus()
+        root.context.tryFingerUnlock()
+    }
 
     property bool ctrlHeld: false
     Keys.onPressed: event => {
@@ -45,6 +86,7 @@ MouseArea {
         if (event.key === Qt.Key_Control) root.ctrlHeld = true
         if (event.key === Qt.Key_Escape)  root.context.currentText = ""
         forceFieldFocus()
+        root.context.tryFingerUnlock()
     }
     Keys.onReleased: event => {
         if (event.key === Qt.Key_Control) root.ctrlHeld = false
@@ -136,10 +178,20 @@ MouseArea {
         cursorDelegate: Item {}
         clip: true
         z: -3 // Behind wallpaper but still captures focus
+        readOnly: root.context.passwordLocked
 
-        onTextChanged: root.context.currentText = text
-        onAccepted:    root.context.tryUnlock(root.ctrlHeld)
-        Keys.onPressed: event => root.context.resetClearTimer()
+        onTextChanged: {
+            if (!root.context.passwordLocked)
+                root.context.currentText = text
+        }
+        onAccepted: {
+            if (!root.context.passwordLocked)
+                root.context.tryUnlock(root.ctrlHeld)
+        }
+        Keys.onPressed: event => {
+            if (!root.context.passwordLocked)
+                root.context.resetClearTimer()
+        }
 
         Connections {
             target: root.context
@@ -203,6 +255,7 @@ MouseArea {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
+                            root.context.stopFingerPam()
                             Quickshell.execDetached(["systemctl", "suspend"])
                         }
                     }
@@ -219,7 +272,7 @@ MouseArea {
                         anchors.centerIn: parent
                         text: root.context.unlockInProgress ? "sync" : "lock"
                         iconSize: 18 * Appearance.effectiveScale
-                        color: inputPill.contentColor
+                        color: root.context.passwordLocked ? Appearance.colors.colError : inputPill.contentColor
                         fill: 1
 
                         RotationAnimator on rotation {
@@ -230,6 +283,19 @@ MouseArea {
                             running: root.context.unlockInProgress
                         }
                     }
+
+                    // Password attempt counter below lock icon
+                    StyledText {
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 2 * Appearance.effectiveScale
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: root.context.passwordFailCount + "/5"
+                        font.pixelSize: 8 * Appearance.effectiveScale
+                        font.weight: Font.Bold
+                        color: root.context.passwordLocked ? Appearance.colors.colError : inputPill.contentColor
+                        opacity: root.showPasswordCounter ? 0.7 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                    }
                 }
 
                 // 3. Fingerprint Icon (Visible if fingerprints configured)
@@ -239,10 +305,42 @@ MouseArea {
                     visible: root.context.fingerprintsConfigured && !root.context.unlockInProgress
 
                     MaterialSymbol {
+                        id: fingerprintIcon
                         anchors.centerIn: parent
-                        text: "fingerprint"
+                        text: root.context.fingerLocked ? "block" : "fingerprint"
                         iconSize: 18 * Appearance.effectiveScale
-                        color: inputPill.contentColor
+                        color: (root.context.fingerFailed || root.context.fingerLocked)
+                            ? Appearance.colors.colError
+                            : inputPill.contentColor
+
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        transformOrigin: Item.Bottom
+                    }
+
+                    // Shake Animation for Fingerprint Icon (windshield wiper style)
+                    SequentialAnimation {
+                        id: fingerShakeAnim
+                        running: root.context.fingerFailed
+                        loops: 2
+                        NumberAnimation { target: fingerprintIcon; property: "rotation"; from: 0; to: -10; duration: 70; easing.type: Easing.InOutCubic }
+                        NumberAnimation { target: fingerprintIcon; property: "rotation"; from: -10; to: 10; duration: 140; easing.type: Easing.InOutCubic }
+                        NumberAnimation { target: fingerprintIcon; property: "rotation"; from: 10; to: 0; duration: 70; easing.type: Easing.InOutCubic }
+                    }
+
+                    // Fingerprint attempt counter below fingerprint icon
+                    StyledText {
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 2 * Appearance.effectiveScale
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: root.context.fingerFailCount + "/5"
+                        font.pixelSize: 8 * Appearance.effectiveScale
+                        font.weight: Font.Bold
+                        color: (root.context.fingerFailed || root.context.fingerLocked)
+                            ? Appearance.colors.colError
+                            : inputPill.contentColor
+                        opacity: root.showFingerCounter ? 0.7 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
                     }
                 }
 
@@ -271,14 +369,32 @@ MouseArea {
         }
     }
 
-    // Shake Animation for Input Pill
+    // Shake Animation for Input Pill (Password failure only)
     SequentialAnimation {
         id: shakeAnim
         running: root.context.showFailure
         loops: 2
-        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: 0; to: -10 * Appearance.effectiveScale; duration: 50; easing.type: Easing.Linear }
-        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: -10 * Appearance.effectiveScale; to: 10 * Appearance.effectiveScale; duration: 50; easing.type: Easing.Linear }
-        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: 10 * Appearance.effectiveScale; to: 0; duration: 50; easing.type: Easing.Linear }
+        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: 0; to: -10 * Appearance.effectiveScale; duration: 75; easing.type: Easing.InOutSine }
+        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: -10 * Appearance.effectiveScale; to: 10 * Appearance.effectiveScale; duration: 150; easing.type: Easing.InOutSine }
+        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: 10 * Appearance.effectiveScale; to: 0; duration: 75; easing.type: Easing.InOutSine }
+    }
+
+    // Fingerprint / Password Lockout countdown and indicators
+    StyledText {
+        anchors.horizontalCenter: inputPill.horizontalCenter
+        anchors.top: inputPill.bottom
+        anchors.topMargin: 8 * Appearance.effectiveScale
+        z: 1
+        visible: root.context.passwordLocked || root.context.fingerLocked
+        text: root.context.passwordLocked
+            ? ("Try again in " + Math.floor(root.context.lockoutTimeRemaining / 60) + ":" + ("0" + root.context.lockoutTimeRemaining % 60).slice(-2))
+            : (root.context.fingerLocked ? "Fingerprint disabled" : "")
+        font.pixelSize: 11 * Appearance.effectiveScale
+        font.weight: Font.Medium
+        color: Appearance.colors.colError
+        opacity: 0.85
+
+        Behavior on opacity { NumberAnimation { duration: 200 } }
     }
 
     // ── Lockscreen Status Bar (Matching System Style) ──
