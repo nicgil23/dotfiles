@@ -37,14 +37,39 @@ Scope {
         return path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString();
     }
 
-    function triggerForegroundExtraction() {
+    function toggleForegroundExtraction() {
         if (!Config.ready) return;
-        if (!Config.options.lock.useForegroundIsolation) {
+        const path = trimFileProtocol(root.lockscreenWallpaper);
+        if (path === "") return;
+
+        let prefs = {};
+        try { prefs = JSON.parse(Config.options.lock.fgPreferencesJson); } catch(e) {}
+        
+        let isEnabled = prefs[path] === true;
+        prefs[path] = !isEnabled;
+        Config.options.lock.fgPreferencesJson = JSON.stringify(prefs);
+        
+        applyForegroundPreference();
+    }
+
+    function applyForegroundPreference() {
+        if (!Config.ready) return;
+        const path = trimFileProtocol(root.lockscreenWallpaper);
+        if (path === "") {
             root.wallFg = "";
             return;
         }
-        const path = trimFileProtocol(root.lockscreenWallpaper);
-        if (path === "") return;
+
+        let prefs = {};
+        try { prefs = JSON.parse(Config.options.lock.fgPreferencesJson); } catch(e) {}
+        
+        let isEnabled = prefs[path] === true;
+        if (!isEnabled) {
+            root.wallFg = "";
+            return;
+        }
+        
+        root.wallFg = ""; // Clear old image while generating
         
         generateFgProc.command = [
             "bash",
@@ -76,7 +101,7 @@ Scope {
         target: Config
         function onReadyChanged() {
             if (Config.ready) {
-                root.triggerForegroundExtraction();
+                root.applyForegroundPreference();
             }
         }
     }
@@ -84,9 +109,8 @@ Scope {
     Connections {
         target: (Config.ready && Config.options.lock) ? Config.options.lock : null
         ignoreUnknownSignals: true
-        function onWallpaperPathChanged() { root.triggerForegroundExtraction(); }
-        function onUseSeparateWallpaperChanged() { root.triggerForegroundExtraction(); }
-        function onUseForegroundIsolationChanged() { root.triggerForegroundExtraction(); }
+        function onWallpaperPathChanged() { root.applyForegroundPreference(); }
+        function onUseSeparateWallpaperChanged() { root.applyForegroundPreference(); }
     }
 
     Connections {
@@ -94,7 +118,7 @@ Scope {
         ignoreUnknownSignals: true
         function onWallpaperPathChanged() {
             if (!Config.options.lock.useSeparateWallpaper) {
-                root.triggerForegroundExtraction();
+                root.applyForegroundPreference();
             }
         }
     }

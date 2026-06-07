@@ -9,6 +9,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Qt5Compat.GraphicalEffects
+import QtQuick.Controls
 import "../NotificationCenter"
 import "../StatusBar"
 
@@ -163,8 +164,44 @@ MouseArea {
         anchors.fill: parent
         fillMode: Image.PreserveAspectCrop
         source: root.context.wallFg
-        visible: !root.context.fgGenerating && Config.ready && Config.options.lock.useForegroundIsolation && source !== ""
+        visible: !root.context.fgGenerating && source !== ""
         z: 0
+    }
+
+    // ── Foreground Isolation Toggle Button ──
+    MouseArea {
+        id: fgToggleButton
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: 48 * Appearance.effectiveScale
+        width: 56 * Appearance.effectiveScale
+        height: 56 * Appearance.effectiveScale
+        hoverEnabled: true
+        visible: Config.ready && Config.options.lock.showForegroundIsolationButton
+        z: 100 // Ensure it's clickable and visible above everything
+
+        MaterialSymbol {
+            anchors.centerIn: parent
+            text: root.context.wallFg !== "" ? "auto_awesome_mosaic" : "auto_awesome"
+            iconSize: 32 * Appearance.effectiveScale
+            color: Appearance.colors.colPrimary
+            opacity: fgToggleButton.containsMouse ? 1.0 : 0.2
+            visible: !root.context.fgGenerating
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+        }
+
+        BusyIndicator {
+            anchors.fill: parent
+            anchors.margins: 8 * Appearance.effectiveScale
+            running: root.context.fgGenerating
+            visible: root.context.fgGenerating
+        }
+
+        onClicked: {
+            if (!root.context.fgGenerating) {
+                root.context.toggleForegroundExtraction()
+            }
+        }
     }
 
     // ── Hidden TextInput for keyboard capture ──

@@ -39,4 +39,4 @@ else
   echo "[INFO] Foreground file in cache"
 fi
 
-echo -n "FOREGROUND $DSTIMG"
+echo "FOREGROUND $DSTIMG"

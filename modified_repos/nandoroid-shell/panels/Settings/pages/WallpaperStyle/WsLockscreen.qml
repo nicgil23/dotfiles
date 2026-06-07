@@ -139,10 +139,10 @@ ColumnLayout {
                             anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
                             spacing: 16 * Appearance.effectiveScale
                             MaterialSymbol { text: "depth_anchor"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
-                            StyledText { text: "Foreground Isolation (3D effect)"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            StyledText { text: "Mostrar botón de Efecto 3D en la pantalla de bloqueo"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
                             AndroidToggle {
-                                checked: Config.ready && Config.options.lock.useForegroundIsolation
-                                onToggled: if(Config.ready) Config.options.lock.useForegroundIsolation = !Config.options.lock.useForegroundIsolation
+                                checked: Config.ready && Config.options.lock.showForegroundIsolationButton
+                                onToggled: if(Config.ready) Config.options.lock.showForegroundIsolationButton = !Config.options.lock.showForegroundIsolationButton
                             }
                         }
                     }

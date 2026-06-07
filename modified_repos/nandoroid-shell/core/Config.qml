@@ -395,8 +395,9 @@ Singleton {
                 property bool showWeather: true
                 property JsonObject weather: JsonObject { property string textColorMode: "adaptive" }
                 property JsonObject security: JsonObject { property bool requirePasswordToPower: true }
-                property bool useForegroundIsolation: true
+                property bool showForegroundIsolationButton: true
                 property string foregroundPath: ""
+                property string fgPreferencesJson: "{}"
             }
 
             // --- System ---
