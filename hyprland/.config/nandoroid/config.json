@@ -16,7 +16,7 @@
             "matugenSource": "desktop",
             "matugenThemeFile": "",
             "showCava": false,
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/Togawa.Sakiko.full.4603785_upscayl_2x_digital-art-4x.png"
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg"
         },
         "clock": {
             "analog": {
@@ -86,8 +86,8 @@
                 "isVertical": false
             },
             "locked": false,
-            "offsetX": 627,
-            "offsetY": 385,
+            "offsetX": 631,
+            "offsetY": 370,
             "pill": {
                 "dateColorStyle": "primary",
                 "isVertical": false,
@@ -210,7 +210,7 @@
         "showWeather": true,
         "useHyprlock": false,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/Togawa.Sakiko.full.4603785_upscayl_2x_digital-art-4x.png",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg",
         "weather": {
             "textColorMode": "adaptive"
         }

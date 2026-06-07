@@ -627,19 +627,33 @@ Item {
                                     }
                                 }
 
-                                // --- Add Folder Button ---
+                                // --- Random Favourite Button ---
                                 RippleButton {
                                     width: parent.width
                                     implicitHeight: 52 * Appearance.effectiveScale
                                     buttonRadius: 26 * Appearance.effectiveScale
                                     colBackground: "transparent"
-                                    onClicked: Wallpapers.browseFolder()
+                                    enabled: Wallpapers.favorites.length > 0
+                                    opacity: enabled ? 1.0 : 0.4
+                                    onClicked: {
+                                        const favs = Wallpapers.favorites.filter(path => {
+                                            const p = path.toLowerCase();
+                                            const isImage = p.endsWith(".jpg") || p.endsWith(".jpeg") || p.endsWith(".png") || p.endsWith(".webp") || p.endsWith(".avif");
+                                            const isWE = p.includes("431960"); // Steam Workshop ID for Wallpaper Engine
+                                            return isImage && !isWE;
+                                        });
+                                        if (favs.length > 0) {
+                                            const idx = Math.floor(Math.random() * favs.length);
+                                            mainSelector.selectWallpaper(favs[idx]);
+                                        }
+                                    }
                                     
                                     RowLayout {
                                         anchors.fill: parent; anchors.leftMargin: 20 * Appearance.effectiveScale; spacing: 16 * Appearance.effectiveScale
-                                        MaterialSymbol { text: "add"; iconSize: 22 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
-                                        StyledText { text: "Add Folder"; color: Appearance.colors.colOnLayer0 }
+                                        MaterialSymbol { text: "favorite"; iconSize: 22 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                                        StyledText { text: "Random Favourite"; color: Appearance.colors.colOnLayer0 }
                                     }
+                                    StyledToolTip { text: "Select a random wallpaper from favourites" }
                                 }
                             }
                         }
