@@ -70,31 +70,40 @@ Scope {
         }
         
         root.wallFg = ""; // Clear old image while generating
-        root.currentFgTarget = path;
-        
-        generateFgProc.running = false;
-        Qt.callLater(() => { generateFgProc.running = true; });
+        fgProcComponent.createObject(root, { targetPath: path });
     }
 
-    property string currentFgTarget: ""
+    property int activeGenerations: 0
+    onActiveGenerationsChanged: root.fgGenerating = (activeGenerations > 0)
 
-    Process {
-        id: generateFgProc
-        command: [
-            "bash",
-            Quickshell.shellPath("scripts/extractFg.sh"),
-            root.currentFgTarget,
-            Directories.genericCache + "/nandoroid"
-        ]
-        
-        onRunningChanged: {
-            root.fgGenerating = running;
-        }
+    Component {
+        id: fgProcComponent
+        Process {
+            property string targetPath: ""
+            command: [
+                "bash",
+                Quickshell.shellPath("scripts/extractFg.sh"),
+                targetPath,
+                Directories.genericCache + "/nandoroid"
+            ]
+            running: true
+            
+            Component.onCompleted: root.activeGenerations++
+            
+            onRunningChanged: {
+                if (!running) {
+                    root.activeGenerations--
+                    this.destroy()
+                }
+            }
 
-        stdout: SplitParser {
-            onRead: data => {
-                if (data.includes("FOREGROUND")) {
-                    root.wallFg = "file://" + data.split(" ")[1];
+            stdout: SplitParser {
+                onRead: data => {
+                    if (data.includes("FOREGROUND")) {
+                        if (targetPath === root.trimFileProtocol(root.lockscreenWallpaper)) {
+                            root.wallFg = "file://" + data.split(" ")[1];
+                        }
+                    }
                 }
             }
         }

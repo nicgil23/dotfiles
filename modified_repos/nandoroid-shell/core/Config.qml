@@ -351,7 +351,8 @@ Singleton {
             // --- Notifications ---
             property JsonObject notifications: JsonObject {
                 property int timeout_ms: 2000
-                property string counterStyle: "counter" 
+                property string counterStyle: "counter"
+                property bool clearOnStartup: true
             }
 
             // --- Battery ---

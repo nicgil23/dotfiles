@@ -418,12 +418,39 @@ Singleton {
     }
 
     // ── Persistent storage ──
-    Component.onCompleted: notifFileView.reload()
+    Component.onCompleted: {
+        if (Config.ready && Config.options.notifications.clearOnStartup) {
+            root.list = [];
+            root.unread = 0;
+            notifFileView.setText("[]");
+        } else {
+            notifFileView.reload();
+        }
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready && Config.options.notifications.clearOnStartup) {
+                root.list = [];
+                root.unread = 0;
+                notifFileView.setText("[]");
+            } else if (Config.ready) {
+                notifFileView.reload();
+            }
+        }
+    }
 
     FileView {
         id: notifFileView
         path: Qt.resolvedUrl(root.filePath)
         onLoaded: {
+            if (Config.ready && Config.options.notifications.clearOnStartup) {
+                root.list = [];
+                root.unread = 0;
+                notifFileView.setText("[]");
+                return;
+            }
             try {
                 const fileContents = notifFileView.text();
                 const parsed = JSON.parse(fileContents);

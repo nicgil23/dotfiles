@@ -20,18 +20,18 @@ while true; do
     notified_10=false
 
     if [ "$nivel" -ge 100 ] && [ "$notified_100" = false ]; then
-      notify-send -u normal "Batería" "La batería está al 100%."
+      notify-send -i battery-full-charged -u normal "Batería" "La batería está al 100%."
       notified_100=true
     fi
   elif [ "$estado" = "Discharging" ]; then
     notified_100=false
 
     if [ "$nivel" -le 10 ] && [ "$notified_10" = false ]; then
-      notify-send -u critical "Batería muy baja" "Queda un 10% de batería."
+      notify-send -i battery-empty -u critical "Batería muy baja" "Queda un 10% de batería."
       notified_10=true
       notified_20=true
     elif [ "$nivel" -le 20 ] && [ "$notified_20" = false ]; then
-      notify-send -u normal "Batería baja" "Queda un 20% de batería."
+      notify-send -i battery-low -u normal "Batería baja" "Queda un 20% de batería."
       notified_20=true
     fi
   fi
