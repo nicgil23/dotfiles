@@ -70,19 +70,22 @@ Scope {
         }
         
         root.wallFg = ""; // Clear old image while generating
+        root.currentFgTarget = path;
         
-        generateFgProc.command = [
-            "bash",
-            Quickshell.shellPath("scripts/extractFg.sh"),
-            path,
-            Directories.genericCache + "/nandoroid"
-        ];
         generateFgProc.running = false;
         Qt.callLater(() => { generateFgProc.running = true; });
     }
 
+    property string currentFgTarget: ""
+
     Process {
         id: generateFgProc
+        command: [
+            "bash",
+            Quickshell.shellPath("scripts/extractFg.sh"),
+            root.currentFgTarget,
+            Directories.genericCache + "/nandoroid"
+        ]
         
         onRunningChanged: {
             root.fgGenerating = running;
