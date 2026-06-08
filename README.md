@@ -12,7 +12,7 @@ Este entorno está compuesto por una cuidada selección de herramientas y utilid
 
 1. **Hyprland**: Compositor Wayland dinámico tipo mosaico (tiling compositor) con animaciones fluidas y soporte completo para gestos multitáctiles en pantalla a través de `hyprgrass`.
 2. **Quickshell**: Framework basado en QML que renderiza y gestiona la barra superior, paneles flotantes, menús y widgets con interacción táctil directa y reactiva.
-3. **Nandoroid Shell**: Interfaz de usuario modificada basada en Material 3 y Android 16. Está optimizada para pantallas táctiles gracias a sus controles deslizables e interactivos (volumen, brillo, ajustes rápidos) de tipo móvil, junto con una **Isla Dinámica** (notificaciones, multimedia, pomodoro) y un Dashboard completo (calendario, traductor, GitHub).
+3. **Nandoroid Shell**: Interfaz de usuario modificada basada en Material 3 y Android 16. Está optimizada para pantallas táctiles gracias a sus controles deslizables e interactivos (volumen, brillo, ajustes rápidos) de tipo móvil, junto con una **Isla Dinámica** (notificaciones, multimedia, pomodoro) y un Dashboard completo (calendario, traductor, GitHub). *Incluye un sistema de transiciones dinámicas para fondos de pantalla y una pantalla de bloqueo avanzada con animaciones ("Kuru Kuru"), extracción de sujetos mediante IA, panel multimedia integrado y soporte para autenticación biométrica por huella dactilar.*
 4. **Matugen**: Motor de generación de temas Material Design 3. Extrae automáticamente paletas armónicas de color del wallpaper seleccionado y las aplica en caliente a Hyprland, Kitty, VS Code y la shell.
 5. **Kitty**: Emulador de terminal rápido y ligero acelerado por GPU con integración dinámica de colores de Matugen.
 6. **Yazi**: Administrador de archivos en terminal extremadamente rápido escrito en Rust.
@@ -22,7 +22,7 @@ Este entorno está compuesto por una cuidada selección de herramientas y utilid
 10. **Btop**: Monitor de sistema interactivo en terminal con paleta Catppuccin.
 11. **Vorta & BorgBackup**: Interfaz y motor para copias de seguridad de datos locales seguras y cifradas.
 12. **Rclone**: Herramienta de sincronización en la nube (utilizada para sincronizar el almacén de notas de Obsidian en Google Drive).
-13. **Hypridle & Hyprlock**: Gestores de inactividad de pantalla y pantalla de bloqueo moderna que adopta el fondo dinámico.
+13. **Hypridle**: Gestor de inactividad de pantalla. (La pantalla de bloqueo moderna ahora es gestionada de forma nativa por el entorno QML).
 14. **Impala & IWD**: Herramientas eficientes de terminal para conectar y administrar conexiones Wi-Fi de forma nativa.
 15. **auto-cpufreq**: Optimizador de energía y regulador de la frecuencia de la CPU para maximizar la batería del portátil de manera automática.
 16. **Widget de Rotación de Pantalla**: Utilidad integrada en el panel superior para cambiar la orientación de la pantalla, ideal para ordenadores convertibles o portátiles 2 en 1.
@@ -183,5 +183,6 @@ Este proyecto ha sido desarrollado e integrado por **nicgil23**, y es posible gr
 * **vaguesyntax (Vynx)**: Por las valiosas referencias de traducción y uso avanzado de Quickshell disponibles en su repositorio `ii-vynx`.
 * **AvengeMedia**: Por la lógica de monitoreo del sistema heredada de `DankMaterialShell` y `dgop`.
 * **Axenide**: Por el diseño y referencias espaciales del notch e isla dinámica en el proyecto `Ambxst`.
+* **Zaphkiel**: Por la extraordinaria implementación de la pantalla de bloqueo animada ("Kuru Kuru"), la lógica para la pantalla de bloqueo con extracción de sujetos mediante IA, y el sistema avanzado de transiciones para fondos de pantalla, elementos que han sido portados y adaptados para este entorno.
 
 *Agradecimientos especiales también a los desarrolladores de **Quickshell**, **Hyprland**, **Matugen**, y la comunidad del tema **Catppuccin** por proveer herramientas de personalización de software libre excepcionales.*

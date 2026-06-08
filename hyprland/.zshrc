@@ -28,7 +28,7 @@ load-env() {
 }
 
 backup_pkgs() {
-    local backup_dir="$HOME/dotfiles/"
+    local backup_dir="$HOME/dotfiles/pkgs"
     mkdir -p "$backup_dir"
 
     # 1. Lista de paquetes de repositorios oficiales (Pacman)
