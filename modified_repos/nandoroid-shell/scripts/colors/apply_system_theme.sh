@@ -82,3 +82,6 @@ if [[ -d "$VENV_PATH" && -f "$COLOR_FILE" ]]; then
     pkill -f "kde-material-you-colors"
     "$VENV_PATH/bin/kde-material-you-colors" "$MODE_FLAG" --color "$COLOR" -sv "$sv_num" &
 fi
+
+# 3. Reload Neovim colors
+pkill -USR1 nvim || true
