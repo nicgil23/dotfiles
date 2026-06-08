@@ -16,7 +16,8 @@
             "matugenSource": "desktop",
             "matugenThemeFile": "",
             "showCava": false,
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/wallhaven-49p7y8.jpg"
+            "transition": "sweep",
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/goth_girl.png"
         },
         "clock": {
             "analog": {
@@ -86,8 +87,8 @@
                 "isVertical": false
             },
             "locked": false,
-            "offsetX": -639,
-            "offsetY": 385,
+            "offsetX": 655,
+            "offsetY": 401,
             "pill": {
                 "dateColorStyle": "primary",
                 "isVertical": false,
@@ -201,7 +202,7 @@
     },
     "lock": {
         "cavaOpacity": 0.15,
-        "fgPreferencesJson": "{\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg\":false,\"/home/hypr/Pictures/wallpapers/downloads/Togawa.Sakiko.full.4603785_upscayl_2x_digital-art-4x.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/anime-girl-sunglasses-4k-wallpaper-uhdpaper.com-326@5@i.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-eo5ggo.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/126270092_p0.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/robogrl.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/yin.jpg\":false,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-nedwe8.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6ewo3.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-nmddmk.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-0jk2ym.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-r2596m.jpg\":false}",
+        "fgPreferencesJson": "{\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/bzwsrr0.jpg\":false,\"/home/hypr/Pictures/wallpapers/downloads/Togawa.Sakiko.full.4603785_upscayl_2x_digital-art-4x.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/anime-girl-sunglasses-4k-wallpaper-uhdpaper.com-326@5@i.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-eo5ggo.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/126270092_p0.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/robogrl.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/yin.jpg\":false,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-nedwe8.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6ewo3.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-nmddmk.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-0jk2ym.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-r2596m.jpg\":false,\"/home/hypr/Pictures/wallpapers/downloads/goth_girl.png\":false,\"/home/hypr/Pictures/wallpapers/downloads/jinhsicos.png\":true}",
         "foregroundPath": "",
         "launchOnStartup": false,
         "security": {
@@ -213,7 +214,7 @@
         "showWeather": true,
         "useHyprlock": false,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/wallhaven-49p7y8.jpg",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/goth_girl.png",
         "weather": {
             "textColorMode": "adaptive"
         }
@@ -378,14 +379,14 @@
         "height": 40,
         "islandStyle": "pill",
         "layoutStyle": "standard",
-        "textColorMode": "adaptive",
+        "textColorMode": "light",
         "trayStyle": "hide",
         "useGradient": true
     },
     "system": {
         "bluetoothEnabled": true,
         "easyeffectsEnabled": false,
-        "lastUpdateCheckDate": "2026-06-07",
+        "lastUpdateCheckDate": "2026-06-08",
         "monitoredDisks": [
             {
                 "alias": "System",

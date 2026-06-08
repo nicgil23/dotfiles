@@ -303,6 +303,14 @@ Singleton {
         }
     }
 
+    IpcHandler {
+        target: "wallpaper"
+        function random_favorite(): void {
+            console.log("[Wallpapers] IPC call received to select random favorite");
+            root.selectRandomFavorite();
+        }
+    }
+
     // Kill hyprpicker if the overlay is closed through other means (shortcut, launcher, etc)
     Connections {
         target: GlobalStates

@@ -109,6 +109,7 @@ Singleton {
                     property list<string> customFolders: []
                     property bool showCava: false
                     property real cavaOpacity: 0.15
+                    property string transition: "random"
                 }
                 property JsonObject screenCorners: JsonObject {
                     property int mode: 1

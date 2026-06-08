@@ -284,7 +284,7 @@ Flickable {
         ColumnLayout {
             spacing: 4 * Appearance.effectiveScale
             StyledText {
-                text: "Wallpaper & Style"
+                text: "Style"
                 font.pixelSize: Appearance.font.pixelSize.huge
                 font.weight: Font.DemiBold
                 color: Appearance.colors.colOnLayer1
@@ -353,6 +353,11 @@ Flickable {
             
             // ── Wallpaper Auto-Cycle ──
             WsWallpaperCycle { 
+                Layout.fillWidth: true
+            }
+
+            // ── Wallpaper Transition ──
+            WsWallpaperTransition {
                 Layout.fillWidth: true
             }
         }

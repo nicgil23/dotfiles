@@ -219,6 +219,12 @@ ShellRoot {
     }
 
     GlobalShortcut {
+        name: "wallpaperRandomFavorite"
+        description: "Set a random favorite wallpaper"
+        onPressed: Wallpapers.selectRandomFavorite()
+    }
+
+    GlobalShortcut {
         name: "settings"
         description: "Toggle Settings Panel"
         onPressed: GlobalStates.activateSettings()

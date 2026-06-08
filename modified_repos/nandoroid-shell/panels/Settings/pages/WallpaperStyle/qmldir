@@ -13,3 +13,4 @@ WsWallpaperCycle 1.0 WsWallpaperCycle.qml
 AndroidToggle 1.0 AndroidToggle.qml
 ColorCard 1.0 ColorCard.qml
 WallpaperPreview 1.0 WallpaperPreview.qml
+WsWallpaperTransition 1.0 WsWallpaperTransition.qml

@@ -102,7 +102,7 @@ PanelWindow {
                 menuText: "Clock Settings"
                 menuIcon: "schedule"
                 onClicked: {
-                    GlobalStates.settingsPageIndex = 4 // Wallpaper & Style
+                    GlobalStates.settingsPageIndex = 4 // Style
                     SearchRegistry.currentSearch = "" 
                     SearchRegistry.currentSearch = "Clock Style"
                     GlobalStates.settingsOpen = true
@@ -133,10 +133,10 @@ PanelWindow {
 
             MenuItem {
                 visible: !root.isClockMenu
-                menuText: "Wallpaper & Styles"
+                menuText: "Style"
                 menuIcon: "palette"
                 onClicked: {
-                    GlobalStates.settingsPageIndex = 4 // Wallpaper & Style
+                    GlobalStates.settingsPageIndex = 4 // Style
                     GlobalStates.settingsOpen = true
                     root.close()
                 }

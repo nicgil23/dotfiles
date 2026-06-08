@@ -8,6 +8,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Qt5Compat.GraphicalEffects
 
 /**
  * Background panel.
@@ -46,37 +47,73 @@ Variants {
         }
 
         property string currentPath: (Config.ready && Config.options.appearance && Config.options.appearance.background && Config.options.appearance.background.wallpaperPath) ? Config.options.appearance.background.wallpaperPath : ""
+        property string transitionType: (Config.ready && Config.options.appearance && Config.options.appearance.background && Config.options.appearance.background.transition) ? Config.options.appearance.background.transition : "random"
         
         property string currentTransitionMode: "fade"
         readonly property var transitionModes: ["fade", "zoomIn", "zoomOut", "slideUp", "slideDown", "slideLeft", "slideRight"]
 
         onCurrentPathChanged: {
             if (currentPath === "" || currentPath === undefined) return;
-            currentTransitionMode = transitionModes[Math.floor(Math.random() * transitionModes.length)];
-
-            if (wallpaper1.visible) {
-                wallpaper2.source = currentPath;
-                if (wallpaper2.status === Image.Ready) transAnim2.restart();
+            
+            let tType = transitionType;
+            if (tType === "random") {
+                const r = Math.random();
+                if (r < 0.33) tType = "sweep";
+                else if (r < 0.66) tType = "expand";
+                else tType = "dynamic";
+            }
+            
+            if (tType === "sweep") {
+                zaphWallpaper.source = currentPath;
+                if (zaphWallpaper.status === Image.Ready) zaphAnim.restart();
                 else {
                     const conn = (status) => {
-                        if (wallpaper2.status === Image.Ready) {
-                            transAnim2.restart();
-                            wallpaper2.statusChanged.disconnect(conn);
+                        if (zaphWallpaper.status === Image.Ready) {
+                            zaphAnim.restart();
+                            zaphWallpaper.statusChanged.disconnect(conn);
                         }
                     }
-                    wallpaper2.statusChanged.connect(conn);
+                    zaphWallpaper.statusChanged.connect(conn);
+                }
+            } else if (tType === "expand") {
+                centerExpandWallpaper.source = currentPath;
+                if (centerExpandWallpaper.status === Image.Ready) centerExpandAnim.restart();
+                else {
+                    const conn = (status) => {
+                        if (centerExpandWallpaper.status === Image.Ready) {
+                            centerExpandAnim.restart();
+                            centerExpandWallpaper.statusChanged.disconnect(conn);
+                        }
+                    }
+                    centerExpandWallpaper.statusChanged.connect(conn);
                 }
             } else {
-                wallpaper1.source = currentPath;
-                if (wallpaper1.status === Image.Ready) transAnim1.restart();
-                else {
-                    const conn = (status) => {
-                        if (wallpaper1.status === Image.Ready) {
-                            transAnim1.restart();
-                            wallpaper1.statusChanged.disconnect(conn);
+                currentTransitionMode = transitionModes[Math.floor(Math.random() * transitionModes.length)];
+
+                if (wallpaper1.visible) {
+                    wallpaper2.source = currentPath;
+                    if (wallpaper2.status === Image.Ready) transAnim2.restart();
+                    else {
+                        const conn = (status) => {
+                            if (wallpaper2.status === Image.Ready) {
+                                transAnim2.restart();
+                                wallpaper2.statusChanged.disconnect(conn);
+                            }
                         }
+                        wallpaper2.statusChanged.connect(conn);
                     }
-                    wallpaper1.statusChanged.connect(conn);
+                } else {
+                    wallpaper1.source = currentPath;
+                    if (wallpaper1.status === Image.Ready) transAnim1.restart();
+                    else {
+                        const conn = (status) => {
+                            if (wallpaper1.status === Image.Ready) {
+                                transAnim1.restart();
+                                wallpaper1.statusChanged.disconnect(conn);
+                            }
+                        }
+                        wallpaper1.statusChanged.connect(conn);
+                    }
                 }
             }
         }
@@ -111,9 +148,136 @@ Variants {
                 scale: 1.0
                 transformOrigin: Item.Center
             }
+
+            Rectangle {
+                id: zaphAnimRect
+                anchors.right: parent.right
+                height: parent.height
+                width: 0
+                clip: true
+                color: "transparent"
+                z: 3
+                
+                Image {
+                    id: zaphWallpaper
+                    anchors.right: parent.right
+                    height: bgRoot.height
+                    width: bgRoot.width
+                    fillMode: Image.PreserveAspectCrop
+                    source: ""
+                }
+            }
+
+            Item {
+                id: centerExpandContainer
+                anchors.fill: parent
+                z: 3
+                visible: centerExpandRect.width > 0
+                
+                Image {
+                    id: centerExpandWallpaper
+                    anchors.fill: parent
+                    fillMode: Image.PreserveAspectCrop
+                    source: ""
+                    visible: false
+                }
+                
+                Item {
+                    id: maskContainer
+                    anchors.fill: parent
+                    visible: false
+                    
+                    Rectangle {
+                        id: centerExpandRect
+                        anchors.centerIn: parent
+                        width: 0
+                        height: 0
+                        radius: width / 2
+                        color: "black"
+                    }
+                }
+                
+                OpacityMask {
+                    anchors.fill: centerExpandWallpaper
+                    source: centerExpandWallpaper
+                    maskSource: maskContainer
+                }
+            }
         }
 
         // --- Transitions ---
+        SequentialAnimation {
+            id: zaphAnim
+            ScriptAction {
+                script: {
+                    wallpaper1.visible = true;
+                    wallpaper1.z = 1;
+                    wallpaper2.visible = false;
+                    zaphAnimRect.z = 2;
+                }
+            }
+            NumberAnimation {
+                target: zaphAnimRect
+                property: "width"
+                from: 0
+                to: bgRoot.width
+                duration: 500
+                easing.bezierCurve: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82, 0.25, 1, 1, 1]
+            }
+            ScriptAction {
+                script: {
+                    wallpaper1.source = bgRoot.currentPath;
+                    wallpaper1.visible = true;
+                    wallpaper1.opacity = 1;
+                    wallpaper1.scale = 1.0;
+                    wallpaper1.x = 0;
+                    wallpaper1.y = 0;
+                    zaphAnimRect.width = 0;
+                }
+            }
+        }
+
+        SequentialAnimation {
+            id: centerExpandAnim
+            ScriptAction {
+                script: {
+                    wallpaper1.visible = true;
+                    wallpaper1.z = 1;
+                    wallpaper2.visible = false;
+                    centerExpandContainer.z = 2;
+                }
+            }
+            ParallelAnimation {
+                NumberAnimation {
+                    target: centerExpandRect
+                    property: "width"
+                    from: 0
+                    to: Math.max(bgRoot.width, bgRoot.height) * 1.5
+                    duration: 600
+                    easing.type: Easing.InOutCubic
+                }
+                NumberAnimation {
+                    target: centerExpandRect
+                    property: "height"
+                    from: 0
+                    to: Math.max(bgRoot.width, bgRoot.height) * 1.5
+                    duration: 600
+                    easing.type: Easing.InOutCubic
+                }
+            }
+            ScriptAction {
+                script: {
+                    wallpaper1.source = bgRoot.currentPath;
+                    wallpaper1.visible = true;
+                    wallpaper1.opacity = 1;
+                    wallpaper1.scale = 1.0;
+                    wallpaper1.x = 0;
+                    wallpaper1.y = 0;
+                    centerExpandRect.width = 0;
+                    centerExpandRect.height = 0;
+                }
+            }
+        }
         SequentialAnimation {
             id: transAnim1
             ScriptAction { 
