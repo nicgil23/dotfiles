@@ -17,7 +17,7 @@
             "matugenThemeFile": "",
             "showCava": false,
             "transition": "sweep",
-            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/goth_girl.png"
+            "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/makimaeyes.jpg"
         },
         "clock": {
             "analog": {
@@ -214,7 +214,7 @@
         "showWeather": true,
         "useHyprlock": false,
         "useSeparateWallpaper": false,
-        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/goth_girl.png",
+        "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/makimaeyes.jpg",
         "weather": {
             "textColorMode": "adaptive"
         }
@@ -386,7 +386,7 @@
     "system": {
         "bluetoothEnabled": true,
         "easyeffectsEnabled": false,
-        "lastUpdateCheckDate": "2026-06-08",
+        "lastUpdateCheckDate": "2026-06-09",
         "monitoredDisks": [
             {
                 "alias": "System",

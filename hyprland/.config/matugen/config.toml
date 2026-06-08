@@ -79,3 +79,7 @@ input_path = '~/.config/matugen/templates/obsidian_matugen.css'
 input_path = '~/.config/matugen/templates/terminal/sequences.txt'
 output_path = '~/.local/state/quickshell/user/generated/terminal/sequences.txt'
 post_hook = "~/.config/quickshell/nandoroid/scripts/colors/apply_terminal_colors.sh"
+
+[templates.tauon]
+input_path = '~/.config/matugen/templates/tauon.ttheme'
+output_path = '~/.local/share/TauonMusicBox/theme/Matugen.ttheme'

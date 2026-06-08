@@ -71,10 +71,10 @@
     "window.menuBarVisibility": "compact",
     "window.commandCenter": false,
     "workbench.startupEditor": "none",
-    "workbench.colorTheme": "HyprLuna",
     "files.autoSave": "afterDelay",
     "editor.parameterHints.enabled": false
 ,
 "material-code.primaryColor": "",
-"jupyter.askForKernelRestart": false
+"jupyter.askForKernelRestart": false,
+"workbench.colorTheme": "HyprLuna Material"
 }

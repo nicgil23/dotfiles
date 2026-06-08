@@ -71,7 +71,6 @@
   "window.menuBarVisibility": "compact",
   "window.commandCenter": false,
   "workbench.startupEditor": "none",
-  "workbench.colorTheme": "HyprLuna",
   "files.autoSave": "afterDelay",
   "editor.parameterHints.enabled": false,
   "json.schemaDownload.enable": false,
