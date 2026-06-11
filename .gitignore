@@ -10,3 +10,18 @@ hyprland/.config/Antigravity/**
 !hyprland/.config/Antigravity/User/settings.json
 !hyprland/.config/Antigravity/User/keybindings.json
 !hyprland/.config/Antigravity/User/snippets/
+
+# Matugen generated files
+hyprland/.config/hypr/hyprland/colors.conf
+hyprland/.config/hypr/hyprlock/colors.conf
+hyprland/.config/fuzzel/fuzzel_theme.ini
+hyprland/.config/kitty/current-theme.conf
+hyprland/.config/gtk-3.0/gtk.css
+hyprland/.config/gtk-4.0/gtk.css
+hyprland/.config/vesktop/themes/midnight.theme.css
+hyprland/.config/cava/config
+hyprland/.config/btop/themes/matugen.theme
+hyprland/.config/spicetify/Themes/caelestia/color.ini
+
+# Nandoroid shell generated files
+modified_repos/nandoroid-shell/data/app_usage.json

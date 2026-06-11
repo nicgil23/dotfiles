@@ -37,7 +37,13 @@ ShellRoot {
     // Reference singleton to ensure it is instantiated
     readonly property var _idle: Idle
 
+    Process {
+        id: killSwayncProc
+        command: ["killall", "swaync"]
+    }
+
     Component.onCompleted: {
+        killSwayncProc.running = true
         MaterialThemeLoader.reapplyTheme()
         Wallpapers.syncSettings() // Ensure Wallpapers service is active and synced
         SmartAutomation.runAutomationCycle() // Kickstart smart automation
