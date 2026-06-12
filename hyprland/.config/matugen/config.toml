@@ -9,12 +9,12 @@ post_hook = '~/.config/quickshell/nandoroid/scripts/colors/apply_system_theme.sh
 
 [templates.hyprland]
 input_path = '~/.config/matugen/templates/hyprland/colors.conf'
-output_path = '~/.config/hypr/hyprland/colors.conf'
+output_path = '~/.config/hypr/themes/colors.conf'
 post_hook = 'hyprctl reload'
 
 [templates.hyprlock]
 input_path = '~/.config/matugen/templates/hyprland/hyprlock-colors.conf'
-output_path = '~/.config/hypr/hyprlock/colors.conf'
+output_path = '~/.config/hypr/themes/hyprlock-colors.conf'
 
 [templates.fuzzel]
 input_path = '~/.config/matugen/templates/fuzzel/fuzzel_theme.ini'

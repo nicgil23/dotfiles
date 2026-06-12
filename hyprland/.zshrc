@@ -4,18 +4,16 @@ export ZSH="$HOME/.config/ohmyzsh"
 # Themes
 ZSH_THEME="robbyrussell"
 
+# Plugins
+plugins=(git zsh-shift-select)
+
 # Oh My ZSH loader
 source $ZSH/oh-my-zsh.sh
-
-# Plugins
-plugins=(git)
 
 # Alias
 alias ls="exa -l"
 alias obsidian-sync='~/dotfiles/hyprland/.config/hypr/scripts/obsidian-sync.sh'
 alias ff='fastfetch'
-alias vpn-ucm='~/dotfiles/hyprland/.config/hypr/scripts/vpn-ucm.sh'
-alias r='rmpc'
 
 # Funciones
 load-env() {
@@ -46,13 +44,6 @@ backup_pkgs() {
     echo "Respaldo completado en $backup_dir"
 }
 
-aura() {
-    kitty cava &
-    kitty cmatrix &
-    kitty pipes-rs &
-    btop
-}
-
 # Función de yazi 
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
@@ -66,14 +57,14 @@ function y() {
 # Linea para que el laucher de quichshell reconozca los iconos de las APPs de flatpak
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share
 
-# Ctrl + Retroceso para borrar la palabra hacia atrás
-bindkey '^H' backward-kill-word
-
-# Ctrl + Suprimir para borrar la palabra hacia adelante
-bindkey '^[[3;5~' kill-word
+# Vontroles escritura por consola
+bindkey '^H' backward-kill-word # Ctrl + Retroceso para borrar la palabra hacia atrás
+bindkey '^[[3;5~' kill-word # Ctrl + Suprimir para borrar la palabra hacia adelante
 
 # Antigravity
 alias antigravity='/home/hypr/Applications/Antigravity/bin/antigravity'
+
+
 
 # Created by `pipx` on 2026-06-07 01:33:26
 export PATH="$PATH:/home/hypr/.local/bin"
