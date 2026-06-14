@@ -275,24 +275,14 @@ Item {
             action: () => ConservationMode.toggle(),
             tooltipText: "Lenovo Battery Conservation Mode"
         },
-        "ocr": {
-            name: "Text Recognition",
-            icon: "text_snippet",
-            iconOff: "text_snippet",
-            statusText: "OCR",
+        "obsidianSync": {
+            name: "Sync Obsidian",
+            icon: "cloud_sync",
+            iconOff: "cloud_sync",
+            statusText: "Sync",
             action: () => {
                 root.close();
-                Functions.General.delayedAction(300, () => RegionService.ocr());
-            }
-        },
-        "qrcode": {
-            name: "QR Scanner",
-            icon: "qr_code_scanner",
-            iconOff: "qr_code_scanner",
-            statusText: "Scan",
-            action: () => {
-                root.close();
-                Functions.General.delayedAction(300, () => RegionService.qrcode());
+                Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/obsidian-sync.sh"]);
             }
         },
         "restartShell": {
@@ -341,8 +331,8 @@ Item {
     readonly property list<string> availableToggleTypes: [
         "wifi", "bluetooth", "dnd", "darkMode", "caffeine", "nightLight",
         "warp", "audioOutput", "audioInput", "powerProfile",
-        "gameMode", "colorPicker", "screenSnip", "ocr", "qrcode", "screenRecord",
-        "musicRecognition", "easyEffects", "conservationMode", "restartShell", "vpnUcm", "autoRotation",
+        "gameMode", "colorPicker", "screenSnip", "screenRecord",
+        "musicRecognition", "easyEffects", "conservationMode", "obsidianSync", "restartShell", "vpnUcm", "autoRotation",
         "autoHideBar"
     ]
     readonly property list<var> toggles: Config.options.quickSettings.toggles

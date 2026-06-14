@@ -132,7 +132,8 @@ PanelWindow {
                     tooltip: "Google Lens"
                     onClicked: {
                         const result = ScreenshotAction.getCommand(0, 0, 0, 0, root.imagePath, 2); 
-                        Quickshell.execDetached(result.command);
+                        const cmdStr = result.command[2] + `; rm -f '${Functions.StringUtils.shellSingleQuoteEscape(root.imagePath)}'`;
+                        Quickshell.execDetached(["bash", "-c", cmdStr]);
                         root.imagePath = "";
                     }
                 }
@@ -142,7 +143,30 @@ PanelWindow {
                     tooltip: "Math OCR (LaTeX)"
                     onClicked: {
                         const result = ScreenshotAction.getCommand(0, 0, 0, 0, root.imagePath, 4); 
-                        Quickshell.execDetached(result.command);
+                        const cmdStr = result.command[2] + `; rm -f '${Functions.StringUtils.shellSingleQuoteEscape(root.imagePath)}'`;
+                        Quickshell.execDetached(["bash", "-c", cmdStr]);
+                        root.imagePath = "";
+                    }
+                }
+
+                ActionCard {
+                    btnIcon: "text_snippet" 
+                    tooltip: "Text Recognition (OCR)"
+                    onClicked: {
+                        const result = ScreenshotAction.getCommand(0, 0, 0, 0, root.imagePath, 3); 
+                        const cmdStr = result.command[2] + `; rm -f '${Functions.StringUtils.shellSingleQuoteEscape(root.imagePath)}'`;
+                        Quickshell.execDetached(["bash", "-c", cmdStr]);
+                        root.imagePath = "";
+                    }
+                }
+
+                ActionCard {
+                    btnIcon: "qr_code_scanner" 
+                    tooltip: "QR Scanner"
+                    onClicked: {
+                        const result = ScreenshotAction.getCommand(0, 0, 0, 0, root.imagePath, 8); 
+                        const cmdStr = result.command[2] + `; rm -f '${Functions.StringUtils.shellSingleQuoteEscape(root.imagePath)}'`;
+                        Quickshell.execDetached(["bash", "-c", cmdStr]);
                         root.imagePath = "";
                     }
                 }
