@@ -7,7 +7,10 @@
     { "name": "qt6-wayland", "command": "qml6", "description": "Qt6 Wayland support" },
     { "name": "python3", "command": "python3", "description": "Theme generation backend" },
     { "name": "matugen-bin", "command": "matugen", "description": "Material theme generator" },
-    { "name": "jq", "command": "jq", "description": "JSON processing engine" }
+    { "name": "jq", "command": "jq", "description": "JSON processing engine" },
+    { "name": "hypridle", "command": "hypridle", "description": "Idle daemon" },
+    { "name": "polkit-kde-authentication-agent-1", "command": "/usr/lib/polkit-kde-authentication-agent-1", "description": "Authentication agent GUI" },
+    { "name": "gnome-keyring-daemon", "command": "gnome-keyring-daemon", "description": "Secret service provider" }
   ],
   "services": [
     { "name": "pipewire", "command": "pipewire", "description": "Audio & Video server" },
@@ -16,7 +19,9 @@
     { "name": "libnotify", "command": "notify-send", "description": "Desktop notifications" },
     { "name": "polkit", "command": "pkexec", "description": "Authentication agent" },
     { "name": "brightnessctl", "command": "brightnessctl", "description": "Backlight control" },
-    { "name": "playerctl", "command": "playerctl", "description": "Media controller" }
+    { "name": "playerctl", "command": "playerctl", "description": "Media controller" },
+    { "name": "fprintd", "command": "fprintd-list", "description": "Fingerprint daemon" },
+    { "name": "wireplumber", "command": "wpctl", "description": "Audio session manager" }
   ],
   "utilities": [
     { "name": "xdg-desktop-portal-hyprland", "command": "/usr/lib/xdg-desktop-portal-hyprland", "description": "Screen sharing support" },
@@ -34,15 +39,23 @@
     { "name": "hyprsunset", "command": "hyprsunset", "description": "Blue light filter" },
     { "name": "wl-clipboard", "command": "wl-copy", "description": "Wayland clipboard" },
     { "name": "cliphist", "command": "cliphist", "description": "Clipboard history" },
-    { "name": "zenity", "command": "zenity", "description": "System dialogs" }
+    { "name": "zenity", "command": "zenity", "description": "System dialogs" },
+    { "name": "tesseract", "command": "tesseract", "description": "Text OCR engine" },
+    { "name": "pix2tex", "command": "pix2tex", "description": "Math OCR (LaTeX)" },
+    { "name": "zbar", "command": "zbarimg", "description": "QR Code Scanner" },
+    { "name": "rclone", "command": "rclone", "description": "Cloud synchronization" },
+    { "name": "mpv", "command": "mpv", "description": "Media player" },
+    { "name": "fd", "command": "fd", "description": "Fast file finder" },
+    { "name": "qalc", "command": "qalc", "description": "Math calculator" },
+    { "name": "iio-hyprland", "command": "iio-hyprland", "description": "Screen rotation" },
+    { "name": "wvkbd-mobintl", "command": "wvkbd-mobintl", "description": "Virtual keyboard" },
+    { "name": "rembg[cli]", "command": "rembg", "description": "AI Background Removal" }
   ],
   "theming": [
     { "name": "nwg-look", "command": "nwg-look", "description": "GTK theme manager (External apps)" },
-    { "name": "qt5ct", "command": "qt5ct", "description": "Qt5 theme manager (External apps)" },
     { "name": "qt6ct", "command": "qt6ct", "description": "Qt6 theme manager (External apps)" },
     { "name": "adw-gtk-theme", "command": "gsettings", "description": "Modern GTK theme" },
-    { "name": "breeze", "command": "kwin_wayland", "description": "KDE theme engine" },
-    { "name": "breeze-icons", "command": "kwin_wayland", "description": "KDE icon set" }
+    { "name": "spicetify-cli", "command": "spicetify", "description": "Spotify theme manager" }
   ],
   "fonts": [
     { "name": "ttf-material-symbols-variable-git", "command": "fc-list", "description": "Material Symbols Icons" },
@@ -56,6 +69,14 @@
   "optional": [
     { "name": "kitty", "command": "kitty", "description": "Terminal emulator" },
     { "name": "fish", "command": "fish", "description": "Interactive shell" },
-    { "name": "starship", "command": "starship", "description": "Shell prompt" }
+    { "name": "starship", "command": "starship", "description": "Shell prompt" },
+    { "name": "helium-browser", "command": "helium-browser", "description": "Web browser" },
+    { "name": "yazi", "command": "yazi", "description": "Terminal file manager" },
+    { "name": "fastfetch", "command": "fastfetch", "description": "System fetch tool" },
+    { "name": "warp-cli", "command": "warp-cli", "description": "Cloudflare WARP VPN" },
+    { "name": "openconnect", "command": "openconnect", "description": "UCM VPN client" },
+    { "name": "nm-connection-editor", "command": "nm-connection-editor", "description": "Network connection editor" },
+    { "name": "gnome-calculator", "command": "org.gnome.Calculator", "description": "Graphical calculator" },
+    { "name": "rnote", "command": "com.github.flxzt.rnote", "description": "Note taking app" }
   ]
 }

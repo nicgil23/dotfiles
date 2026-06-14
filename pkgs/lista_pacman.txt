@@ -434,6 +434,7 @@ libcmis
 libcolord
 libcue
 libcups
+libcurl-gnutls
 libdaemon
 libdatachannel
 libdatrie

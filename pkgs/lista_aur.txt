@@ -83,6 +83,7 @@ quickshell-git
 ripdrag
 ripdrag-debug
 soulseekqt
+spotify
 steamcmd-debug
 todoist-bin-debug
 ttf-apple-emoji

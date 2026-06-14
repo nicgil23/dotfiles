@@ -43,7 +43,7 @@ Singleton {
             "    cmd=$(echo \"$item\" | jq -r '.command'); " +
             "    desc=$(echo \"$item\" | jq -r '.description // \"\"'); " +
             "    installed=false; " +
-            "    if command -v \"$cmd\" >/dev/null 2>&1 || [ -f \"$cmd\" ]; then installed=true; fi; " +
+            "    if command -v \"$cmd\" >/dev/null 2>&1 || [ -f \"$cmd\" ] || [ -f \"$HOME/.local/bin/$cmd\" ] || [ -f \"$HOME/.cargo/bin/$cmd\" ] || [ -f \"$HOME/.spicetify/$cmd\" ] || [ -f \"/var/lib/flatpak/exports/bin/$cmd\" ] || [ -f \"$HOME/.local/share/flatpak/exports/bin/$cmd\" ]; then installed=true; fi; " +
             "    echo \"$name|$desc|$installed|$cat\"; " +
             "  done; " +
             "done"

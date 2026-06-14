@@ -40,10 +40,11 @@ output_path = '~/.local/state/quickshell/user/generated/color.txt'
 [templates.wallpaper]
 input_path = '~/.config/matugen/templates/wallpaper.txt'
 output_path = '~/.local/state/quickshell/user/generated/wallpaper/path.txt'
+post_hook = "sh -c '~/.config/hypr/scripts/generate_silhouette.sh \"$(cat ~/.local/state/quickshell/user/generated/wallpaper/path.txt)\" &'"
 
 [templates.discord]
 input_path = "~/.config/matugen/templates/midnight.theme.css"
-output_path = "~/.config/vesktop/themes/midnight.theme.css"
+output_path = "~/.var/app/dev.vencord.Vesktop/config/vesktop/themes/midnight.theme.css"
 
 [templates.vscode]
 input_path = "~/.config/matugen/templates/hyprlunavsc.json"
@@ -59,8 +60,8 @@ output_path = "~/.local/share/zed/extensions/installed/material-dark/themes/zed_
 
 [templates.spicetify]
 input_path = "~/.config/matugen/templates/spicetify-color.ini"
-output_path = "~/.config/spicetify/Themes/caelestia/color.ini"
-post_hook = "spicetify-smart-apply"
+output_path = "~/.config/spicetify/Themes/text/color.ini"
+post_hook = "spicetify apply"
 
 [templates.cava]
 input_path = '~/.config/matugen/templates/cava_color.ini'
