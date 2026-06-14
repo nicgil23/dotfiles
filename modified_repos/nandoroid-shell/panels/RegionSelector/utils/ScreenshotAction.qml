@@ -16,6 +16,7 @@ Singleton {
         Edit,
         Search,
         CharRecognition,
+        MathRecognition,
         Record,
         RecordWithSound,
         RecordFullscreenWithSound,
@@ -96,6 +97,10 @@ Singleton {
                 
             case ScreenshotAction.Action.CharRecognition:
                 cmdArray = ["bash", "-c", `${cropInPlace} && tesseract '${shellEscape(screenshotPath)}' stdout -l $(tesseract --list-langs | awk 'NR>1{print $1}' | tr '\\n' '+' | sed 's/\\+$/\\n/') | wl-copy && ${cleanup}`];
+                break;
+                
+            case ScreenshotAction.Action.MathRecognition:
+                cmdArray = ["bash", "-c", `${cropInPlace} && res=$(~/.local/bin/pix2tex '${shellEscape(screenshotPath)}' 2>/dev/null | sed 's/^[^:]*: //'); printf '$$\\n%s\\n$$' "$res" | wl-copy && notify-send 'Math OCR' 'Fórmula procesada' && ${cleanup}`];
                 break;
                 
             case ScreenshotAction.Action.Record:

@@ -36,6 +36,7 @@ PanelWindow {
     readonly property int actionRecordWithSound: 5
     readonly property int actionRecordFullscreenWithSound: 6
     readonly property int actionQRCode: 7
+    readonly property int actionMathOCR: 8
     
     readonly property int modeRect: 0
     readonly property int modeCircle: 1
@@ -227,6 +228,7 @@ PanelWindow {
             case actionRecordWithSound: actionEnum = ScreenshotAction.Action.RecordWithSound; break;
             case actionRecordFullscreenWithSound: actionEnum = ScreenshotAction.Action.RecordFullscreenWithSound; break;
             case actionQRCode: actionEnum = ScreenshotAction.Action.QRCode; break;
+            case actionMathOCR: actionEnum = ScreenshotAction.Action.MathRecognition; break;
         }
 
         

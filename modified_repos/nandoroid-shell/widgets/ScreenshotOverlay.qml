@@ -138,6 +138,16 @@ PanelWindow {
                 }
 
                 ActionCard {
+                    btnIcon: "functions" 
+                    tooltip: "Math OCR (LaTeX)"
+                    onClicked: {
+                        const result = ScreenshotAction.getCommand(0, 0, 0, 0, root.imagePath, 4); 
+                        Quickshell.execDetached(result.command);
+                        root.imagePath = "";
+                    }
+                }
+
+                ActionCard {
                     btnIcon: "delete"
                     tooltip: "Delete"
                     isError: true

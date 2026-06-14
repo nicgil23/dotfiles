@@ -115,6 +115,7 @@ crypto++
 cryptsetup
 curl
 dart
+dart-sass
 dav1d
 db5.3
 dbus
@@ -381,6 +382,7 @@ lcms2
 ldb
 leancrypto
 leptonica
+less
 level-zero-loader
 lib32-gcc-libs
 lib32-glibc

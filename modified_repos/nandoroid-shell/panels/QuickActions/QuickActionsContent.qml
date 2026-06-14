@@ -29,7 +29,7 @@ FocusScope {
     readonly property color barColor: "black"
 
     property int currentIndex: 0
-    property int totalItems: 11
+    property int totalItems: 12
     
     // Animated stretch-highlight properties
     property int idx1: 0
@@ -175,6 +175,10 @@ FocusScope {
                 root.close();
                 Functions.General.delayedAction(300, () => Quickshell.execDetached(["hyprpicker", "-a"]));
                 break;
+            case 11: // Math OCR
+                root.close();
+                Functions.General.delayedAction(300, () => RegionService.mathOcr());
+                break;
         }
     }
 
@@ -293,6 +297,7 @@ FocusScope {
             ToolButton { idx: 8; iconName: "qr_code_scanner"; tooltip: "QR Code Scanner"; onClicked: executeItem(8) }
             ToolButton { idx: 9; iconName: "image_search"; tooltip: "Lens Search"; onClicked: executeItem(9) }
             ToolButton { idx: 10; iconName: "colorize"; tooltip: "Color Picker"; onClicked: executeItem(10) }
+            ToolButton { idx: 11; iconName: "image_search"; tooltip: "Math OCR (LaTeX)"; onClicked: executeItem(11) }
         }
     }
 

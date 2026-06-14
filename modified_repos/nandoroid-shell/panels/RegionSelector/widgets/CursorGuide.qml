@@ -8,7 +8,7 @@ Item {
     property var selectionMode
 
     property string description: {
-        const SnipAction = { Copy: 0, Edit: 1, Search: 2, CharRecognition: 3, Record: 4, RecordWithSound: 5, RecordFullscreenWithSound: 6, QRCode: 7 };
+        const SnipAction = { Copy: 0, Edit: 1, Search: 2, CharRecognition: 3, Record: 4, RecordWithSound: 5, RecordFullscreenWithSound: 6, QRCode: 7, MathOCR: 8 };
         switch (root.action) {
             case SnipAction.Copy:
             case SnipAction.Edit:
@@ -17,6 +17,8 @@ Item {
                 return "Search with Google Lens";
             case SnipAction.CharRecognition:
                 return "Recognize text";
+            case SnipAction.MathOCR:
+                return "Math OCR (LaTeX)";
             case SnipAction.Record:
             case SnipAction.RecordWithSound:
             case SnipAction.RecordFullscreenWithSound:
@@ -29,12 +31,13 @@ Item {
     }
     
     property string materialSymbol: {
-        const SnipAction = { Copy: 0, Edit: 1, Search: 2, CharRecognition: 3, Record: 4, RecordWithSound: 5, RecordFullscreenWithSound: 6, QRCode: 7 };
+        const SnipAction = { Copy: 0, Edit: 1, Search: 2, CharRecognition: 3, Record: 4, RecordWithSound: 5, RecordFullscreenWithSound: 6, QRCode: 7, MathOCR: 8 };
         switch (root.action) {
             case SnipAction.Copy:
             case SnipAction.Edit:
                 return "content_cut";
             case SnipAction.Search:
+            case SnipAction.MathOCR:
                 return "image_search";
             case SnipAction.CharRecognition:
                 return "document_scanner";

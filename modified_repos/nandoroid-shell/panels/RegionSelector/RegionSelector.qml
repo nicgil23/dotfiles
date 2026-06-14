@@ -22,6 +22,7 @@ Scope {
     readonly property int actionRecordWithSound: 5
     readonly property int actionRecordFullscreenWithSound: 6
     readonly property int actionQRCode: 7
+    readonly property int actionMathOCR: 8
     
     readonly property int modeRect: 0
     readonly property int modeCircle: 1
@@ -86,6 +87,12 @@ Scope {
         GlobalStates.regionSelectorOpen = true
     }
 
+    function mathOcr() {
+        root.action = actionMathOCR
+        root.selectionMode = modeRect
+        GlobalStates.regionSelectorOpen = true
+    }
+
     function record() {
         root.action = actionRecord
         root.selectionMode = modeRect
@@ -120,6 +127,7 @@ Scope {
         function screenshot() { root.screenshot() }
         function search() { root.search() }
         function ocr() { root.ocr() }
+        function mathOcr() { root.mathOcr() }
         function record() { root.record() }
         function recordWithSound() { root.recordWithSound() }
         function recordFullscreenWithSound() { root.recordFullscreenWithSound() }
