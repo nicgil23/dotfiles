@@ -5,7 +5,7 @@ export ZSH="$HOME/.config/ohmyzsh"
 ZSH_THEME="robbyrussell"
 
 # Plugins
-plugins=(git zsh-shift-select)
+plugins=(git)
 
 # Oh My ZSH loader
 source $ZSH/oh-my-zsh.sh
