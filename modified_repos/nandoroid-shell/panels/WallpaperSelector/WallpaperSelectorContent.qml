@@ -40,7 +40,7 @@ Item {
 
     Component.onCompleted: {
         refreshCustomFolders();
-        applySorting();
+        switchMode("fav");
     }
 
     Connections {

@@ -10,6 +10,7 @@ catppuccin-gtk-theme-mocha
 catppuccin-sddm-theme-mocha
 cbonsai
 cbonsai-debug
+cloudflare-warp-bin
 cmatrix-git
 cmatrix-git-debug
 cpptrace-debug

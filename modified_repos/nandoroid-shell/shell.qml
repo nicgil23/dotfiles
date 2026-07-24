@@ -42,8 +42,14 @@ ShellRoot {
         command: ["killall", "swaync"]
     }
 
+    Process {
+        id: unblockBluetoothProc
+        command: ["rfkill", "unblock", "bluetooth"]
+    }
+
     Component.onCompleted: {
         killSwayncProc.running = true
+        unblockBluetoothProc.running = true
         MaterialThemeLoader.reapplyTheme()
         Wallpapers.syncSettings() // Ensure Wallpapers service is active and synced
         SmartAutomation.runAutomationCycle() // Kickstart smart automation

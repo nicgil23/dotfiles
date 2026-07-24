@@ -1470,6 +1470,7 @@ wavpack
 waybar
 wayland
 wayland-protocols
+webkit2gtk-4.1
 webrtc-audio-processing
 webrtc-audio-processing-1
 websocketpp
@@ -1536,6 +1537,7 @@ zathura
 zathura-cb
 zathura-pdf-poppler
 zbar
+zenity
 zeromq
 zimg
 zint

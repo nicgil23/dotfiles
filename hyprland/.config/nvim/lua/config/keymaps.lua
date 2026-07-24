@@ -35,3 +35,7 @@ vim.keymap.set("c", "<C-Del>", delete_word_forward_cmd, { noremap = true, silent
 vim.keymap.set("n", "d<Space>", '"_dd', { noremap = true, silent = true, desc = "Delete line without copying" })
 vim.keymap.set("v", "d<Space>", '"_d', { noremap = true, silent = true, desc = "Delete selection without copying" })
 
+-- Telescope and Ripgrep global search
+vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { noremap = true, silent = true, desc = "Find Text globally (Ripgrep)" })
+vim.keymap.set("n", "<leader>fw", "<cmd>Telescope grep_string<cr>", { noremap = true, silent = true, desc = "Find Word under cursor globally (Ripgrep)" })
+
