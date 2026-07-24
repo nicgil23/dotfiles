@@ -53,8 +53,9 @@ Singleton {
                 HyprlandCompat.keywordStr("decoration", "blur:enabled", 0),
                 HyprlandCompat.keywordStr("general", "gaps_in", 0),
                 HyprlandCompat.keywordStr("general", "gaps_out", 0),
-                HyprlandCompat.keywordStr("general", "border_size", 1),
+                HyprlandCompat.keywordStr("general", "border_size", 0),
                 HyprlandCompat.keywordStr("decoration", "rounding", 0),
+                HyprlandCompat.keywordStr("decoration", "inactive_opacity", 1),
                 HyprlandCompat.keywordStr("general", "allow_tearing", 1)
             ];
             
@@ -70,12 +71,13 @@ Singleton {
                                  `    decoration = {\n` +
                                  `        shadow = { enabled = false },\n` +
                                  `        blur = { enabled = false },\n` +
-                                 `        rounding = 0\n` +
+                                 `        rounding = 0,\n` +
+                                 `        inactive_opacity = 1\n` +
                                  `    },\n` +
                                  `    general = {\n` +
                                  `        gaps_in = 0,\n` +
                                  `        gaps_out = 0,\n` +
-                                 `        border_size = 1,\n` +
+                                 `        border_size = 0,\n` +
                                  `        allow_tearing = true\n` +
                                  `    }\n` +
                                  `})\n` +
@@ -96,7 +98,7 @@ Singleton {
                               `open(path, "w").write(content)`
                 Quickshell.execDetached(["python3", "-c", pyCmd, realPath, luaBlock]);
             } else {
-                const persistCmd = `sed -i '/animations:enabled/d; /decoration:shadow:enabled/d; /decoration:blur:enabled/d; /general:gaps_in/d; /general:gaps_out/d; /general:border_size/d; /decoration:rounding/d; /general:allow_tearing/d' ${realPath} 2>/dev/null || true; ` +
+                const persistCmd = `sed -i '/animations:enabled/d; /decoration:shadow:enabled/d; /decoration:blur:enabled/d; /general:gaps_in/d; /general:gaps_out/d; /general:border_size/d; /decoration:rounding/d; /decoration:inactive_opacity/d; /general:allow_tearing/d' ${realPath} 2>/dev/null || true; ` +
                     batchCmd.map(c => `echo "${c.replace(' ', ' = ')}" >> ${realPath}`).join('; ');
                 Quickshell.execDetached(["bash", "-c", persistCmd]);
             }
@@ -116,7 +118,7 @@ Singleton {
             const realPath = root.persistencePath.replace(/^~/, Directories.home.replace("file://", ""));
             const cleanupCmd = HyprlandCompat.isLua
                 ? `sed -i '/-- GAMEMODE_START/,/-- GAMEMODE_END/d' ${realPath} 2>/dev/null || true`
-                : `sed -i '/animations:enabled/d; /decoration:shadow:enabled/d; /decoration:blur:enabled/d; /general:gaps_in/d; /general:gaps_out/d; /general:border_size/d; /decoration:rounding/d; /general:allow_tearing/d' ${realPath} 2>/dev/null || true`;
+                : `sed -i '/animations:enabled/d; /decoration:shadow:enabled/d; /decoration:blur:enabled/d; /general:gaps_in/d; /general:gaps_out/d; /general:border_size/d; /decoration:rounding/d; /decoration:inactive_opacity/d; /general:allow_tearing/d' ${realPath} 2>/dev/null || true`;
             
             Quickshell.execDetached(["bash", "-c", `${cleanupCmd} && hyprctl reload`]);
 

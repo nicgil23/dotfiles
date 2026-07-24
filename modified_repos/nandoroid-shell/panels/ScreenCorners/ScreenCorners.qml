@@ -1,5 +1,6 @@
 import "../../core"
 import "../../widgets"
+import "../../services"
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -16,6 +17,7 @@ Scope {
 
         // Mode: 0 = Off, 1 = On (Hide fullscreen), 2 = Always On
         visible: {
+            if (GameMode.active) return false;
             if (!Config.ready || !Config.options.appearance.screenCorners) return false;
             const mode = Config.options.appearance.screenCorners.mode ?? 1;
             if (mode === 0) return false;
