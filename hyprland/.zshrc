@@ -1,5 +1,6 @@
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.config/ohmyzsh"
+export PATH="$HOME/go/bin:$PATH"
 
 # Themes
 ZSH_THEME="robbyrussell"
@@ -62,9 +63,12 @@ bindkey '^H' backward-kill-word # Ctrl + Retroceso para borrar la palabra hacia 
 bindkey '^[[3;5~' kill-word # Ctrl + Suprimir para borrar la palabra hacia adelante
 
 # Antigravity
-alias antigravity='/home/hypr/Applications/Antigravity/bin/antigravity'
 
 
 
 # Created by `pipx` on 2026-06-07 01:33:26
 export PATH="$PATH:/home/hypr/.local/bin"
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/hypr/.local/bin:$PATH"
