@@ -5,6 +5,9 @@ hyprland/.config/Code/**
 !hyprland/.config/Code/User/keybindings.json
 !hyprland/.config/Code/User/snippets/
 
+hyprland/.gemini/**
+!hyprland/.gemini/GEMINI.md
+
 hyprland/.config/Antigravity/**
 !hyprland/.config/Antigravity/User/
 !hyprland/.config/Antigravity/User/settings.json
