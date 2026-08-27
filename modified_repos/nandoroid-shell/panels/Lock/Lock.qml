@@ -18,72 +18,74 @@ Scope {
     // Monitor name → workspace id saved at lock time
     property var savedWorkspaces: ({})
 
-    // Restore workspaces after compositor settles (timer matches end4-pC)
-    function restoreWorkspaces() {
-        var batch = ""
-        for (var j = 0; j < Quickshell.screens.length; ++j) {
-            var monName = Quickshell.screens[j].name
-            var wsId = root.savedWorkspaces[monName]
-            if (wsId !== undefined) {
-                batch += `hyprctl dispatch '${HyprlandCompat.dspFocusMonitor(monName)}'; hyprctl dispatch '${HyprlandCompat.dspWorkspace(wsId)}';`
-            }
-        }
-        if (batch.length > 0)
-            Quickshell.execDetached(["bash", "-c", batch])
-    }
-
+    // Restore workspaces after a short delay (compositor needs to settle)
     Timer {
         id: restoreTimer
         interval: 150
         repeat: false
-        onTriggered: root.restoreWorkspaces()
+        onTriggered: {
+            var batch = []
+            for (var j = 0; j < Quickshell.screens.length; ++j) {
+                var monName = Quickshell.screens[j].name
+                var wsId = root.savedWorkspaces[monName]
+                if (wsId !== undefined) {
+                    batch.push("dispatch " + HyprlandCompat.dspFocusMonitor(monName))
+                    batch.push("dispatch " + HyprlandCompat.dspWorkspace(wsId))
+                }
+            }
+            if (batch.length > 0) {
+                batch.push("reload")
+                Quickshell.execDetached(HyprlandCompat.batch(batch))
+            }
+        }
     }
 
     // WlSessionLock — actual Wayland lock protocol
     WlSessionLock {
         id: wlLock
         locked: GlobalStates.screenLocked
-                surface: Component {
-                    WlSessionLockSurface {
-                        color: "transparent"
-                        Loader {
-                            active: true
-                            anchors.fill: parent
-                            opacity: GlobalStates.screenLocked ? 1 : 0
-                            Behavior on opacity {
-                                NumberAnimation {
-                                    duration: Appearance.animation.elementMoveFast.duration
-                                    easing.type: Appearance.animation.elementMoveFast.type
-                                }
-                            }
-                            sourceComponent: Component {
-                                LockSurface {
-                                    context: LockContext
-                                }
-                            }
+        surface: Component {
+            WlSessionLockSurface {
+                color: "transparent"
+                Loader {
+                    active: true
+                    anchors.fill: parent
+                    opacity: GlobalStates.screenLocked ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Appearance.animation.elementMoveFast.duration
+                            easing.type: Appearance.animation.elementMoveFast.type
+                        }
+                    }
+                    sourceComponent: Component {
+                        LockSurface {
+                            context: LockContext
                         }
                     }
                 }
+            }
+        }
     }
 
-    // Save workspaces on lock / re-focus lock screen
+    // Save workspaces on lock / restore on unlock / re-focus lock screen
     Connections {
         target: GlobalStates
         function onScreenLockedChanged() {
             if (GlobalStates.screenLocked) {
                 // Save workspaces and push to temp workspace
                 var next = {}
-                var batch = ""
+                var batch = [HyprlandCompat.keywordStr("animation", "workspaces", '"1,7,default,slidevert"')]
                 for (var i = 0; i < Quickshell.screens.length; ++i) {
-                    var screen = Quickshell.screens[i]
-                    var mon = screen.name
-                    var monitor = Hyprland.monitorFor(screen)
-                    var ws = monitor?.activeWorkspace?.id ?? 1
+                    var mon = Quickshell.screens[i].name
+                    var mData = HyprlandData.monitors.find(m => m.name === mon)
+                    var ws = (mData?.activeWorkspace?.id ?? 1)
                     next[mon] = ws
-                    batch += `hyprctl dispatch '${HyprlandCompat.dspFocusMonitor(mon)}'; hyprctl dispatch '${HyprlandCompat.dspWorkspace(2147483647 - ws)}';`
+                    batch.push("dispatch " + HyprlandCompat.dspFocusMonitor(mon))
+                    batch.push("dispatch " + HyprlandCompat.dspWorkspace(2147483647 - ws))
                 }
                 root.savedWorkspaces = next
-                if (batch.length > 0) Quickshell.execDetached(["bash", "-c", batch])
+                batch.push("reload")
+                Quickshell.execDetached(HyprlandCompat.batch(batch))
                 // Reset auth state and try fingerprint
                 LockContext.reset()
                 LockContext.tryFingerUnlock()
@@ -107,8 +109,10 @@ Scope {
                 Quickshell.execDetached(["systemctl", "suspend"])
                 return
             }
-            // Unlock first, then restore workspaces after compositor settles
+            // Plain unlock
             GlobalStates.screenLocked = false
+            Quickshell.execDetached(["bash", "-c",
+                `sleep 0.2; hyprctl --batch "dispatch ${HyprlandCompat.dspToggleSpecial()} ; dispatch ${HyprlandCompat.dspToggleSpecial()}"`])
             LockContext.reset()
         }
     }
@@ -139,6 +143,10 @@ Scope {
 
         function focus(): void {
             LockContext.shouldReFocus()
+        }
+
+        function abortFingerPam(): void {
+            LockContext.stopFingerPam()
         }
     }
 }

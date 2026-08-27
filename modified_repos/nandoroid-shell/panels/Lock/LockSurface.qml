@@ -9,15 +9,13 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Qt5Compat.GraphicalEffects
+import QtQuick.Controls
 import "../NotificationCenter"
 import "../StatusBar"
 
 /**
- * Nandoroid lock screen surface — M3 Android 16 style (ii clone).
- * Features:
- * - Full-screen wallpaper with dark scrim
- * - Three "Surface Container" colored pills (islands)
- * - Password input with animated specific shapes (PasswordChars)
+ * Ported Zaphkiel "Kuru Kuru" lock screen surface.
+ * Retains NAnDoroid's status bar topbar exactly as shown when locked.
  */
 MouseArea {
     id: root
@@ -32,15 +30,56 @@ MouseArea {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(screen)
 
     function forceFieldFocus() { passwordInput.forceActiveFocus() }
+
+    property bool showPasswordCounter: false
+    property bool showFingerCounter: false
+
+    Timer {
+        id: passwordCounterTimer
+        interval: 1500
+        onTriggered: root.showPasswordCounter = false
+    }
+
+    Timer {
+        id: fingerCounterTimer
+        interval: 1500
+        onTriggered: root.showFingerCounter = false
+    }
+
     Connections {
         target: context
         function onShouldReFocus() { root.forceFieldFocus() }
+
+        function onPasswordFailCountChanged() {
+            if (root.context.passwordFailCount > 0) {
+                root.showPasswordCounter = true
+                passwordCounterTimer.restart()
+            } else {
+                root.showPasswordCounter = false
+            }
+        }
+
+        function onFingerFailCountChanged() {
+            if (root.context.fingerFailCount > 0) {
+                root.showFingerCounter = true
+                fingerCounterTimer.restart()
+            } else {
+                root.showFingerCounter = false
+            }
+        }
     }
 
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton
-    onPressed: forceFieldFocus()
-    onPositionChanged: forceFieldFocus()
+
+    onPressed: {
+        forceFieldFocus()
+        root.context.tryFingerUnlock()
+    }
+    onPositionChanged: {
+        forceFieldFocus()
+        root.context.tryFingerUnlock()
+    }
 
     property bool ctrlHeld: false
     Keys.onPressed: event => {
@@ -48,59 +87,381 @@ MouseArea {
         if (event.key === Qt.Key_Control) root.ctrlHeld = true
         if (event.key === Qt.Key_Escape)  root.context.currentText = ""
         forceFieldFocus()
+        root.context.tryFingerUnlock()
     }
     Keys.onReleased: event => {
         if (event.key === Qt.Key_Control) root.ctrlHeld = false
         forceFieldFocus()
     }
 
-    // Animations
-    property real islandOpacity: 0
-    property real islandScale: 0.95
-    property real islandYOffset: 30 * Appearance.effectiveScale
-    
-    Behavior on islandOpacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-    Behavior on islandScale   { NumberAnimation { duration: 400; easing.type: Easing.OutBack; easing.overshoot: 0.8 } }
-    Behavior on islandYOffset { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-
     Component.onCompleted: {
         forceFieldFocus()
-        islandOpacity = 1
-        islandScale = 1
-        islandYOffset = 0
     }
 
-    // ── Background Cava (v1.2 Wave Visualizer) ──
-    property bool _cavaActive: false
-    readonly property bool shouldVisualize: root.visible && MprisController.isPlaying && (Config.ready && Config.options.lock.showCava)
-    onShouldVisualizeChanged: {
-        if (shouldVisualize && !_cavaActive) {
-            CavaService.refCount++;
-            _cavaActive = true;
-        } else if (!shouldVisualize && _cavaActive) {
-            CavaService.refCount--;
-            _cavaActive = false;
+    // ── Wallpaper with Blur ──
+    Image {
+        id: wallpaper
+        anchors.fill: parent
+        z: -2
+        visible: false
+        source: {
+            if (!Config.ready) return ""
+            if (Config.options.lock.useSeparateWallpaper && Config.options.lock.wallpaperPath !== "") {
+                return Config.options.lock.wallpaperPath
+            }
+            return Config.options.appearance?.background?.wallpaperPath ?? ""
+        }
+        fillMode: Image.PreserveAspectCrop
+    }
+
+    FastBlur {
+        id: blurredWallpaper
+        anchors.fill: parent
+        source: wallpaper
+        z: -2
+        radius: (root.context.currentText.length > 0) ? 64 : 0
+
+        Behavior on radius {
+            NumberAnimation {
+                duration: 400
+                easing.type: Easing.InOutQuad
+            }
         }
     }
-    Component.onDestruction: {
-        if (_cavaActive) CavaService.refCount--;
+
+    // ── Barcode (Password Masking) ──
+    Item {
+        id: barcodeContainer
+        anchors.centerIn: parent
+        clip: true
+        z: -1
+        height: barcodeText.contentHeight
+        width: root.context.unlockInProgress ? 0 : barcodeText.contentWidth
+
+        Behavior on width {
+            NumberAnimation {
+                duration: 400
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        Text {
+            id: barcodeText
+            anchors.centerIn: parent
+            font.bold: true
+            font.family: "Libre Barcode 128"
+            font.pointSize: 300 * Appearance.effectiveScale
+            color: Appearance.colors.colPrimary
+            renderType: Text.NativeRendering
+            text: root.context.maskedText
+            visible: text.length > 0
+        }
     }
 
-    WaveVisualizer {
-        id: lockWave
+    // ── Foreground Isolated Image ──
+    Image {
+        id: fgCharacter
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectCrop
+        source: root.context.wallFg
+        visible: !root.context.fgGenerating && source !== ""
+        z: 0
+    }
+
+    // ── Foreground Isolation Toggle Button ──
+    MouseArea {
+        id: fgToggleButton
         anchors.bottom: parent.bottom
-        anchors.left: parent.left
         anchors.right: parent.right
-        height: parent.height * 0.6
-        z: -1 // Behind Jam and Password input
-        color: Appearance.lockM3colors.m3primary
-        opacityMultiplier: (Config.ready && Config.options.lock) ? Config.options.lock.cavaOpacity : 0.15
-        opacity: root.shouldVisualize ? root.islandOpacity : 0
-        visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.InOutQuad } }
+        anchors.margins: 48 * Appearance.effectiveScale
+        width: 56 * Appearance.effectiveScale
+        height: 56 * Appearance.effectiveScale
+        hoverEnabled: true
+        visible: Config.ready && Config.options.lock.showForegroundIsolationButton
+        z: 100 // Ensure it's clickable and visible above everything
+
+        MaterialSymbol {
+            anchors.centerIn: parent
+            text: root.context.wallFg !== "" ? "auto_awesome_mosaic" : "auto_awesome"
+            iconSize: 32 * Appearance.effectiveScale
+            color: Appearance.colors.colPrimary
+            opacity: fgToggleButton.containsMouse ? 1.0 : 0.2
+            visible: !root.context.fgGenerating
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+        }
+
+        BusyIndicator {
+            anchors.fill: parent
+            anchors.margins: 8 * Appearance.effectiveScale
+            running: root.context.fgGenerating
+            visible: root.context.fgGenerating
+        }
+
+        onClicked: {
+            if (!root.context.fgGenerating) {
+                root.context.toggleForegroundExtraction()
+            }
+        }
     }
 
-    // Scrim removed as requested
+    // ── Hidden TextInput for keyboard capture ──
+    TextInput {
+        id: passwordInput
+        anchors.fill: parent
+        color: "transparent"
+        cursorVisible: false
+        inputMethodHints: Qt.ImhSensitiveData
+        echoMode: TextInput.Normal
+        cursorDelegate: Item {}
+        clip: true
+        z: -3 // Behind wallpaper but still captures focus
+        readOnly: root.context.passwordLocked
+
+        onTextChanged: {
+            if (!root.context.passwordLocked)
+                root.context.currentText = text
+        }
+        onAccepted: {
+            if (!root.context.passwordLocked)
+                root.context.tryUnlock(root.ctrlHeld)
+        }
+        Keys.onPressed: event => {
+            if (!root.context.passwordLocked)
+                root.context.resetClearTimer()
+        }
+
+        Connections {
+            target: root.context
+            function onCurrentTextChanged() {
+                if (passwordInput.text !== root.context.currentText)
+                    passwordInput.text = root.context.currentText
+            }
+        }
+    }
+
+    // ── Input Pill (Zaphkiel minimal style) ──
+    Rectangle {
+        id: inputPill
+        anchors.centerIn: parent
+        z: 1
+        height: 44 * Appearance.effectiveScale
+        radius: height / 2
+        clip: true
+        color: root.context.showFailure ? Appearance.colors.colError : (root.context.unlockSuccess ? Appearance.m3colors.m3success : (root.context.unlockInProgress ? Appearance.colors.colPrimary : Appearance.m3colors.m3surfaceContainerHigh))
+
+        readonly property color contentColor: root.context.showFailure ? Appearance.colors.colOnError : (root.context.unlockSuccess ? Appearance.m3colors.m3onSuccess : (root.context.unlockInProgress ? Appearance.colors.colOnPrimary : Appearance.m3colors.m3onSurface))
+
+        Behavior on color {
+            ColorAnimation { duration: 200 }
+        }
+
+        implicitWidth: inputRow.implicitWidth + 24 * Appearance.effectiveScale
+        width: implicitWidth
+        Behavior on width {
+            NumberAnimation {
+                duration: 250
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        MouseArea {
+            id: pillMouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+
+            RowLayout {
+                id: inputRow
+                anchors.centerIn: parent
+                height: parent.height
+                spacing: 12 * Appearance.effectiveScale
+
+                // 1. Suspend Button (Visible on hover)
+                Item {
+                    Layout.fillHeight: true
+                    implicitWidth: parent.height - 8
+                    visible: pillMouseArea.containsMouse && !root.context.unlockInProgress
+
+                    MaterialSymbol {
+                        anchors.centerIn: parent
+                        text: "bedtime"
+                        iconSize: 18 * Appearance.effectiveScale
+                        color: inputPill.contentColor
+                        fill: 1
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            root.context.stopFingerPam()
+                            Quickshell.execDetached(["systemctl", "suspend"])
+                        }
+                    }
+                }
+
+                // 2. Lock Status Icon (Rotating when unlocking)
+                Item {
+                    id: lockIconContainer
+                    Layout.fillHeight: true
+                    implicitWidth: parent.height - 8
+
+                    MaterialSymbol {
+                        id: lockIcon
+                        anchors.centerIn: parent
+                        text: root.context.unlockSuccess ? "lock_open" : "lock"
+                        iconSize: 18 * Appearance.effectiveScale
+                        color: root.context.passwordLocked ? Appearance.colors.colError : inputPill.contentColor
+                        fill: (root.context.unlockInProgress || root.context.unlockSuccess) ? 1 : 0
+
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        Behavior on rotation {
+                            enabled: !root.context.unlockSuccess
+                            NumberAnimation {
+                                duration: lockRotatetimer.interval
+                                easing.type: Easing.Linear
+                            }
+                        }
+
+                        NumberAnimation {
+                            id: successSpinAnim
+                            target: lockIcon
+                            property: "rotation"
+                            from: lockIcon.rotation
+                            to: lockIcon.rotation + 360
+                            duration: 450
+                            running: root.context.unlockSuccess
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
+                    Timer {
+                        id: lockRotatetimer
+                        interval: 500
+                        repeat: true
+                        running: root.context.unlockInProgress && !root.context.unlockSuccess
+                        triggeredOnStart: true
+
+                        onRunningChanged: if (lockIcon.rotation < 180) {
+                            lockIcon.rotation = 360;
+                        } else {
+                            lockIcon.rotation = 0;
+                        }
+                        onTriggered: lockIcon.rotation += 50
+                    }
+
+                    // Password attempt counter below lock icon
+                    StyledText {
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 2 * Appearance.effectiveScale
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: root.context.passwordFailCount + "/5"
+                        font.pixelSize: 8 * Appearance.effectiveScale
+                        font.weight: Font.Bold
+                        color: root.context.passwordLocked ? Appearance.colors.colError : inputPill.contentColor
+                        opacity: root.showPasswordCounter ? 0.7 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                    }
+                }
+
+                // 3. Fingerprint Icon (Visible if fingerprints configured)
+                Item {
+                    Layout.fillHeight: true
+                    implicitWidth: parent.height - 8
+                    visible: root.context.fingerprintsConfigured && !root.context.unlockInProgress
+
+                    MaterialSymbol {
+                        id: fingerprintIcon
+                        anchors.centerIn: parent
+                        text: root.context.fingerLocked ? "block" : (reFingerTimer.running ? "fingerprint_off" : "fingerprint")
+                        iconSize: 18 * Appearance.effectiveScale
+                        color: (root.context.fingerFailed || root.context.fingerLocked || reFingerTimer.running)
+                            ? Appearance.colors.colError
+                            : inputPill.contentColor
+
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                    }
+
+                    Timer {
+                        id: reFingerTimer
+                        interval: 300
+                    }
+
+                    Connections {
+                        target: root.context
+                        function onFingerFailedChanged() {
+                            if (root.context.fingerFailed) {
+                                reFingerTimer.start()
+                            }
+                        }
+                    }
+
+                    // Fingerprint attempt counter below fingerprint icon
+                    StyledText {
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 2 * Appearance.effectiveScale
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: root.context.fingerFailCount + "/5"
+                        font.pixelSize: 8 * Appearance.effectiveScale
+                        font.weight: Font.Bold
+                        color: (root.context.fingerFailed || root.context.fingerLocked || reFingerTimer.running)
+                            ? Appearance.colors.colError
+                            : inputPill.contentColor
+                        opacity: root.showFingerCounter ? 0.7 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                    }
+                }
+
+                // 4. Submit / Login Button (Visible on hover and when password entered)
+                Item {
+                    Layout.fillHeight: true
+                    implicitWidth: parent.height - 8
+                    visible: pillMouseArea.containsMouse && !root.context.unlockInProgress && root.context.currentText.length > 0
+
+                    MaterialSymbol {
+                        anchors.centerIn: parent
+                        text: "login"
+                        iconSize: 18 * Appearance.effectiveScale
+                        color: inputPill.contentColor
+                        fill: 1
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            root.context.tryUnlock()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Shake Animation for Input Pill (Password failure only)
+    SequentialAnimation {
+        id: shakeAnim
+        running: root.context.showFailure
+        loops: 2
+        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: 0; to: -10 * Appearance.effectiveScale; duration: 75; easing.type: Easing.InOutSine }
+        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: -10 * Appearance.effectiveScale; to: 10 * Appearance.effectiveScale; duration: 150; easing.type: Easing.InOutSine }
+        NumberAnimation { target: inputPill; property: "anchors.horizontalCenterOffset"; from: 10 * Appearance.effectiveScale; to: 0; duration: 75; easing.type: Easing.InOutSine }
+    }
+
+    // Fingerprint / Password Lockout countdown and indicators
+    StyledText {
+        anchors.horizontalCenter: inputPill.horizontalCenter
+        anchors.top: inputPill.bottom
+        anchors.topMargin: 8 * Appearance.effectiveScale
+        z: 1
+        visible: root.context.passwordLocked || root.context.fingerLocked
+        text: root.context.passwordLocked
+            ? ("Try again in " + Math.floor(root.context.lockoutTimeRemaining / 60) + ":" + ("0" + root.context.lockoutTimeRemaining % 60).slice(-2))
+            : (root.context.fingerLocked ? "Fingerprint disabled" : "")
+        font.pixelSize: 11 * Appearance.effectiveScale
+        font.weight: Font.Medium
+        color: Appearance.colors.colError
+        opacity: 0.85
+
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+    }
 
     // ── Lockscreen Status Bar (Matching System Style) ──
     Item {
@@ -108,12 +469,10 @@ MouseArea {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        readonly property bool isM3: Config.ready && Config.options.statusBar?.moduleStyle === "m3"
-        readonly property bool notifIsLeft: (Config.ready && Config.options.notifications) ? Config.options.notifications.position === "left" : false
-        height: isM3 ? Math.round(48 * Appearance.effectiveScale) : Appearance.sizes.statusBarHeight
+        height: Appearance.sizes.statusBarHeight
         z: 10
 
-        readonly property bool isCentered: (!isM3 && Config.ready && Config.options.statusBar) ? Config.options.statusBar.layoutStyle === "centered" : false
+        readonly property bool isCentered: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.layoutStyle === "centered" : false
         readonly property real centeredWidth: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.centeredWidth * Appearance.effectiveScale : 1200 * Appearance.effectiveScale
         readonly property real sidePadding: isCentered ? Math.round((parent.width - Math.min(centeredWidth, parent.width - 40 * Appearance.effectiveScale)) / 2) : 12 * Appearance.effectiveScale
         readonly property int cornerRadius: Math.round(((Config.ready && Config.options.statusBar?.backgroundCornerRadius) || 20) * Appearance.effectiveScale)
@@ -131,20 +490,8 @@ MouseArea {
         }
 
         // Selection of the final color based on actual visibility
-        property color contentColor: {
-            if (barBg.showBg) return Appearance.lockM3colors.m3onSurface;
-            const mode = Config.ready && Config.options.statusBar ? (Config.options.statusBar.textColorMode ?? "adaptive") : "adaptive";
-            if (mode === "dark") return "#1E1E1E";
-            if (mode === "light") return "#F5F5F5";
-            return Appearance.lockM3colors.m3onSurface; // adaptive
-        }
-        property color subtextColor: {
-            if (barBg.showBg) return Appearance.lockM3colors.m3onSurfaceVariant;
-            const mode = Config.ready && Config.options.statusBar ? (Config.options.statusBar.textColorMode ?? "adaptive") : "adaptive";
-            if (mode === "dark") return "#1E1E1E";
-            if (mode === "light") return "#F5F5F5";
-            return Appearance.lockM3colors.m3onSurfaceVariant; // adaptive
-        }
+        property color contentColor: barBg.showBg ? Appearance.m3colors.m3onSurface : Appearance.colors.colStatusBarText
+        property color subtextColor: barBg.showBg ? Appearance.m3colors.m3onSurfaceVariant : Appearance.colors.colStatusBarSubtext
 
         Behavior on contentColor { ColorAnimation { duration: 300 } }
         Behavior on subtextColor { ColorAnimation { duration: 300 } }
@@ -152,7 +499,6 @@ MouseArea {
         // 1. Solid background (follows system config)
         Rectangle {
             id: barBg
-            visible: !lockStatusBarContainer.isM3
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
             
@@ -162,7 +508,7 @@ MouseArea {
             height: parent.height + (lockStatusBarContainer.isCentered && showBg ? lockStatusBarContainer.cornerRadius : 0)
             anchors.topMargin: (lockStatusBarContainer.isCentered && showBg) ? -lockStatusBarContainer.cornerRadius : 0
             
-            color: showBg ? Appearance.lockM3colors.m3surfaceContainerLow : "transparent"
+            color: showBg ? Appearance.colors.colStatusBarSolid : "transparent"
             radius: (lockStatusBarContainer.isCentered && showBg) ? lockStatusBarContainer.cornerRadius : 0
 
             Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
@@ -213,7 +559,7 @@ MouseArea {
             }
             height: parent.height
             color: "transparent"
-            opacity: !lockStatusBarContainer.isM3 && !barBg.showBg && (Config.ready && Config.options.statusBar ? (Config.options.statusBar.useGradient ?? true) : true) ? 1.0 : 0.0
+            opacity: !barBg.showBg && (Config.ready && Config.options.statusBar ? (Config.options.statusBar.useGradient ?? true) : true) ? 1.0 : 0.0
             Behavior on opacity { NumberAnimation { duration: 300 } }
             
             gradient: Gradient {
@@ -228,7 +574,6 @@ MouseArea {
 
         Rectangle {
             id: lockIndicatorPill
-            visible: !lockStatusBarContainer.isM3
             anchors.horizontalCenter: parent.horizontalCenter
             
             // Idle: y=6, height=28. Waterdrop: y=0, height=34.
@@ -274,112 +619,30 @@ MouseArea {
                 }
                 StyledText {
                     text: "Locked"
-                    font.pixelSize: Math.round(12 * Appearance.effectiveScale)
+                    font.pixelSize: 12 * Appearance.effectiveScale
                     font.weight: Font.DemiBold
                     color: Appearance.colors.colNotchText
                 }
             }
         }
 
-        // 4. Content (Base Style)
+        // 4. Content
         Item {
             id: lockStatusBarContent
-            visible: !lockStatusBarContainer.isM3
             anchors.fill: parent
             
-            // Left: User (photo + name) + Network + (Notifications when position=left)
+            // Left: User + Network
             RowLayout {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.leftMargin: lockStatusBarContainer.sidePadding + (lockStatusBarContainer.isCentered ? 12 * Appearance.effectiveScale : 0)
                 spacing: 8 * Appearance.effectiveScale
-                // Notifications (when position is left)
-                Item {
-                    visible: Notifications.unread > 0 && lockStatusBarContainer.notifIsLeft
-                    width: 20 * Appearance.effectiveScale; height: 20 * Appearance.effectiveScale
-                    MaterialSymbol {
-                        id: lockBellIconLeft
-                        anchors.centerIn: parent
-                        text: "notifications_active"
-                        iconSize: 16 * Appearance.effectiveScale
-                        fill: 1
-                        color: lockStatusBarContainer.contentColor
-                    }
-                    Rectangle {
-                        anchors.top: parent.top
-                        anchors.right: parent.right
-                        anchors.topMargin: -2 * Appearance.effectiveScale
-                        anchors.rightMargin: -2 * Appearance.effectiveScale
-                        width: Math.max(12 * Appearance.effectiveScale, badgeTextLeft.implicitWidth + 4 * Appearance.effectiveScale)
-                        height: 12 * Appearance.effectiveScale
-                        radius: 6 * Appearance.effectiveScale
-                        color: lockBellIconLeft.color
-                        StyledText {
-                            id: badgeTextLeft
-                            anchors.centerIn: parent
-                            text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
-                            font.pixelSize: Math.round(8 * Appearance.effectiveScale)
-                            font.weight: Font.DemiBold
-                            color: Functions.ColorUtils.getContrastingTextColor(lockBellIconLeft.color)
-                        }
-                    }
-                }
-
-                // Avatar photo (circular)
-                Item {
-                    id: baseAvatarContainer
-                    width: 20 * Appearance.effectiveScale
-                    height: 20 * Appearance.effectiveScale
-                    Layout.alignment: Qt.AlignVCenter
-
-                    Image {
-                        id: baseAvatarImage
-                        anchors.fill: parent
-                        source: {
-                            const profPath = Config.options.profile?.avatarPicture;
-                            if (profPath && profPath !== "") return "file://" + profPath;
-                            const cfgPath = Config.options.bar?.avatar_path;
-                            if (cfgPath && cfgPath !== "") return `file://${cfgPath}`;
-                            if (SystemInfo.userAvatarValid) return "file://" + SystemInfo.userAvatarPath;
-                            return "";
-                        }
-                        sourceSize: Qt.size(width, height)
-                        fillMode: Image.PreserveAspectCrop
-                        visible: false
-                    }
-                    Rectangle {
-                        id: baseAvatarMask
-                        anchors.fill: parent
-                        radius: width / 2
-                        visible: false
-                    }
-                    OpacityMask {
-                        anchors.fill: parent
-                        source: baseAvatarImage
-                        maskSource: baseAvatarMask
-                        visible: baseAvatarImage.status === Image.Ready
-                    }
-                    MaterialSymbol {
-                        anchors.centerIn: parent
-                        visible: baseAvatarImage.status !== Image.Ready
-                        text: "person"
-                        iconSize: 16 * Appearance.effectiveScale
-                        fill: 1
-                        color: lockStatusBarContainer.contentColor
-                    }
-                }
-
                 StyledText {
-                    text: {
-                        const displayName = Config.options.profile?.displayName;
-                        const name = (displayName && displayName !== "") ? displayName : (SystemInfo.realName || SystemInfo.username);
-                        return name + "  •  " + (Network.wifiEnabled ? (Network.networkName || "Offline") : "WiFi Off");
-                    }
-                    font.pixelSize: Math.round(14 * Appearance.effectiveScale)
+                    text: SystemInfo.username + "  •  " + (Network.wifiEnabled ? (Network.networkName || "Offline") : "WiFi Off")
+                    font.pixelSize: 14 * Appearance.effectiveScale
                     font.weight: Font.Medium
                     color: lockStatusBarContainer.contentColor
                 }
-
             }
 
             // Right: System Icons
@@ -389,9 +652,9 @@ MouseArea {
                 anchors.rightMargin: 10 * Appearance.effectiveScale
                 spacing: 8 * Appearance.effectiveScale
 
-                // Notifications (when position is NOT left)
+                // Notifications
                 Item {
-                    visible: Notifications.unread > 0 && !lockStatusBarContainer.notifIsLeft
+                    visible: Notifications.unread > 0
                     width: 20 * Appearance.effectiveScale; height: 20 * Appearance.effectiveScale
                     MaterialSymbol {
                         id: lockBellIcon
@@ -414,20 +677,11 @@ MouseArea {
                             id: badgeText
                             anchors.centerIn: parent
                             text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
-                            font.pixelSize: Math.round(8 * Appearance.effectiveScale)
+                            font.pixelSize: 8 * Appearance.effectiveScale
                             font.weight: Font.DemiBold
-                            color: Functions.ColorUtils.getContrastingTextColor(lockBellIcon.color)
+                            color: barBg.showBg ? Appearance.m3colors.m3surface : Appearance.colors.colLayer0
                         }
                     }
-                }
-
-                // Volume / Speaker (always show, including muted)
-                MaterialSymbol {
-                    visible: Config.ready && Config.options.statusBar ? (Config.options.statusBar.showVolumeIndicator ?? true) : true
-                    text: Audio.muted || Audio.volume === 0 ? "volume_off" : (Audio.volume > 0.3 ? "volume_up" : "volume_down")
-                    iconSize: 16 * Appearance.effectiveScale
-                    fill: 1
-                    color: lockStatusBarContainer.contentColor
                 }
 
                 // WiFi
@@ -472,589 +726,6 @@ MouseArea {
                 anchors.verticalCenter: parent.verticalCenter
             }
         }
-
-        // 5. M3 Layout
-        Item {
-            id: lockM3StatusBar
-            visible: lockStatusBarContainer.isM3
-            anchors.fill: parent
-
-            // ── Left Cluster ──
-            Rectangle {
-                id: lockM3LeftCluster
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.leftMargin: lockStatusBarContainer.sidePadding
-                height: lockM3LeftRow.implicitHeight + (8 * Appearance.effectiveScale)
-                width: lockM3LeftRow.implicitWidth + (8 * Appearance.effectiveScale)
-                radius: height / 2
-                color: Appearance.lockM3colors.m3surfaceContainer
-
-                RowLayout {
-                    id: lockM3LeftRow
-                    anchors.centerIn: parent
-                    spacing: 4 * Appearance.effectiveScale
-
-                    // Notifications pill (when position is left)
-                    M3StatusWrapper {
-                        id: lockM3NotifLeftWrapper
-                        Layout.alignment: Qt.AlignVCenter
-                        show: Notifications.unread > 0 && lockStatusBarContainer.notifIsLeft
-                        m3Color: Appearance.lockM3colors.m3tertiaryContainer
-                        m3ContentColor: Appearance.lockM3colors.m3onTertiaryContainer
-
-                        Item {
-                            Layout.preferredWidth: lockM3BellIconLeft.width
-                            Layout.preferredHeight: lockM3BellIconLeft.height
-                            Layout.alignment: Qt.AlignVCenter
-
-                            MaterialSymbol {
-                                id: lockM3BellIconLeft
-                                anchors.centerIn: parent
-                                text: "notifications_active"
-                                iconSize: 16 * Appearance.effectiveScale
-                                fill: 1
-                                color: lockM3NotifLeftWrapper.contentColor
-                            }
-
-                            Rectangle {
-                                visible: Notifications.unread > 0
-                                anchors.top: parent.top
-                                anchors.right: parent.right
-                                anchors.topMargin: -2 * Appearance.effectiveScale
-                                anchors.rightMargin: -2 * Appearance.effectiveScale
-                                width: Math.max(12 * Appearance.effectiveScale, lockM3BadgeTextLeft.implicitWidth + 4 * Appearance.effectiveScale)
-                                height: 12 * Appearance.effectiveScale
-                                radius: 6 * Appearance.effectiveScale
-                                color: lockM3NotifLeftWrapper.contentColor
-
-                                StyledText {
-                                    id: lockM3BadgeTextLeft
-                                    anchors.centerIn: parent
-                                    text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
-                                    font.pixelSize: Math.round(8 * Appearance.effectiveScale)
-                                    font.weight: Font.DemiBold
-                                    color: lockM3NotifLeftWrapper.m3Color
-                                }
-                            }
-                        }
-                    }
-
-                    // Username pill (with circular avatar photo)
-                    M3StatusWrapper {
-                        id: lockM3UserWrapper
-                        Layout.alignment: Qt.AlignVCenter
-                        m3Color: Appearance.lockM3colors.m3primaryContainer
-                        m3ContentColor: Appearance.lockM3colors.m3onPrimaryContainer
-
-                        // Avatar photo (circular)
-                        Item {
-                            id: lockM3AvatarContainer
-                            width: 20 * Appearance.effectiveScale
-                            height: 20 * Appearance.effectiveScale
-                            Layout.alignment: Qt.AlignVCenter
-
-                            Image {
-                                id: lockM3AvatarImage
-                                anchors.fill: parent
-                                source: {
-                                    const profPath = Config.options.profile?.avatarPicture;
-                                    if (profPath && profPath !== "") return "file://" + profPath;
-                                    const cfgPath = Config.options.bar?.avatar_path;
-                                    if (cfgPath && cfgPath !== "") return `file://${cfgPath}`;
-                                    if (SystemInfo.userAvatarValid) return "file://" + SystemInfo.userAvatarPath;
-                                    return "";
-                                }
-                                sourceSize: Qt.size(width, height)
-                                fillMode: Image.PreserveAspectCrop
-                                visible: false
-                            }
-                            Rectangle {
-                                id: lockM3AvatarMask
-                                anchors.fill: parent
-                                radius: width / 2
-                                visible: false
-                            }
-                            OpacityMask {
-                                anchors.fill: parent
-                                source: lockM3AvatarImage
-                                maskSource: lockM3AvatarMask
-                                visible: lockM3AvatarImage.status === Image.Ready
-                            }
-                            MaterialSymbol {
-                                anchors.centerIn: parent
-                                visible: lockM3AvatarImage.status !== Image.Ready
-                                text: "person"
-                                iconSize: 16 * Appearance.effectiveScale
-                                fill: 1
-                                color: lockM3UserWrapper.contentColor
-                            }
-                        }
-
-                        StyledText {
-                            text: {
-                                const displayName = Config.options.profile?.displayName;
-                                if (displayName && displayName !== "") return displayName;
-                                return SystemInfo.realName || SystemInfo.username;
-                            }
-                            font.pixelSize: Appearance.font.pixelSize.small
-                            font.weight: Font.Medium
-                            color: lockM3UserWrapper.contentColor
-                        }
-                    }
-
-                    // Network pill
-                    M3StatusWrapper {
-                        id: lockM3NetworkWrapper
-                        Layout.alignment: Qt.AlignVCenter
-                        m3Color: Appearance.lockM3colors.m3secondaryContainer
-                        m3ContentColor: Appearance.lockM3colors.m3onSecondaryContainer
-
-                        StyledText {
-                            text: Network.wifiEnabled ? (Network.networkName || "Offline") : "WiFi Off"
-                            font.pixelSize: Appearance.font.pixelSize.small
-                            font.weight: Font.Medium
-                            color: lockM3NetworkWrapper.contentColor
-                        }
-                    }
-
-
-                }
-            }
-
-            // ── Center Cluster ──
-            Rectangle {
-                id: lockM3CenterCluster
-                anchors.centerIn: parent
-
-                readonly property real padding: Math.round(4 * Appearance.effectiveScale)
-
-                height: Math.round(32 * Appearance.effectiveScale) + (padding * 2)
-                width: lockM3LockWrapper.implicitWidth + (padding * 2)
-                radius: height / 2
-                color: Appearance.lockM3colors.m3surfaceContainer
-
-                M3StatusWrapper {
-                    id: lockM3LockWrapper
-                    anchors.centerIn: parent
-                    m3Color: "black"
-                    m3ContentColor: "white"
-
-                    MaterialSymbol {
-                        text: "lock"
-                        iconSize: 14 * Appearance.effectiveScale
-                        fill: 1
-                        color: lockM3LockWrapper.contentColor
-                    }
-                    StyledText {
-                        text: "Locked"
-                        font.pixelSize: Math.round(12 * Appearance.effectiveScale)
-                        font.weight: Font.DemiBold
-                        color: lockM3LockWrapper.contentColor
-                    }
-                }
-            }
-
-            // ── Right Cluster ──
-            Rectangle {
-                id: lockM3RightCluster
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.rightMargin: lockStatusBarContainer.sidePadding
-                height: lockM3RightRow.implicitHeight + (8 * Appearance.effectiveScale)
-                width: lockM3RightRow.implicitWidth + (8 * Appearance.effectiveScale)
-                radius: height / 2
-                color: Appearance.lockM3colors.m3surfaceContainer
-
-                RowLayout {
-                    id: lockM3RightRow
-                    anchors.centerIn: parent
-                    spacing: 4 * Appearance.effectiveScale
-
-
-
-                    // Battery pill (terpisah, m3primaryContainer)
-                    M3StatusWrapper {
-                        id: lockM3BatteryWrapper
-                        Layout.alignment: Qt.AlignVCenter
-                        show: Battery.available
-                        m3Color: Appearance.lockM3colors.m3primaryContainer
-                        m3ContentColor: Appearance.lockM3colors.m3onPrimaryContainer
-
-                        BatteryIndicator {
-                            Layout.alignment: Qt.AlignVCenter
-                            color: lockM3BatteryWrapper.contentColor
-                        }
-                    }
-
-                    // System icons pill (Notif + Volume + WiFi + BT + DND)
-                    M3StatusWrapper {
-                        id: lockM3SystemWrapper
-                        Layout.alignment: Qt.AlignVCenter
-                        m3Color: Appearance.lockM3colors.m3tertiaryContainer
-                        m3ContentColor: Appearance.lockM3colors.m3onTertiaryContainer
-
-                        Item {
-                            visible: Notifications.unread > 0 && !lockStatusBarContainer.notifIsLeft
-                            Layout.preferredWidth: lockM3BellIcon.width
-                            Layout.preferredHeight: lockM3BellIcon.height
-                            Layout.alignment: Qt.AlignVCenter
-
-                            MaterialSymbol {
-                                id: lockM3BellIcon
-                                anchors.centerIn: parent
-                                text: "notifications_active"
-                                iconSize: 16 * Appearance.effectiveScale
-                                fill: 1
-                                color: lockM3SystemWrapper.contentColor
-                            }
-
-                            Rectangle {
-                                anchors.top: parent.top
-                                anchors.right: parent.right
-                                anchors.topMargin: -2 * Appearance.effectiveScale
-                                anchors.rightMargin: -2 * Appearance.effectiveScale
-                                width: Math.max(12 * Appearance.effectiveScale, lockM3BadgeText.implicitWidth + 4 * Appearance.effectiveScale)
-                                height: 12 * Appearance.effectiveScale
-                                radius: 6 * Appearance.effectiveScale
-                                color: lockM3SystemWrapper.contentColor
-
-                                StyledText {
-                                    id: lockM3BadgeText
-                                    anchors.centerIn: parent
-                                    text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
-                                    font.pixelSize: Math.round(8 * Appearance.effectiveScale)
-                                    font.weight: Font.DemiBold
-                                    color: lockM3SystemWrapper.m3Color
-                                }
-                            }
-                        }
-
-                        // Volume (selalu visible sesuai showVolumeIndicator)
-                        MaterialSymbol {
-                            visible: Config.ready && Config.options.statusBar ? (Config.options.statusBar.showVolumeIndicator ?? true) : true
-                            text: Audio.muted || Audio.volume === 0 ? "volume_off" : (Audio.volume > 0.3 ? "volume_up" : "volume_down")
-                            iconSize: 16 * Appearance.effectiveScale
-                            fill: 1
-                            color: lockM3SystemWrapper.contentColor
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-
-                        MaterialSymbol {
-                            text: Network.materialSymbol
-                            iconSize: 16 * Appearance.effectiveScale
-                            fill: 1
-                            color: lockM3SystemWrapper.contentColor
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-
-                        RowLayout {
-                            visible: BluetoothStatus.available
-                            spacing: 2 * Appearance.effectiveScale
-                            Layout.alignment: Qt.AlignVCenter
-                            MaterialSymbol {
-                                text: BluetoothStatus.materialSymbol
-                                iconSize: 16 * Appearance.effectiveScale
-                                fill: BluetoothStatus.connected ? 1 : 0
-                                color: lockM3SystemWrapper.contentColor
-                            }
-                        }
-
-                        MaterialSymbol {
-                            visible: Notifications.silent
-                            text: "notifications_paused"
-                            iconSize: 16 * Appearance.effectiveScale
-                            fill: 1
-                            color: lockM3SystemWrapper.contentColor
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-                    }
-
-                    // Privacy pill (only when active)
-                    M3StatusWrapper {
-                        id: lockM3PrivacyWrapper
-                        Layout.alignment: Qt.AlignVCenter
-                        show: Privacy.anyActive
-                        m3Color: Appearance.lockM3colors.m3primary
-                        m3ContentColor: Appearance.lockM3colors.m3onPrimary
-
-                        MaterialSymbol {
-                            visible: Privacy.microphoneActive
-                            text: "mic"
-                            iconSize: 16 * Appearance.effectiveScale
-                            fill: 1
-                            color: lockM3PrivacyWrapper.contentColor
-                        }
-                        MaterialSymbol {
-                            visible: Privacy.cameraActive
-                            text: "videocam"
-                            iconSize: 16 * Appearance.effectiveScale
-                            fill: 1
-                            color: lockM3PrivacyWrapper.contentColor
-                        }
-                        MaterialSymbol {
-                            visible: Privacy.screensharingActive
-                            text: "screen_share"
-                            iconSize: 16 * Appearance.effectiveScale
-                            fill: 1
-                            color: lockM3PrivacyWrapper.contentColor
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // ── Clock & Weather Cluster ──
-    Column {
-        anchors.centerIn: parent
-        // Offset slightly up to make room for media and password if they feel crowded, 
-        // but user asked for "exactly in center" so we start with 0 offset.
-        spacing: 20 * Appearance.effectiveScale
-
-        NandoClock {
-            id: lockClock
-            color: Appearance.lockM3colors.m3onSurface
-            isLockscreen: true
-            anchors.horizontalCenter: parent.horizontalCenter
-            x: 0; y: 0 // Override NandoClock's internal x/y centering
-        }
-
-        // Weather (Adaptive color)
-        ColumnLayout {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 6 * Appearance.effectiveScale
-            visible: Config.ready && (Config.options.weather?.enable ?? true) && (Config.options.lock?.showWeather ?? true)
-
-            RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 12 * Appearance.effectiveScale
-                CustomIcon {
-                    source: Weather.current.icon
-                    iconFolder: "assets/icons/google-weather"
-                    width: 32 * Appearance.effectiveScale; height: 32 * Appearance.effectiveScale
-                    colorize: false
-                    Layout.alignment: Qt.AlignVCenter
-                }
-                StyledText {
-                    text: Weather.current.temp + "°"
-                    font.pixelSize: Math.round(32 * Appearance.effectiveScale)
-                    font.weight: Font.Medium
-                    color: Appearance.colors.colLockscreenWeatherText
-                    Layout.alignment: Qt.AlignVCenter
-                }
-            }
-
-            StyledText {
-                Layout.alignment: Qt.AlignHCenter
-                text: Weather.current.condition
-                font.pixelSize: Math.round(15 * Appearance.effectiveScale)
-                font.weight: Font.Normal
-                color: Appearance.colors.colLockscreenWeatherSubtext
-            }
-        }
-    }
-
-    // ── Components ──
-    component Pill: Rectangle {
-        default property alias contents: innerRow.data
-        property alias rowSpacing: innerRow.spacing
-        
-        implicitHeight: Math.min(56 * Appearance.effectiveScale, Quickshell.screens[0].height * 0.08)
-        implicitWidth: innerRow.implicitWidth + (16 * Appearance.effectiveScale)
-        radius: height / 2
-        color: Appearance.lockM3colors.m3surfaceContainer
-        
-        StyledRectangularShadow {
-            target: parent
-            z: -1
-            offset: Qt.vector2d(0, 4 * Appearance.effectiveScale)
-            blur: 10 * Appearance.effectiveScale
-            // Tailwind shadow-md approximation (slightly darker for dark bg)
-            color: Qt.rgba(0, 0, 0, 0.25)
-        }
-
-        RowLayout { 
-            id: innerRow
-            anchors.fill: parent
-            anchors.margins: 8 * Appearance.effectiveScale // Padding 8
-            spacing: 4 * Appearance.effectiveScale
-        }
-    }
-
-    component PowerBtn: RippleButton {
-        id: pb
-        required property int targetAction
-        required property string btnIcon
-        property bool isActive: root.context.targetAction === pb.targetAction
-        
-        Layout.alignment: Qt.AlignVCenter
-        implicitWidth: 40 * Appearance.effectiveScale; implicitHeight: 40 * Appearance.effectiveScale; buttonRadius: 20 * Appearance.effectiveScale
-        
-        colBackground: isActive ? Appearance.lockM3colors.m3primary : "transparent"
-        colBackgroundHover: isActive ? Qt.darker(Appearance.lockM3colors.m3primary, 1.1) : Functions.ColorUtils.mix(Appearance.lockM3colors.m3surfaceContainer, Appearance.lockM3colors.m3onSurface, 0.90)
-        onClicked: {
-                if (!root.requirePasswordToPower) {
-                root.context.unlocked(pb.targetAction); return
-            }
-            if (root.context.targetAction === pb.targetAction) {
-                root.context.resetTargetAction()
-            } else {
-                root.context.targetAction = pb.targetAction
-                root.context.shouldReFocus()
-            }
-        }
-        MaterialSymbol {
-            anchors.centerIn: parent
-            text: pb.btnIcon
-            iconSize: 20 * Appearance.effectiveScale
-            color: pb.isActive ? Appearance.lockM3colors.m3onPrimary : Appearance.lockM3colors.m3onSurfaceVariant
-        }
-    }
-
-    // ── Media Card ──
-    MediaCard {
-        id: lockMediaCard
-        showVisualizer: false
-        isLockscreen: true
-        anchors.bottom: bottomIsland.top
-        anchors.bottomMargin: 24 * Appearance.effectiveScale
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(400 * Appearance.effectiveScale, parent.width * 0.9)
-        scale: root.islandScale
-        opacity: (Config.ready && Config.options.lock.showMediaCard) ? root.islandOpacity * (MprisController.activePlayer ? 1 : 0) : 0
-        visible: opacity > 0
-        y: root.islandYOffset
-        
-        Behavior on opacity { NumberAnimation { duration: 300 } }
-    }
-
-    // ── Bottom Island (Password Only) ──
-    Pill {
-        id: bottomIsland
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-            bottom: parent.bottom
-            bottomMargin: 32 * Appearance.effectiveScale
-        }
-        
-        // Match MediaCard width with responsiveness
-        implicitWidth: Math.min(400 * Appearance.effectiveScale, parent.width * 0.9)
-        scale: root.islandScale
-        opacity: root.islandOpacity
-        y: root.islandYOffset
-
-        // Fingerprint
-        Loader {
-            active: root.context.fingerprintsConfigured
-            visible: active
-            Layout.alignment: Qt.AlignVCenter
-            Layout.leftMargin: 6 * Appearance.effectiveScale
-            sourceComponent: MaterialSymbol {
-                text: "fingerprint"
-                iconSize: Appearance.font.pixelSize.huge
-                color: Appearance.lockM3colors.m3primary
-            }
-        }
-
-        // Input
-        Rectangle {
-            id: inputWrapper
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            color: Appearance.lockM3colors.m3surfaceContainerLow
-            radius: height / 2
-
-            TextInput {
-                id: passwordInput
-                anchors.fill: parent
-                verticalAlignment: TextInput.AlignVCenter
-                
-                font.pixelSize: Appearance.font.pixelSize.small
-                color: "transparent"
-                cursorVisible: false
-                inputMethodHints: Qt.ImhSensitiveData
-                echoMode: TextInput.Normal
-                cursorDelegate: Item {}
-                clip: true
-                padding: 12 * Appearance.effectiveScale
-
-                onTextChanged: root.context.currentText = text
-                onAccepted:    root.context.tryUnlock(root.ctrlHeld)
-                Keys.onPressed: event => root.context.resetClearTimer()
-
-                Connections {
-                    target: root.context
-                    function onCurrentTextChanged() {
-                        if (passwordInput.text !== root.context.currentText)
-                            passwordInput.text = root.context.currentText
-                    }
-                }
-
-                PasswordChars {
-                    anchors.fill: parent
-                    active: passwordInput.activeFocus
-                    length: root.context.currentText.length
-                    selectionStart: passwordInput.selectionStart
-                    selectionEnd: passwordInput.selectionEnd
-                    cursorPosition: passwordInput.cursorPosition
-                    
-                    charSize: 18 * Appearance.effectiveScale
-                    selectionColor: Appearance.lockM3colors.m3secondary
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    visible: passwordInput.text.length === 0
-                    text: GlobalStates.screenUnlockFailed ? "Incorrect password" : "Enter password"
-                    font.pixelSize: Appearance.font.pixelSize.small
-                    font.family: Appearance.font.family.main
-                    color: GlobalStates.screenUnlockFailed ? Appearance.lockM3colors.m3error : Appearance.lockM3colors.m3onSurfaceVariant
-                }
-            }
-            
-            // Shake
-             SequentialAnimation {
-                id: shakeAnim
-                NumberAnimation { target: inputWrapper; property: "Layout.leftMargin"; to: -10 * Appearance.effectiveScale; duration: 50 }
-                NumberAnimation { target: inputWrapper; property: "Layout.leftMargin"; to:  10 * Appearance.effectiveScale; duration: 50 }
-                NumberAnimation { target: inputWrapper; property: "Layout.leftMargin"; to:  -5 * Appearance.effectiveScale; duration: 50 }
-                NumberAnimation { target: inputWrapper; property: "Layout.leftMargin"; to:   5 * Appearance.effectiveScale; duration: 50 }
-                NumberAnimation { target: inputWrapper; property: "Layout.leftMargin"; to:   0; duration: 50 }
-            }
-            Connections {
-                target: GlobalStates
-                function onScreenUnlockFailedChanged() {
-                    if (GlobalStates.screenUnlockFailed) shakeAnim.restart()
-                }
-            }
-        }
-
-        // Main Action Button (Unlock)
-        RippleButton {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: 0
-            implicitWidth: 64 * Appearance.effectiveScale; implicitHeight: 40 * Appearance.effectiveScale; buttonRadius: 20 * Appearance.effectiveScale
-            
-            colBackground: root.context.unlockInProgress 
-                ? Appearance.lockM3colors.m3surfaceContainerHigh 
-                : Appearance.lockM3colors.m3primary
-            colBackgroundHover: root.context.unlockInProgress
-                ? Appearance.lockM3colors.m3surfaceContainerHigh
-                : Qt.darker(Appearance.lockM3colors.m3primary, 1.1)
-
-            enabled: !root.context.unlockInProgress
-            onClicked: root.context.tryUnlock()
-
-            MaterialSymbol {
-                anchors.centerIn: parent
-                iconSize: 22 * Appearance.effectiveScale
-                text: root.context.unlockInProgress ? "progress_activity" : "arrow_right_alt"
-                color: root.context.unlockInProgress
-                    ? Appearance.lockM3colors.m3onSurfaceVariant
-                    : Appearance.lockM3colors.m3onPrimary
-            }
-        }
     }
 
     // ── Screen Rounding (Matching system config) ──
@@ -1090,4 +761,129 @@ MouseArea {
         z: 100
         visible: Config.ready && (Config.options.appearance?.screenCorners?.mode ?? 1) !== 0
     }
+
+    // ── Lock Screen Media Panel (matching Dynamic Island hover HUD style) ──
+    Rectangle {
+        id: lockMediaPanel
+        
+        readonly property string notchStyle: Config.ready && Config.options.media ? (Config.options.media.notchMediaStyle ?? "mini") : "mini"
+        readonly property bool isFull: notchStyle === "full"
+        
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 48 * Appearance.effectiveScale
+        anchors.horizontalCenter: parent.horizontalCenter
+        
+        width: isFull ? Math.min(450 * Appearance.effectiveScale, parent.width * 0.9) : Math.min(320 * Appearance.effectiveScale, parent.width * 0.9)
+        height: isFull ? 118 * Appearance.effectiveScale : (miniLayout.implicitHeight + (12 * Appearance.effectiveScale))
+        color: isFull ? "transparent" : "black"
+        radius: Appearance.rounding.button
+        z: 50 // Above wallpaper and characters, but below corners/status bar
+        
+        visible: MprisController.activePlayer !== null
+
+        // --- Style 1: Mini HUD ---
+        RowLayout {
+            id: miniLayout
+            visible: !lockMediaPanel.isFull
+            anchors.fill: parent
+            anchors.margins: 8 * Appearance.effectiveScale
+            spacing: 10 * Appearance.effectiveScale
+
+            // ── 1. Art with Play/Pause Overlay ──
+            MaterialShape {
+                width: 36 * Appearance.effectiveScale; height: 36 * Appearance.effectiveScale
+                shape: MaterialShape.Shape.Circle
+                image: MprisController.displayedArtFilePath || ""
+                color: Appearance.colors.colLayer2
+                
+                // Semi-transparent overlay for contrast
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 18 * Appearance.effectiveScale
+                    color: "black"
+                    opacity: (MprisController.displayedArtFilePath && MprisController.displayedArtFilePath.toString() !== "") ? 0.35 : 0
+                    visible: opacity > 0
+                }
+
+                MaterialSymbol {
+                    anchors.centerIn: parent
+                    text: "music_note"
+                    iconSize: 18 * Appearance.effectiveScale
+                    fill: 1
+                    visible: !MprisController.displayedArtFilePath || MprisController.displayedArtFilePath.toString() === ""
+                    color: Appearance.colors.colNotchText
+                }
+
+                // Play/Pause Overlay
+                MaterialSymbol {
+                    anchors.centerIn: parent
+                    text: MprisController.isPlaying ? "pause" : "play_arrow"
+                    iconSize: 24 * Appearance.effectiveScale
+                    fill: 1
+                    color: "white"
+                    opacity: 0.9
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: MprisController.togglePlaying()
+                }
+            }
+
+            // ── 2. Skip Previous ──
+            MaterialSymbol {
+                text: "skip_previous"; iconSize: 22 * Appearance.effectiveScale; fill: 1; color: Appearance.colors.colNotchText
+                opacity: MprisController.canGoPrevious ? 1 : 0.4
+                MouseArea { 
+                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor; 
+                    onClicked: MprisController.previous() 
+                }
+            }
+
+            // ── 3. Slider ──
+            StyledSlider {
+                id: progressSlider
+                Layout.fillWidth: true; Layout.preferredHeight: 14 * Appearance.effectiveScale
+                configuration: StyledSlider.Configuration.Wavy
+                wavy: MprisController.isPlaying
+                value: MprisController.length > 0 ? (MprisController.position / MprisController.length) : 0
+                highlightColor: MprisController.dynPrimary
+                trackColor: MprisController.dynSecondaryContainer
+                handleColor: MprisController.dynPrimary
+                onMoved: if (MprisController.activePlayer) MprisController.activePlayer.position = value * MprisController.activePlayer.length
+                
+                Connections {
+                    target: MprisController
+                    function onPositionChanged() {
+                        if (!progressSlider.pressed) {
+                            progressSlider.value = MprisController.length > 0 ? (MprisController.position / MprisController.length) : 0;
+                        }
+                    }
+                }
+            }
+
+            // ── 4. Skip Next ──
+            MaterialSymbol {
+                text: "skip_next"; iconSize: 22 * Appearance.effectiveScale; fill: 1; color: Appearance.colors.colNotchText
+                opacity: MprisController.canGoNext ? 1 : 0.4
+                MouseArea { 
+                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor;
+                    onClicked: MprisController.next() 
+                }
+            }
+        }
+
+        // --- Style 2: Full Media Card ---
+        Loader {
+            id: fullLoader
+            anchors.fill: parent
+            active: lockMediaPanel.isFull
+            visible: lockMediaPanel.isFull
+            sourceComponent: MediaCard {
+                radius: Appearance.rounding.button
+            }
+        }
+    }
 }
+

@@ -12,3 +12,5 @@
 [33m  WARN[97m quickshell.service.polkit.listener[0m: failed to register listener: GDBus.Error:org.freedesktop.PolicyKit1.Error.Failed: An authentication agent already exists for the given subject
 [33m  WARN[97m quickshell.service.polkit[0m: failed to register listener on path "/org/quickshell/PolkitAgent"
 [34m DEBUG[97m qml[0m: [WallpaperEngine] Cache loaded
+[33m  WARN[0m: Hyprland event socket error: QLocalSocket::PeerClosedError
+[33m  WARN[0m: The Wayland connection broke. Did the Wayland compositor die?
