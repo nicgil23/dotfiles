@@ -47,13 +47,13 @@ Item {
                         spacing: 24 * Appearance.effectiveScale
                         ColumnLayout {
                             spacing: 0
-                            StyledText { text: "DOWNLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: "#81C995" }
-                            StyledText { text: (SystemData.networkRxRate / (1024 * 1024)).toFixed(2) + " MB/s"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.Black; color: Appearance.m3colors.m3onSurface }
+                            StyledText { text: "DOWNLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: "#81C995" }
+                            StyledText { text: (SystemData.networkRxRate / (1024 * 1024)).toFixed(2) + " MB/s"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.DemiBold; color: Appearance.m3colors.m3onSurface }
                         }
                         ColumnLayout {
                             spacing: 0
-                            StyledText { text: "UPLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: "#FF8A65" }
-                            StyledText { text: (SystemData.networkTxRate / (1024 * 1024)).toFixed(2) + " MB/s"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.Black; color: Appearance.m3colors.m3onSurface; horizontalAlignment: Text.AlignRight }
+                            StyledText { text: "UPLOAD"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: "#FF8A65" }
+                            StyledText { text: (SystemData.networkTxRate / (1024 * 1024)).toFixed(2) + " MB/s"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.DemiBold; color: Appearance.m3colors.m3onSurface; horizontalAlignment: Text.AlignRight }
                         }
                     }
                 }

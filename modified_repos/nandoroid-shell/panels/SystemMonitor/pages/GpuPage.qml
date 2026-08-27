@@ -7,9 +7,12 @@ import ".."
 
 /**
  * GPU detail page for System Monitor.
+ * Formatted identically to CpuPage for design consistency and height symmetry.
  */
 Item {
     id: root
+
+    readonly property var currentGpu: SystemData.availableGpus.length > 0 ? SystemData.availableGpus[0] : null
 
     ColumnLayout {
         anchors.fill: parent
@@ -22,58 +25,89 @@ Item {
             font.weight: Font.DemiBold
         }
 
-        Repeater {
-            model: SystemData.hasValidGpuData ? SystemData.availableGpus : []
-            delegate: Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 180 * Appearance.effectiveScale
-                color: Appearance.colors.colLayer2
-                radius: 16 * Appearance.effectiveScale
-                border.width: 0
+        // Main GPU Card (Matching CpuPage dimensions, padding, and layout)
+        Rectangle {
+            visible: SystemData.hasValidGpuData
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            color: Appearance.colors.colLayer2
+            radius: 16 * Appearance.effectiveScale
+            border.width: 0
+            
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 20 * Appearance.effectiveScale
                 
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 20 * Appearance.effectiveScale
-                    spacing: 12 * Appearance.effectiveScale
-                    
-                    RowLayout {
-                        Layout.fillWidth: true
-                        ColumnLayout {
-                            StyledText { text: modelData.name; font.pixelSize: Appearance.font.pixelSize.large; font.weight: Font.DemiBold; color: Appearance.m3colors.m3primaryContainer }
-                            StyledText { text: modelData.vendor; color: Appearance.m3colors.m3onSurfaceVariant; font.pixelSize: Appearance.font.pixelSize.smaller }
+                RowLayout {
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        spacing: 0
+                        StyledText {
+                            text: root.currentGpu ? root.currentGpu.name : "GPU"
+                            font.pixelSize: Appearance.font.pixelSize.normal
+                            font.weight: Font.Medium
+                            color: Appearance.m3colors.m3onSurface
                         }
-                        Item { Layout.fillWidth: true }
-                        ColumnLayout {
-                            Layout.alignment: Qt.AlignRight
-                            StyledText { 
-                                text: modelData.temp > 0 ? modelData.temp + "°C" : "--°C"
-                                font.pixelSize: Appearance.font.pixelSize.huge
-                                font.weight: Font.Black
-                                color: modelData.temp > 80 ? Appearance.m3colors.m3error : Appearance.m3colors.m3onSurface
-                            }
-                            StyledText { text: "Temperature"; font.pixelSize: Appearance.font.pixelSize.smallest; color: Appearance.m3colors.m3onSurfaceVariant; horizontalAlignment: Text.AlignRight }
+                        StyledText { 
+                            text: root.currentGpu ? `${root.currentGpu.vendor} Graphics Engine` : "Graphics Card"
+                            color: Appearance.colors.colSubtext
+                            font.pixelSize: Appearance.font.pixelSize.smaller
                         }
                     }
-                    
-                    StyledText {
-                        text: "PCI ID: " + modelData.pciId
-                        font.pixelSize: Appearance.font.pixelSize.smallest
-                        color: Appearance.m3colors.m3onSurfaceVariant
+                    Item { Layout.fillWidth: true }
+                    StyledText { 
+                        text: root.currentGpu ? Math.round(root.currentGpu.usage || 0) + "%" : "0%"
+                        font.pixelSize: Math.round(32 * Appearance.effectiveScale)
+                        font.weight: Font.DemiBold
+                        color: Appearance.m3colors.m3tertiary
                     }
+                }
+                
+                PerformanceGraph {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    history: SystemData.gpuHistory
+                    lineColor: Appearance.m3colors.m3tertiary
+                    fillColor: Appearance.m3colors.m3tertiary
+                    maxValue: 100
+                }
+                
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 20 * Appearance.effectiveScale
                     
-                    Item { Layout.fillHeight: true }
-                    
-                    StyledText {
-                        text: (modelData.driver && modelData.driver !== "undefined") ? "System is using " + modelData.driver + " driver." : "System GPU driver loaded."
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.m3colors.m3onSurface
-                        font.italic: true
+                    ColumnLayout {
+                        spacing: 2 * Appearance.effectiveScale
+                        StyledText { text: "TEMPERATURE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
+                        StyledText {
+                            text: (root.currentGpu && root.currentGpu.temp > 0) ? Math.round(root.currentGpu.temp) + "°C" : "--°C"
+                            font.weight: Font.Medium
+                            font.pixelSize: Appearance.font.pixelSize.small
+                        }
+                    }
+
+                    ColumnLayout {
+                        spacing: 2 * Appearance.effectiveScale
+                        StyledText { text: "VENDOR"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
+                        StyledText {
+                            text: root.currentGpu ? root.currentGpu.vendor : "--"
+                            font.weight: Font.Medium
+                            font.pixelSize: Appearance.font.pixelSize.small
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    ColumnLayout {
+                        spacing: 2 * Appearance.effectiveScale
+                        StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
+                        StyledText { text: SystemData.uptime; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small; horizontalAlignment: Text.AlignRight }
                     }
                 }
             }
         }
-        
-        // Proper Fallback Card for layout consistency
+
+        // Fallback Card (Matching CpuPage height)
         Rectangle {
             visible: !SystemData.hasValidGpuData
             Layout.fillWidth: true
@@ -89,7 +123,7 @@ Item {
                 MaterialSymbol {
                     text: "videogame_asset_off"
                     iconSize: 48 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3outline
+                    color: Appearance.colors.colSubtext
                     Layout.alignment: Qt.AlignCenter
                 }
                 StyledText {
@@ -100,7 +134,7 @@ Item {
                     Layout.alignment: Qt.AlignCenter
                 }
                 StyledText {
-                    text: "Your GPU (likely integrated) does not report usage or temperature data to the system sensors."
+                    text: "Your GPU does not report usage or temperature data to system sensors."
                     font.pixelSize: Appearance.font.pixelSize.smaller
                     color: Appearance.m3colors.m3onSurfaceVariant
                     Layout.alignment: Qt.AlignCenter
@@ -110,7 +144,5 @@ Item {
                 }
             }
         }
-
-        Item { Layout.fillHeight: true }
     }
 }

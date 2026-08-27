@@ -39,36 +39,47 @@ Item {
             { file: "panels/Settings/pages/WallpaperStyle/WsThemeColor.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsLauncher.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsOverview.qml", pageIndex: 4 },
-            { file: "panels/Settings/pages/WallpaperStyle/WsClock.qml", pageIndex: 4 },
+            { file: "panels/Settings/pages/WallpaperStyle/WsOverview.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsLockscreen.qml", pageIndex: 4 },
+            { file: "panels/Settings/pages/WallpaperStyle/WsOverlay.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsStatusBar.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsDock.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsScreenDecor.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsTypography.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsWallpaperCycle.qml", pageIndex: 4 },
             { file: "panels/Settings/pages/WallpaperStyle/WsLauncherIcons.qml", pageIndex: 4 },
-            // System Page components (pageIndex: 5)
-            { file: "panels/Settings/pages/System/SystemSettings.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/System/SysDateTime.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/System/SysLanguage.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/System/SysScreenshot.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/System/SysPerformance.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/System/SysPower.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/System/SysDisk.qml", pageIndex: 5 },
-            { file: "panels/Settings/pages/System/SysSystemInterface.qml", pageIndex: 5 },
-            // Services Page components (pageIndex: 6)
-            { file: "panels/Settings/pages/Services/ServicesSettings.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/Services/ServicesWeather.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/Services/ServicesSearch.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/Services/ServicesNetwork.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/Services/ServicesMedia.qml", pageIndex: 6 },
-            { file: "panels/Settings/pages/Services/ServicesGitHub.qml", pageIndex: 6 },
-            // About Page components (pageIndex: 7)
-            { file: "panels/Settings/pages/About/AboutSettings.qml", pageIndex: 7 },
-            { file: "panels/Settings/pages/About/AboutCredits.qml", pageIndex: 7 },
-            { file: "panels/Settings/pages/About/AboutDependency.qml", pageIndex: 7 },
-            { file: "panels/Settings/pages/About/AboutUpdate.qml", pageIndex: 7 },
-            { file: "panels/Settings/pages/About/AboutMainView.qml", pageIndex: 7 }
+            { file: "panels/Settings/pages/WallpaperStyle/WsCava.qml", pageIndex: 4 },
+            // Widgets Page components (pageIndex: 5)
+            { file: "panels/Settings/pages/Widgets/WidgetsSettings.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/Widgets/WsAtAGlance.qml", pageIndex: 5 },
+            { file: "panels/Settings/pages/Widgets/WsCurrency.qml", pageIndex: 5 },
+            // System Page components (pageIndex: 6)
+            { file: "panels/Settings/pages/System/SystemSettings.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/System/SysDateTime.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/System/SysLanguage.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/System/SysScreenshot.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/System/SysPerformance.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/System/SysPower.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/System/SysDisk.qml", pageIndex: 6 },
+            { file: "panels/Settings/pages/System/SysSystemInterface.qml", pageIndex: 6 },
+            // Services Page components (pageIndex: 7)
+            { file: "panels/Settings/pages/Services/ServicesSettings.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/Services/ServicesWeather.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/Services/ServicesSearch.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/Services/ServicesNetwork.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/Services/ServicesMedia.qml", pageIndex: 7 },
+            { file: "panels/Settings/pages/Services/ServicesGitHub.qml", pageIndex: 7 },
+            // Profile Page components (pageIndex: 8)
+            { file: "panels/Settings/pages/Profile/ProfileSettings.qml", pageIndex: 8 },
+            { file: "panels/Settings/pages/Profile/PrAvatar.qml", pageIndex: 8 },
+            { file: "panels/Settings/pages/Profile/PrIdentity.qml", pageIndex: 8 },
+            { file: "panels/Settings/pages/Profile/PrPresets.qml", pageIndex: 8 },
+            // About Page components (pageIndex: 9)
+            { file: "panels/Settings/pages/About/AboutSettings.qml", pageIndex: 9 },
+            { file: "panels/Settings/pages/About/AboutCredits.qml", pageIndex: 9 },
+            { file: "panels/Settings/pages/About/AboutDependency.qml", pageIndex: 9 },
+            { file: "panels/Settings/pages/About/AboutUpdate.qml", pageIndex: 9 },
+            { file: "panels/Settings/pages/About/AboutMainView.qml", pageIndex: 9 }
         ])
     }
 
@@ -150,7 +161,7 @@ Item {
     }
 
     function getPageName(index) {
-        const names = ["Network", "Bluetooth", "Audio", "Display", "Style", "System", "Services", "About"]
+        const names = ["Network", "Bluetooth", "Audio", "Display", "Wallpaper & Style", "Widgets", "System", "Services", "Profile", "About"]
         return names[index] || "Unknown"
     }
 

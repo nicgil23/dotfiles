@@ -16,7 +16,7 @@ RowLayout {
     spacing: 16 * Appearance.effectiveScale
 
     property string srcLang: (Config.ready && Config.options.language && Config.options.language.translator) ? Config.options.language.translator.sourceLanguage : "auto"
-    property string targetLang: (Config.ready && Config.options.language && Config.options.language.translator) ? Config.options.language.translator.targetLanguage : "id"
+    property string targetLang: (Config.ready && Config.options.language && Config.options.language.translator) ? Config.options.language.translator.targetLanguage : "en"
 
     // Unified trigger logic
     function triggerTranslate() {
@@ -48,13 +48,13 @@ RowLayout {
             RowLayout {
                 Layout.fillWidth: true
                 MaterialSymbol { text: "translate"; iconSize: 22 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
-                StyledText { text: "Source"; font.pixelSize: 15 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colOnLayer1 }
+                StyledText { text: "Source"; font.pixelSize: Math.round(15 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: Appearance.colors.colOnLayer1 }
                 Item { Layout.fillWidth: true }
                 
                 StyledComboBox {
                     id: srcCombo
                     Layout.preferredWidth: 130 * Appearance.effectiveScale
-                    model: (TranslationService.availableLanguages && TranslationService.availableLanguages.length > 0) ? TranslationService.availableLanguages : ["auto", "id", "en", "ja", "zh", "ko", "fr", "de", "es", "it", "ru", "pt"]
+                    model: (TranslationService.availableLanguages && TranslationService.availableLanguages.length > 0) ? TranslationService.availableLanguages : ["auto", "en", "id", "ja", "zh", "ko", "fr", "de", "es", "it", "ru", "pt"]
                     text: root.srcLang
                     fontFamily: Appearance.font.family.monospace
                     onAccepted: (value) => {
@@ -73,7 +73,7 @@ RowLayout {
                     placeholderTextColor: Appearance.colors.colSubtext
                     color: Appearance.colors.colOnLayer1
                     font.family: Appearance.font.family.main
-                    font.pixelSize: 16 * Appearance.effectiveScale; wrapMode: Text.Wrap; background: null; selectByMouse: true
+                    font.pixelSize: Math.round(16 * Appearance.effectiveScale); wrapMode: Text.Wrap; background: null; selectByMouse: true
                     onTextChanged: {
                         if (activeFocus || text === "") root.triggerTranslate();
                     }
@@ -116,14 +116,14 @@ RowLayout {
 
             RowLayout {
                 Layout.fillWidth: true
-                StyledText { text: "Translation"; font.pixelSize: 15 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colPrimary }
+                StyledText { text: "Translation"; font.pixelSize: Math.round(15 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: Appearance.colors.colPrimary }
                 Item { Layout.fillWidth: true }
                 
                 StyledComboBox {
                     id: targetCombo
                     Layout.preferredWidth: 130 * Appearance.effectiveScale
                     model: {
-                        const base = (TranslationService.availableLanguages && TranslationService.availableLanguages.length > 0) ? TranslationService.availableLanguages : ["id", "en", "ja", "zh", "ko", "fr", "de", "es", "it", "ru", "pt"];
+                        const base = (TranslationService.availableLanguages && TranslationService.availableLanguages.length > 0) ? TranslationService.availableLanguages : ["en", "id", "ja", "zh", "ko", "fr", "de", "es", "it", "ru", "pt"];
                         return base.filter(l => l !== "auto");
                     }
                     text: root.targetLang
@@ -146,7 +146,7 @@ RowLayout {
                     placeholderTextColor: Appearance.colors.colSubtext
                     color: Appearance.colors.colOnLayer2
                     font.family: Appearance.font.family.main
-                    font.pixelSize: 18 * Appearance.effectiveScale; font.weight: Font.Medium; wrapMode: Text.Wrap; background: null; selectByMouse: true
+                    font.pixelSize: Math.round(18 * Appearance.effectiveScale); font.weight: Font.Medium; wrapMode: Text.Wrap; background: null; selectByMouse: true
                     
                     opacity: TranslationService.isTranslating ? 0.6 : 1.0
                     Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -164,7 +164,7 @@ RowLayout {
                         text: "sync"; iconSize: 14 * Appearance.effectiveScale; color: Appearance.colors.colPrimary
                         RotationAnimation on rotation { from: 0; to: 360; duration: 1000; loops: Animation.Infinite; running: parent.visible }
                     }
-                    StyledText { text: "Translating..."; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { text: "Translating..."; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colPrimary }
                 }
                 
                 Item { Layout.fillWidth: true }

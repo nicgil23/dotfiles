@@ -7,14 +7,11 @@ Item {
 
     property bool isLockscreen: false
     property bool interactive: true
-    signal requestContextMenu(real x, real y, bool isClock)
 
     property string style: {
         if (!Config.ready) return "digital"
-        if (isLockscreen && !Config.options.appearance.clock.useSameStyle) {
-            return Config.options.appearance.clock.styleLocked
-        }
-        return Config.options.appearance.clock.style
+        if (Config.options.appearance.clock.useSameStyle) return Config.options.appearance.clock.styleLocked
+        return isLockscreen ? Config.options.appearance.clock.styleLocked : Config.options.appearance.clock.style
     }
 
     property color color: Appearance.m3colors.m3onSurface
@@ -47,16 +44,14 @@ Item {
     }
 
     // Position the Item's (0,0) at the anchor target (Center + Offset)
-    x: isLockscreen ? x : (parentWidth / 2) + clockOffsetX
-    y: isLockscreen ? y : (parentHeight / 2 - height / 2) + clockOffsetY
+    x: isLockscreen ? ((parentWidth / 2) + clockOffsetX) : 0
+    y: isLockscreen ? ((parentHeight / 2 - height / 2) + clockOffsetY) : 0
     
     // Shift the item relative to its width based on alignment
     transform: Translate {
         x: {
             if (root.isLockscreen) return 0; // Fixed center on lockscreen
-            if (root.alignment === "left") return 0; // Anchor is at X (Left edge)
-            if (root.alignment === "right") return -root.width; // Anchor is at X (Right edge)
-            return -root.width / 2; // Anchor is at X (Center)
+            return 0; // When wrapped in AbstractWidget, alignment is handled by the wrapper or implicit layout
         }
     }
 
@@ -88,73 +83,7 @@ Item {
         }
     }
 
-    // Drag area - highest z, blocks background swipe
-    MouseArea {
-        id: dragArea
-        width: loader.item ? loader.item.implicitWidth : root.implicitWidth
-        height: loader.item ? loader.item.implicitHeight : root.implicitHeight
-        anchors.centerIn: parent
-        enabled: !root.isLockscreen
-        z: 100
-        cursorShape: (root.interactive && Config.ready && !Config.options.appearance.clock.locked) ? Qt.SizeAllCursor : Qt.ArrowCursor
-        hoverEnabled: true
-        preventStealing: true
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-        property real startWinX: 0
-        property real startWinY: 0
-        property real startOffsetX: 0
-        property real startOffsetY: 0
-        property bool dragging: false
-
-        onPressed: (mouse) => {
-            if (mouse.button === Qt.RightButton) {
-                const winPos = dragArea.mapToItem(null, mouse.x, mouse.y);
-                root.requestContextMenu(winPos.x, winPos.y, true);
-                mouse.accepted = true;
-                return;
-            }
-
-            if (!root.interactive) {
-                mouse.accepted = false;
-                return;
-            }
-
-            if (Config.ready && Config.options.appearance.clock.locked) {
-                mouse.accepted = false;
-                return;
-            }
-
-            if (mouse.button === Qt.LeftButton) {
-                const winPos = dragArea.mapToItem(null, mouse.x, mouse.y);
-                startWinX = winPos.x;
-                startWinY = winPos.y;
-                startOffsetX = Config.options.appearance.clock.offsetX;
-                startOffsetY = Config.options.appearance.clock.offsetY;
-                dragging = true;
-                mouse.accepted = true;
-            }
-        }
-
-        onPositionChanged: (mouse) => {
-            if (!dragging) return;
-            
-            const winPos = dragArea.mapToItem(null, mouse.x, mouse.y);
-            let dx = winPos.x - startWinX;
-            let dy = winPos.y - startWinY;
-            
-            Config.options.appearance.clock.offsetX = Math.round(startOffsetX + dx);
-            Config.options.appearance.clock.offsetY = Math.round(startOffsetY + dy);
-        }
-
-        onReleased: (mouse) => {
-            dragging = false;
-        }
-
-        onCanceled: {
-            dragging = false;
-        }
-    }
 
     Behavior on opacity { NumberAnimation { duration: 300 } }
 }

@@ -51,7 +51,7 @@ Item {
                         StyledText { 
                             text: ((SystemData.diskReadRate + SystemData.diskWriteRate) / (1024 * 1024)).toFixed(2) + " MB/s"
                             font.pixelSize: Appearance.font.pixelSize.huge
-                            font.weight: Font.Black
+                            font.weight: Font.DemiBold
                             color: Appearance.m3colors.m3onSurface
                         }
                     }
@@ -69,11 +69,11 @@ Item {
                     
                     ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
-                        StyledText { text: "READ"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
+                        StyledText { text: "READ"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
                         StyledText { 
                             text: (SystemData.diskReadRate / (1024 * 1024)).toFixed(2) + " MB/s"
                             font.pixelSize: Appearance.font.pixelSize.small
-                            font.weight: Font.DemiBold
+                            font.weight: Font.Medium
                             color: Appearance.m3colors.m3onSurface
                         }
                     }
@@ -82,11 +82,11 @@ Item {
                     
                     ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
-                        StyledText { text: "WRITE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
+                        StyledText { text: "WRITE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
                         StyledText { 
                             text: (SystemData.diskWriteRate / (1024 * 1024)).toFixed(2) + " MB/s"
                             font.pixelSize: Appearance.font.pixelSize.small
-                            font.weight: Font.DemiBold
+                            font.weight: Font.Medium
                             color: Appearance.m3colors.m3onSurface
                         }
                     }
@@ -111,6 +111,13 @@ Item {
             Repeater {
                 model: SystemData.diskStats
                 delegate: ColumnLayout {
+                    required property string path
+                    required property string label
+                    required property bool hasAlias
+                    required property real usage
+                    required property real total
+                    required property real used
+
                     Layout.fillWidth: true
                     spacing: 8 * Appearance.effectiveScale
 
@@ -123,14 +130,14 @@ Item {
                             color: Appearance.m3colors.m3primary
                         }
                         StyledText {
-                            text: modelData.hasAlias ? `${modelData.label.toUpperCase()} DISK USAGE` : `"${modelData.label.toUpperCase()}" DISK USAGE`
+                            text: hasAlias ? `${label.toUpperCase()} DISK USAGE` : `"${label.toUpperCase()}" DISK USAGE`
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             font.weight: Font.DemiBold
                             color: Appearance.m3colors.m3outline
                             Layout.fillWidth: true
                         }
                         StyledText {
-                            text: `${Math.round(modelData.usage * 100)}%`
+                            text: `${Math.round(usage * 100)}%`
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             font.weight: Font.DemiBold
                             color: Appearance.m3colors.m3onSurface
@@ -146,11 +153,11 @@ Item {
                         clip: true
 
                         Rectangle {
-                            width: parent.width * Math.max(0, Math.min(1, modelData.usage))
+                            width: parent.width * Math.max(0, Math.min(1, usage))
                             height: parent.height
                             radius: 6 * Appearance.effectiveScale
                             color: Appearance.m3colors.m3primary
-                            visible: modelData.usage > 0
+                            visible: usage > 0
 
                             Behavior on width {
                                 NumberAnimation { duration: 500; easing.type: Easing.OutCubic }
@@ -161,13 +168,13 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         StyledText {
-                            text: modelData.path
+                            text: path
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             color: Appearance.colors.colSubtext
                         }
                         Item { Layout.fillWidth: true }
                         StyledText {
-                            text: (modelData.used / (1024*1024*1024)).toFixed(1) + " GB / " + (modelData.total / (1024*1024*1024)).toFixed(1) + " GB"
+                            text: (used / (1024*1024*1024)).toFixed(1) + " GB / " + (total / (1024*1024*1024)).toFixed(1) + " GB"
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             color: Appearance.colors.colSubtext
                         }

@@ -69,30 +69,14 @@ ColumnLayout {
                     color: Appearance.colors.colOnLayer1
                 }
 
-                // Field matches ServicesDisk / ServicesWeather low container
-                Rectangle {
+                StyledTextInput {
+                    id: usernameInput
                     Layout.fillWidth: true
                     height: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: usernameInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: usernameInput
-                        anchors.fill: parent
-                        anchors.leftMargin: 16 * Appearance.effectiveScale
-                        anchors.rightMargin: 16 * Appearance.effectiveScale
-                        clip: true
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.github) ? Config.options.github.githubUsername : ""
-                        onEditingFinished: {
-                            if (Config.ready && Config.options.github) {
-                                Config.options.github.githubUsername = text;
-                            }
+                    text: (Config.ready && Config.options.github) ? Config.options.github.githubUsername : ""
+                    onEditingFinished: {
+                        if (Config.ready && Config.options.github) {
+                            Config.options.github.githubUsername = text;
                         }
                     }
                 }
@@ -126,7 +110,7 @@ ColumnLayout {
                     height: 48 * Appearance.effectiveScale
                     radius: 12 * Appearance.effectiveScale
                     color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: tokenInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
+                    border.width: tokenInput.input.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
                     border.color: Appearance.colors.colPrimary
 
                     RowLayout {
@@ -135,16 +119,15 @@ ColumnLayout {
                         anchors.rightMargin: 8 * Appearance.effectiveScale
                         spacing: 8 * Appearance.effectiveScale
 
-                        TextInput {
+                        StyledTextInput {
                             id: tokenInput
                             Layout.fillWidth: true
-                            clip: true
-                            verticalAlignment: TextInput.AlignVCenter
-                            font.family: Appearance.font.family.main
-                            font.pixelSize: Appearance.font.pixelSize.normal
-                            color: Appearance.colors.colOnLayer1
                             echoMode: showToken.showingToken ? TextInput.Normal : TextInput.Password
                             text: (Config.ready && Config.options.github) ? Config.options.github.githubToken : ""
+                            backgroundColor: "transparent"
+                            inputRadius: 0
+                            borderInactiveWidth: 0
+                            showActiveBorder: false
                             onEditingFinished: {
                                 if (Config.ready && Config.options.github) {
                                     Config.options.github.githubToken = text;

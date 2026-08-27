@@ -270,7 +270,7 @@ Rectangle {
                                     radius: 20 * Appearance.effectiveScale
                                     visible: delegateRoot.modelData.isSecure
                                     color: Appearance.colors.colLayer1
-                                    border.color: passwordInput.activeFocus ? Appearance.colors.colPrimary : "transparent"
+                                    border.color: passwordInput.input.activeFocus ? Appearance.colors.colPrimary : "transparent"
                                     border.width: Math.max(1, 1 * Appearance.effectiveScale)
 
                                     RowLayout {
@@ -279,28 +279,24 @@ Rectangle {
                                         anchors.rightMargin: 4 * Appearance.effectiveScale
                                         spacing: 8 * Appearance.effectiveScale
 
-                                        TextInput {
+                                        StyledTextInput {
                                             id: passwordInput
                                             Layout.fillWidth: true
+                                            Layout.fillHeight: true
+                                            inputRadius: 0
+                                            backgroundColor: "transparent"
+                                            borderInactiveWidth: 0
+                                            showActiveBorder: false
+                                            leftMargin: 0
+                                            rightMargin: 0
                                             font.pixelSize: Appearance.font.pixelSize.small
-                                            color: Appearance.colors.colOnLayer1
                                             echoMode: showPasswordBtn.revealed ? TextInput.Normal : TextInput.Password
-                                            verticalAlignment: TextInput.AlignVCenter
-                                            clip: true
                                             selectByMouse: true
+                                            placeholder: "Enter password..."
                                             
                                             onAccepted: {
                                                 Network.connectWithPassword(delegateRoot.modelData.ssid, text);
                                                 delegateRoot.modelData.askingPassword = false;
-                                            }
-
-                                            Text {
-                                                visible: passwordInput.text === "" && !passwordInput.activeFocus
-                                                text: "Enter password..."
-                                                font: passwordInput.font
-                                                color: Appearance.colors.colSubtext
-                                                anchors.fill: parent
-                                                verticalAlignment: Text.AlignVCenter
                                             }
                                         }
 

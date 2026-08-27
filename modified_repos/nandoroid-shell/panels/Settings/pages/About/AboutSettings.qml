@@ -9,7 +9,6 @@ import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
-import Quickshell.Io
 
 Flickable {
     id: root
@@ -40,23 +39,15 @@ Flickable {
         }
     }
 
+    property string _version: VersionService.version
+
     Component.onCompleted: {
         dependencyPage.scanDependencies();
     }
 
-    FileView {
-        id: versionView
-        path: Directories.home.replace("file://", "") + "/.config/nandoroid/version.json"
-        watchChanges: true
-        JsonAdapter {
-            id: versionData
-            property string version: "1.4.0"
-        }
-    }
-
     ColumnLayout {
         id: mainCol
-        width: parent.width
+        width: parent.width - (24 * Appearance.effectiveScale)
         spacing: 32 * Appearance.effectiveScale
 
         // ── Header ──
@@ -91,7 +82,7 @@ Flickable {
                         if (GlobalStates.settingsAboutView === "credits") return "Special Thanks"
                         return "About"
                     }
-                    font.pixelSize: 24 * Appearance.effectiveScale
+                    font.pixelSize: Math.round(24 * Appearance.effectiveScale)
                     font.weight: Font.DemiBold
                     color: Appearance.colors.colOnLayer1
                     Layout.fillWidth: true
@@ -115,7 +106,7 @@ Flickable {
         AboutMainView {
             visible: GlobalStates.settingsAboutView === "main"
             Layout.fillWidth: true
-            version: versionData.version
+            version: root._version
             onPushView: (view) => GlobalStates.settingsAboutView = view
         }
 

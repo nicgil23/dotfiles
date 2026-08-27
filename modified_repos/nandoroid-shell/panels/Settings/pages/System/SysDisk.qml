@@ -138,62 +138,18 @@ ColumnLayout {
                         spacing: 12 * Appearance.effectiveScale
                         Layout.fillWidth: true
 
-                        // Path Input
-                        Rectangle {
+                        StyledTextInput {
+                            id: addDiskPathInput
                             Layout.fillWidth: true
                             Layout.preferredHeight: 48 * Appearance.effectiveScale
-                            radius: 12 * Appearance.effectiveScale
-                            color: Appearance.m3colors.m3surfaceContainerLow
-                            border.width: addDiskPathInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                            border.color: Appearance.colors.colPrimary
-
-                            TextInput {
-                                id: addDiskPathInput
-                                anchors.fill: parent
-                                anchors.leftMargin: 16 * Appearance.effectiveScale
-                                anchors.rightMargin: 16 * Appearance.effectiveScale
-                                verticalAlignment: TextInput.AlignVCenter
-                                font.family: Appearance.font.family.main
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                                color: Appearance.colors.colOnLayer1
-                                
-                                StyledText {
-                                    anchors.fill: parent
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: "Mount path (e.g. /home)"
-                                    color: Appearance.colors.colSubtext
-                                    visible: addDiskPathInput.text === "" && !addDiskPathInput.activeFocus
-                                }
-                            }
+                            placeholder: "Mount path (e.g. /home)"
                         }
 
-                        // Alias Input
-                        Rectangle {
+                        StyledTextInput {
+                            id: addDiskAliasInput
                             Layout.fillWidth: true
                             Layout.preferredHeight: 48 * Appearance.effectiveScale
-                            radius: 12 * Appearance.effectiveScale
-                            color: Appearance.m3colors.m3surfaceContainerLow
-                            border.width: addDiskAliasInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                            border.color: Appearance.colors.colPrimary
-
-                            TextInput {
-                                id: addDiskAliasInput
-                                anchors.fill: parent
-                                anchors.leftMargin: 16 * Appearance.effectiveScale
-                                anchors.rightMargin: 16 * Appearance.effectiveScale
-                                verticalAlignment: TextInput.AlignVCenter
-                                font.family: Appearance.font.family.main
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                                color: Appearance.colors.colOnLayer1
-                                
-                                StyledText {
-                                    anchors.fill: parent
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: "Alias (e.g. Work)"
-                                    color: Appearance.colors.colSubtext
-                                    visible: addDiskAliasInput.text === "" && !addDiskAliasInput.activeFocus
-                                }
-                            }
+                            placeholder: "Alias (e.g. Work)"
                         }
                     }
 

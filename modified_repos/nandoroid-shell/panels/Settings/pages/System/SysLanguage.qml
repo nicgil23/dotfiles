@@ -30,67 +30,61 @@ ColumnLayout {
                 color: Appearance.colors.colPrimary
             }
             StyledText {
-                text: "Language"
+                text: I18nService.tr("Language & Localization")
                 font.pixelSize: Appearance.font.pixelSize.large
                 font.weight: Font.Medium
                 color: Appearance.colors.colOnLayer1
             }
         }
 
-        // Coming Soon Card
+        // Language Info Card
         SegmentedWrapper {
             Layout.fillWidth: true
-            implicitHeight: langComingRow.implicitHeight + (48 * Appearance.effectiveScale)
+            implicitHeight: wrapperLayout.implicitHeight + (32 * Appearance.effectiveScale)
             orientation: Qt.Vertical
             maxRadius: 20 * Appearance.effectiveScale
             color: Appearance.m3colors.m3surfaceContainerHigh
 
-            RowLayout {
-                id: langComingRow
+            ColumnLayout {
+                id: wrapperLayout
                 anchors.fill: parent
-                anchors.margins: 20 * Appearance.effectiveScale
-                spacing: 20 * Appearance.effectiveScale
+                anchors.margins: 16 * Appearance.effectiveScale
+                spacing: 12 * Appearance.effectiveScale
 
-                // Icon indicator
-                MaterialSymbol {
-                    text: "language"
-                    iconSize: 24 * Appearance.effectiveScale
-                    color: Appearance.colors.colPrimary
-                }
-
-                ColumnLayout {
-                    spacing: 2 * Appearance.effectiveScale
+                RowLayout {
                     Layout.fillWidth: true
+                    spacing: 16 * Appearance.effectiveScale
 
-                    StyledText {
-                        text: "Language & Translation"
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        font.weight: Font.Medium
-                        color: Appearance.colors.colOnLayer1
-                    }
-                    StyledText {
-                        text: "Shell language and translate-shell service settings."
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: Appearance.colors.colSubtext
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                // Coming Soon badge
-                Rectangle {
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    implicitWidth: comingSoonLabel.implicitWidth + (20 * Appearance.effectiveScale)
-                    radius: 14 * Appearance.effectiveScale
-                    color: Functions.ColorUtils.transparentize(Appearance.colors.colPrimary, 0.85)
-
-                    StyledText {
-                        id: comingSoonLabel
-                        anchors.centerIn: parent
-                        text: "Coming Soon"
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        font.weight: Font.Medium
+                    // Icon indicator
+                    MaterialSymbol {
+                        text: "language"
+                        iconSize: 24 * Appearance.effectiveScale
                         color: Appearance.colors.colPrimary
+                    }
+
+                    ColumnLayout {
+                        spacing: 2 * Appearance.effectiveScale
+                        Layout.fillWidth: true
+
+                        StyledText {
+                            text: I18nService.tr("Localization Service")
+                            font.pixelSize: Appearance.font.pixelSize.normal
+                            font.weight: Font.Medium
+                            color: Appearance.colors.colOnLayer1
+                        }
+                        StyledText {
+                            text: I18nService.tr("I18n backend is available, but full UI string translation is currently unmaintained.")
+                            font.pixelSize: Appearance.font.pixelSize.small
+                            color: Appearance.colors.colSubtext
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    // Native SegmentedButton (Always Active)
+                    SegmentedButton {
+                        isHighlighted: true
+                        buttonText: "English (US)"
                     }
                 }
             }

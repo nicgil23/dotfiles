@@ -29,7 +29,7 @@ Flickable {
 
     ColumnLayout {
         id: mainCol
-        width: parent.width
+        width: parent.width - (24 * Appearance.effectiveScale)
         spacing: 32 * Appearance.effectiveScale
 
         // ── Header ──
@@ -37,12 +37,12 @@ Flickable {
             spacing: 4 * Appearance.effectiveScale
             StyledText {
                 text: "System"
-                font.pixelSize: 24 * Appearance.effectiveScale
+                font.pixelSize: Math.round(24 * Appearance.effectiveScale)
                 font.weight: Font.DemiBold
                 color: Appearance.colors.colOnLayer1
             }
             StyledText {
-                text: "Date & time, language, storage paths, performance, and system interface."
+                text: "Date & time, language, storage paths, performance, and system behavior."
                 font.pixelSize: Appearance.font.pixelSize.normal
                 color: Appearance.colors.colSubtext
             }

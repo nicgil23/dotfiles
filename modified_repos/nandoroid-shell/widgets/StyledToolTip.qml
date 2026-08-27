@@ -9,7 +9,11 @@ ToolTip {
     property bool extraVisibleCondition: true
     property bool alternativeVisibleCondition: false
 
-    readonly property bool internalVisibleCondition: (extraVisibleCondition && (parent && (parent.hovered || parent.realHovered))) || alternativeVisibleCondition
+    readonly property bool internalVisibleCondition: (extraVisibleCondition && (
+        (parent && (parent.hovered || parent.realHovered)) ||
+        (parent && parent.parent && (parent.parent.hovered || parent.parent.realHovered)) ||
+        (parent && parent.parent && parent.parent.parent && (parent.parent.parent.hovered || parent.parent.parent.realHovered))
+    )) || alternativeVisibleCondition
     
     // Minimal padding to match ToggleDelegate
     padding: 0

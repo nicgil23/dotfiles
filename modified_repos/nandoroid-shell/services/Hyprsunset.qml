@@ -2,6 +2,7 @@ pragma Singleton
 
 // Adapted from the 'ii' example (Hyprsunset.qml)
 // Manages night mode via hyprsunset with persistence in Config.
+// Also provides gamma dimming for below-zero brightness.
 
 import QtQuick
 import "../core"
@@ -14,6 +15,12 @@ Singleton {
     readonly property bool ready: Config.ready
     property int colorTemperature: ready && Config.options.nightMode ? Config.options.nightMode.colorTemperature : 4000
     property bool active: ready && Config.options.nightMode ? Config.options.nightMode.active : false
+
+    // Gamma dimming (for brightness below zero). 100 = normal, 25 = minimum dim.
+    readonly property real gammaLowerLimit: 25
+    property real gamma: 100
+
+    signal gammaChangeAttempt()
 
     // Fetch current state from hyprctl on startup to reconcile with config
     Component.onCompleted: fetchState()
@@ -51,13 +58,13 @@ Singleton {
     function enable() {
         if (!root.ready) return;
         Config.options.nightMode.active = true;
-        Quickshell.execDetached(["bash", "-c", `pidof hyprsunset && hyprctl hyprsunset temperature ${root.colorTemperature} || hyprsunset --temperature ${root.colorTemperature} &`]);
+        Quickshell.execDetached(["bash", "-c", `hyprctl hyprsunset temperature ${root.colorTemperature} 2>/dev/null || (pkill hyprsunset 2>/dev/null; hyprsunset --temperature ${root.colorTemperature} &)`]);
     }
 
     function disable() {
         if (!root.ready) return;
         Config.options.nightMode.active = false;
-        Quickshell.execDetached(["bash", "-c", "pkill hyprsunset; hyprctl hyprsunset identity"]);
+        Quickshell.execDetached(["bash", "-c", "pkill hyprsunset 2>/dev/null; hyprctl hyprsunset identity 2>/dev/null || true"]);
     }
 
     function toggle(newActive = undefined) {
@@ -74,5 +81,22 @@ Singleton {
     onColorTemperatureChanged: {
         if (!root.active || !root.ready) return;
         Quickshell.execDetached(["bash", "-c", `hyprctl hyprsunset temperature ${root.colorTemperature} 2>/dev/null || true`]);
+    }
+
+    // ── Gamma dimming (brightness below zero) ──
+
+    function setGamma(value) {
+        root.gamma = Math.max(root.gammaLowerLimit, Math.min(100, value));
+        root.gammaChangeAttempt();
+        Quickshell.execDetached(["bash", "-c", `hyprctl hyprsunset gamma ${Math.round(root.gamma)} 2>/dev/null || (pkill hyprsunset 2>/dev/null; hyprsunset --gamma ${Math.round(root.gamma)} &)`]);
+    }
+
+    function resetGamma() {
+        root.setGamma(100);
+    }
+
+    // Auto-start hyprsunset so the IPC socket is ready
+    function load() {
+        Quickshell.execDetached(["bash", "-c", `hyprctl hyprsunset temperature 2>/dev/null || (pkill hyprsunset 2>/dev/null; hyprsunset &)`]);
     }
 }

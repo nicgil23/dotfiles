@@ -28,14 +28,16 @@ Item {
     implicitWidth: configSize
     implicitHeight: configSize
 
-    property color colBackground:     Appearance.colors.colPrimaryContainer
-    property color colOnBackground:    Functions.ColorUtils.mix(Appearance.colors.colSecondary, Appearance.colors.colPrimaryContainer, 0.15)
-    property color colBackgroundInfo:  Functions.ColorUtils.mix(Appearance.colors.colPrimary, Appearance.colors.colPrimaryContainer, 0.55)
-    property color colHourHand:        Appearance.colors.colPrimary
-    property color colMinuteHand:      Appearance.colors.colTertiary
-    property color colSecondHand:      Appearance.colors.colPrimary
+    property var m3: isLockscreen ? Appearance.lockM3colors : Appearance.m3colors
 
-    readonly property bool showDate: Config.ready && Config.options.appearance.clock.showDate
+    property color colBackground:     m3.m3primaryContainer
+    property color colOnBackground:    Functions.ColorUtils.mix(m3.m3secondary, m3.m3primaryContainer, 0.15)
+    property color colBackgroundInfo:  Functions.ColorUtils.mix(m3.m3primary, m3.m3primaryContainer, 0.55)
+    property color colHourHand:        m3.m3primary
+    property color colMinuteHand:      m3.m3tertiary
+    property color colSecondHand:      m3.m3primary
+
+    readonly property bool showDate: Config.ready ? (root.isLockscreen ? (Config.options.appearance.clock.useSameStyle ? Config.options.appearance.clock.showDesktopDate : Config.options.appearance.clock.showLockscreenDate) : Config.options.appearance.clock.showDesktopDate) : true
     readonly property bool showMarks: Config.ready && cfg.showMarks
     readonly property string backgroundStyle: Config.ready ? (cfg.backgroundStyle || "shape") : "shape"
     
@@ -89,7 +91,7 @@ Item {
                 color: root.colBackground
                 shapeString: Config.ready ? root.cfg.shape : "Circle"
                 borderWidth: 0
-                borderColor: Appearance.colors.colOutlineVariant
+                borderColor: root.m3.m3outlineVariant
             }
         }
     }
@@ -101,6 +103,7 @@ Item {
         visible: root.showMarks
         color: root.colOnBackground
         style: Config.ready ? root.cfg.dialStyle : "dots"
+        isLockscreen: root.isLockscreen
     }
 
     // Hour Marks (inner ring: 12 tick marks around center)
@@ -116,6 +119,7 @@ Item {
         anchors.centerIn: parent
         visible: Config.ready && root.cfg.timeIndicators
         color: root.colBackgroundInfo
+        isLockscreen: root.isLockscreen
     }
 
     // Minute Hand
@@ -150,13 +154,14 @@ Item {
         visible: root.showDate
         style: Config.ready ? (root.cfg.dateStyle || "bubble") : "bubble"
         color: root.colBackgroundInfo
+        isLockscreen: root.isLockscreen
     }
 
     // Center Pin
     Rectangle {
         width: 8 * Appearance.effectiveScale; height: 8 * Appearance.effectiveScale
         radius: 4 * Appearance.effectiveScale
-        color: Appearance.m3colors.m3surface
+        color: root.m3.m3surface
         anchors.centerIn: parent
         border.width: Math.max(1, 1.5 * Appearance.effectiveScale)
         border.color: root.colSecondHand

@@ -7,7 +7,7 @@ import Qt5Compat.GraphicalEffects
 
 /**
  * Universal User Profile widget for sidebars.
- * Shows Avatar, Hostname, and Distribution info.
+ * Shows Avatar, Display Name (or real name), Hostname, and Distribution/Uptime info.
  */
 Rectangle {
     id: root
@@ -16,6 +16,7 @@ Rectangle {
     color: "transparent"
     
     property bool compact: false
+    signal clicked()
 
     RowLayout {
         anchors.fill: parent
@@ -34,16 +35,16 @@ Rectangle {
                 id: avatarImage
                 anchors.fill: parent
                 source: {
+                    const profPath = Config.options.profile?.avatarPicture;
+                    if (profPath && profPath !== "") return `file://${profPath}`;
                     const cfgPath = Config.options.bar?.avatar_path;
                     if (cfgPath && cfgPath !== "") return `file://${cfgPath}`;
-                    const sysPath = SystemInfo.userAvatarPath;
-                    if (!sysPath || sysPath.includes("/var/lib/AccountsService/icons/")) return "";
-                    return `file://${sysPath}`;
+                    if (SystemInfo.userAvatarValid) return "file://" + SystemInfo.userAvatarPath;
+                    return "";
                 }
-                // CRITICAL: sourceSize ensures the image buffer itself is scaled
                 sourceSize: Qt.size(width, height)
                 fillMode: Image.PreserveAspectCrop
-                visible: false // Hidden, shown via MultiEffect/OpacityMask
+                visible: false
             }
 
             Rectangle {
@@ -67,6 +68,7 @@ Rectangle {
                 iconSize: 22 * Appearance.effectiveScale
                 color: Appearance.m3colors.m3onPrimaryContainer
             }
+
         }
         
         ColumnLayout {
@@ -75,7 +77,11 @@ Rectangle {
             Layout.fillWidth: true
 
             StyledText {
-                text: SystemInfo.hostname
+                text: {
+                    const displayName = Config.options.profile?.displayName;
+                    if (displayName && displayName !== "") return displayName;
+                    return SystemInfo.realName || SystemInfo.username;
+                }
                 font.pixelSize: Appearance.font.pixelSize.small
                 font.weight: Font.Medium
                 color: Appearance.m3colors.m3onSurface
@@ -84,13 +90,24 @@ Rectangle {
                 horizontalAlignment: Text.AlignLeft
             }
             StyledText {
-                text: SystemInfo.distroName || "Linux System"
-                font.pixelSize: 11 * Appearance.effectiveScale
+                text: {
+                    const descMode = Config.options.profile?.descriptionText || "::distro::";
+                    if (descMode === "::uptime::") return "Up " + DateTime.uptime;
+                    return SystemInfo.distroName || "Linux System";
+                }
+                font.pixelSize: Math.round(11 * Appearance.effectiveScale)
                 color: Appearance.colors.colSubtext
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignLeft
             }
+        }
+
+        MouseArea {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.clicked()
         }
     }
 }

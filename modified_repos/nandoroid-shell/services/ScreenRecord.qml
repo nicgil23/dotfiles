@@ -13,7 +13,6 @@ Singleton {
     property int seconds: 0
     property string geometry: ""
     property int recordingMode: 0 // 0: Region (no audio), 1: Region (with audio), 2: Fullscreen (with audio)
-    property string stateFile: "/tmp/nandoroid_states.json"
 
     readonly property string modeLabel: {
         if (recordingMode === 0) return "Region";
@@ -27,6 +26,7 @@ Singleton {
     }
 
     function toggle(region, sound, fullscreen) {
+        root.active = true;
         let args = [Quickshell.shellPath("scripts/videos/record.sh")];
         if (region) {
             args.push("--region");
@@ -34,7 +34,6 @@ Singleton {
         }
         if (sound) args.push("--sound");
         if (fullscreen) args.push("--fullscreen");
-        
         Quickshell.execDetached(args);
     }
 
@@ -42,35 +41,37 @@ Singleton {
         Quickshell.execDetached([Quickshell.shellPath("scripts/videos/record.sh")]);
     }
 
-    FileView {
-        id: stateFileView
-        path: root.stateFile
-        onLoaded: {
-            try {
-                const trimmed = stateFileView.text().trim();
-                if (!trimmed || trimmed.indexOf("{") !== 0) return;
-                let data = JSON.parse(trimmed);
-                if (data && data.screenRecord) {
-                    root.active = data.screenRecord.active === true;
-                    root.seconds = parseInt(data.screenRecord.seconds) || 0;
-                    root.geometry = data.screenRecord.geometry || "";
+    // pidof polling — Cuma jalan pas aktif, deteksi kapan wf-recorder mati
+    Process {
+        id: wfChecker
+        command: ["pidof", "wf-recorder"]
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0) {
+                if (!root.active) root.active = true;
+            } else {
+                if (root.active) {
+                    root.active = false;
+                    root.geometry = "";
+                    root.seconds = 0;
                 }
-            } catch(e) {
-                console.error("[ScreenRecord] Failed to parse state:", e);
             }
         }
     }
 
     Timer {
         interval: 1000
-        running: true
+        running: root.active
         repeat: true
-        onTriggered: stateFileView.reload()
+        onTriggered: wfChecker.running = true
     }
 
-    Component.onCompleted: {
-        // Create initial state file if not exists
-        Quickshell.execDetached(["bash", "-c", `[ -f ${stateFile} ] || echo '{"screenRecord": {"active": false, "seconds": 0}}' > ${stateFile}`]);
-        stateFileView.reload();
+    Timer {
+        interval: 1000
+        running: root.active
+        repeat: true
+        onTriggered: root.seconds++
     }
+
+    // Startup: detect wf-recorder from previous session (e.g. shell restart)
+    Component.onCompleted: wfChecker.running = true
 }

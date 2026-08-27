@@ -69,6 +69,7 @@ Scope {
                 if (!GlobalStates.settingsOpen) {
                     GlobalStates.settingsPageIndex = 0;
                     GlobalStates.settingsBluetoothPairMode = false;
+                    SearchRegistry.currentSearch = ""; // Clear active search to allow re-triggering the same query next time
                     searchInput.text = ""; // Reset search text
                     searchInput.hasNoResults = false;
                 }
@@ -114,7 +115,7 @@ Scope {
 
                         StyledText {
                             text: "Settings"
-                            font.pixelSize: 24 * Appearance.effectiveScale
+                            font.pixelSize: Math.round(24 * Appearance.effectiveScale)
                             font.weight: Font.DemiBold
                             color: Appearance.colors.colOnLayer0
                             Layout.preferredWidth: 200 * Appearance.effectiveScale
@@ -140,14 +141,19 @@ Scope {
                                     iconSize: 22 * Appearance.effectiveScale
                                     color: Appearance.colors.colSubtext
                                 }
-                                TextInput {
+                                StyledTextInput {
                                     id: searchInput
                                     Layout.fillWidth: true
                                     Layout.rightMargin: 16 * Appearance.effectiveScale
-                                    verticalAlignment: TextInput.AlignVCenter
+                                    inputRadius: 0
+                                    backgroundColor: "transparent"
+                                    borderInactiveWidth: 0
+                                    showActiveBorder: false
                                     font.pixelSize: Appearance.font.pixelSize.normal
-                                    color: Appearance.colors.colOnLayer1
-                                    clip: true
+                                    placeholder: searchInput.hasNoResults ? "No results found" : "Search all settings.."
+                                    placeholderColor: searchInput.hasNoResults ? Appearance.m3colors.m3error : Appearance.colors.colSubtext
+                                    leftMargin: 0
+                                    rightMargin: 0
                                     
                                     property bool hasNoResults: false
                                     
@@ -158,10 +164,8 @@ Scope {
                                         if (query === "") return;
 
                                         if (query.toLowerCase() === root.lastQuery.toLowerCase() && root.searchResults.length > 0) {
-                                            // Jump to next result
                                             root.navigateToResult(root.currentResultIndex + 1);
                                         } else {
-                                            // New search - reset state
                                             root.lastQuery = query;
                                             let results = SearchRegistry.getResultsRanked(query);
                                             
@@ -176,14 +180,6 @@ Scope {
                                                 hasNoResults = true;
                                             }
                                         }
-                                    }
-
-                                    StyledText {
-                                        visible: !searchInput.text && !searchInput.activeFocus
-                                        text: searchInput.hasNoResults ? "No results found" : "Search all settings.."
-                                        font: searchInput.font
-                                        color: searchInput.hasNoResults ? Appearance.m3colors.m3error : Appearance.colors.colSubtext
-                                        anchors.verticalCenter: parent.verticalCenter
                                     }
                                 }
 
@@ -254,8 +250,12 @@ Scope {
                             // Page Loader
                             Loader {
                                 id: pageLoader
+                                asynchronous: true
                                 anchors.fill: parent
-                                anchors.margins: 24 * Appearance.effectiveScale
+                                anchors.topMargin: 24 * Appearance.effectiveScale
+                                anchors.bottomMargin: 24 * Appearance.effectiveScale
+                                anchors.leftMargin: 24 * Appearance.effectiveScale
+                                anchors.rightMargin: 0
                                 Component.onCompleted: source = pages[root.currentIndex].component
                                 
                                 onStatusChanged: {
@@ -282,7 +282,7 @@ Scope {
                                     selectByMouse: true
                                     text: "Error loading page: " + pageLoader.source + "\n\n" + (pageLoader.sourceComponent ? pageLoader.sourceComponent.errorString() : "Unknown component error")
                                     color: "#FF5555"
-                                    font.pixelSize: 14 * Appearance.effectiveScale
+                                    font.pixelSize: Math.round(14 * Appearance.effectiveScale)
                                     font.family: "monospace"
                                 }
                                 
@@ -354,9 +354,11 @@ Scope {
         { name: "Bluetooth", component: "panels/Settings/pages/Bluetooth/BluetoothSettings.qml" },
         { name: "Audio", component: "panels/Settings/pages/Audio/AudioSettings.qml" },
         { name: "Display", component: "panels/Settings/pages/Display/DisplaySettings.qml" },
-        { name: "Style", component: "panels/Settings/pages/WallpaperStyle/WallpaperStyleSettings.qml" },
+        { name: "Wallpaper & Style", component: "panels/Settings/pages/WallpaperStyle/WallpaperStyleSettings.qml" },
+        { name: "Widgets", component: "panels/Settings/pages/Widgets/WidgetsSettings.qml" },
         { name: "System", component: "panels/Settings/pages/System/SystemSettings.qml" },
         { name: "Services", component: "panels/Settings/pages/Services/ServicesSettings.qml" },
+        { name: "Profile", component: "panels/Settings/pages/Profile/ProfileSettings.qml" },
         { name: "About", component: "panels/Settings/pages/About/AboutSettings.qml" }
     ]
 }

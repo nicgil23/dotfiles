@@ -5,7 +5,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 
 /**
  * Dashboard Tab 4: GitHub Profile Tracker
@@ -123,11 +123,11 @@ Item {
             }
         }
         Rectangle {
-            anchors.centerIn: parent; width: 32 * Appearance.effectiveScale; height: 32 * Appearance.effectiveScale; radius: 16 * Appearance.effectiveScale
+            anchors.centerIn: parent; width: 32 * Appearance.effectiveScale; height: 32 * Appearance.effectiveScale; radius: width / 2
             color: "transparent"
             Rectangle {
                 anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
-                width: 4 * Appearance.effectiveScale; height: 16 * Appearance.effectiveScale; radius: 2 * Appearance.effectiveScale; color: Appearance.m3colors.m3primary
+                width: 4 * Appearance.effectiveScale; height: 16 * Appearance.effectiveScale; radius: Appearance.rounding.unsharpen; color: Appearance.m3colors.m3primary
             }
             RotationAnimation on rotation {
                 from: 0; to: 360; duration: 800
@@ -168,8 +168,8 @@ Item {
                 // Avatar
                 Rectangle {
                     id: avatarContainer
-                    Layout.preferredWidth: 52 * Appearance.effectiveScale
-                    Layout.preferredHeight: 52 * Appearance.effectiveScale
+                    Layout.preferredWidth: 64 * Appearance.effectiveScale
+                    Layout.preferredHeight: 64 * Appearance.effectiveScale
                     width: Layout.preferredWidth
                     height: Layout.preferredHeight
                     radius: Appearance.rounding.normal
@@ -177,32 +177,36 @@ Item {
                     
                     Image {
                         id: avatarImg
-                        width: avatarContainer.width
-                        height: avatarContainer.height
+                        anchors.fill: parent
                         source: root.profile ? root.profile.avatar_url : ""
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         visible: false
-                        // Force render size to match scaled container
                         sourceSize.width: avatarContainer.width
                         sourceSize.height: avatarContainer.height
                     }
                     
                     Rectangle {
                         id: avatarMask
-                        width: avatarContainer.width
-                        height: avatarContainer.height
+                        anchors.fill: parent
                         radius: avatarContainer.radius
                         visible: false
-                        layer.enabled: true
                     }
-
-                    MultiEffect {
-                        width: avatarContainer.width
-                        height: avatarContainer.height
+                    
+                    OpacityMask {
+                        anchors.fill: parent
                         source: avatarImg
-                        maskEnabled: true
                         maskSource: avatarMask
+                        visible: avatarImg.status === Image.Ready
+                    }
+                    
+                    MaterialSymbol {
+                        anchors.centerIn: parent
+                        visible: avatarImg.status !== Image.Ready
+                        text: "person"
+                        iconSize: 24 * Appearance.effectiveScale
+                        fill: 1
+                        color: Appearance.colors.colOnLayer1
                     }
                 }
 
@@ -302,7 +306,7 @@ Item {
                                     }
                                     readonly property int count: dayData ? dayData.contributionCount : 0
                                     readonly property bool padded: dayData === null
-                                    width: 10 * Appearance.effectiveScale; height: 10 * Appearance.effectiveScale; radius: 2 * Appearance.effectiveScale
+                                    width: 10 * Appearance.effectiveScale; height: 10 * Appearance.effectiveScale; radius: Appearance.rounding.unsharpen
                                     color: padded
                                         ? "transparent"
                                         : count === 0
@@ -352,9 +356,9 @@ Item {
                             RowLayout {
                                 spacing: 3 * Appearance.effectiveScale
                                 MaterialSymbol { text: "star"; iconSize: 11 * Appearance.effectiveScale; color: Appearance.colors.colSubtext }
-                                StyledText { text: modelData.stargazers_count; font.pixelSize: 11 * Appearance.effectiveScale; color: Appearance.colors.colSubtext }
+                                StyledText { text: modelData.stargazers_count; font.pixelSize: Math.round(11 * Appearance.effectiveScale); color: Appearance.colors.colSubtext }
                             }
-                            StyledText { visible: !!modelData.language; text: modelData.language || ""; font.pixelSize: 11 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { visible: !!modelData.language; text: modelData.language || ""; font.pixelSize: Math.round(11 * Appearance.effectiveScale); color: Appearance.colors.colPrimary }
                         }
                     }
                 }

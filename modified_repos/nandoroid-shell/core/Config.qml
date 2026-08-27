@@ -5,6 +5,19 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+/* 
+ * WIDGET CONFIGURATION GUIDE
+ * ---------------------------------------------------------
+ * To add a new widget in the future, follow these steps:
+ * 1. In Config.qml, add 'locked', 'desktopX', and 'desktopY' properties
+ *    into your widget's JsonObject.
+ * 2. In DesktopWidgets.qml, when calling AbstractWidget, provide the config reference:
+ *    `configObject: Config.ready ? Config.options.appearance.WIDGET_NAME : null`
+ * 3. Inside your widget, call onRequestContextMenu like this:
+ *    `desktopContextMenu.openAt(x, y, configObject, "Widget Display Name", "Settings Keyword")`
+ * With these 3 steps, Drag & Drop and Context Menu (Lock/Settings) will work automatically!
+ */
+
 Singleton {
     id: root
     property string filePath: Directories.shellConfigPath
@@ -94,6 +107,28 @@ Singleton {
                     property string title: "Google Sans Flex"
                     property string monospace: "JetBrains Mono NF"
                 }
+                property JsonObject clockFonts: JsonObject {
+                    property string desktopTimeFont: ""
+                    property string desktopDateFont: ""
+                    property string lockscreenTimeFont: ""
+                    property string lockscreenDateFont: ""
+                }
+                property JsonObject atAGlance: JsonObject {
+                    property bool show: false
+                    property bool showGreeting: true
+                    property bool showDate: true
+                    property bool showQuote: true
+                    property real desktopX: 64
+                    property real desktopY: 64
+                    property real customWidth: 0
+                    property string alignment: "left"
+                    property string fontFamily: ""
+                    property int fontSize: 24
+                    property string greetingColorStyle: "primary"
+                    property string dateColorStyle: "onLayer1"
+                    property string quoteColorStyle: "onLayer1"
+                    property bool locked: false
+                }
                 property JsonObject background: JsonObject {
                     property string wallpaperPath: "file://" + Directories.assetsPath + "/wallpapers/default_wallpaper.png"
                     property bool darkmode: true
@@ -109,6 +144,10 @@ Singleton {
                     property list<string> customFolders: []
                     property bool showCava: false
                     property real cavaOpacity: 0.15
+                    property int cavaBars: 128
+                    property bool showGrid: false
+                    property int gridSpacing: 12
+                    property bool showSnapLines: true
                     property string transition: "random"
                 }
                 property JsonObject screenCorners: JsonObject {
@@ -119,10 +158,16 @@ Singleton {
                     property string style: "digital"
                     property string styleLocked: "digital"
                     property bool showOnDesktop: true
-                    property bool showDate: true
+                    property bool showDesktopDate: true
+                    property bool showLockscreenDate: true
                     property bool useSameStyle: true
                     property int offsetX: 0
                     property int offsetY: -50
+                    property real desktopX: -1
+                    property real desktopY: -1
+                    property real desktopCenterX: -1
+                    property real desktopCenterY: -1
+                    property real desktopRightX: -1
                     property bool locked: false
 
                     property JsonObject digital: JsonObject {
@@ -132,6 +177,7 @@ Singleton {
                         property int dateFontSize: 24
                         property int dateGap: 4
                         property bool hideAmPm: false
+                        property string alignment: "center"
                     }
                     property JsonObject digitalLocked: JsonObject {
                         property bool isVertical: false
@@ -140,6 +186,7 @@ Singleton {
                         property int dateFontSize: 24
                         property int dateGap: 4
                         property bool hideAmPm: false
+                        property string alignment: "center"
                     }
                     property JsonObject analog: JsonObject {
                         property bool constantlyRotate: false
@@ -242,6 +289,71 @@ Singleton {
                         property string pillColorStyle: "surfaceContainerHigh"
                     }
                 }
+                
+                property JsonObject mediaWidget: JsonObject {
+                    property bool showOnDesktop: false
+                    property bool locked: false
+                    property real desktopX: -1
+                    property real desktopY: -1
+                    property real desktopCenterX: -1
+                    property real desktopCenterY: -1
+                    property real desktopRightX: -1
+                    property bool showLyrics: false
+                    property string sizeMode: "3x2" // Supports "3x2", "2x2"
+                }
+
+                property JsonObject systemMonitor: JsonObject {
+                    property bool showOnDesktop: false
+                    property bool locked: false
+                    property bool vertical: false
+                    property int updateInterval: 3000
+                    property real desktopX: -1
+                    property real desktopY: -1
+                }
+
+                property JsonObject weatherWidget: JsonObject {
+                    property bool showOnDesktop: false
+                    property bool locked: false
+                    property string sizeMode: "3x1" // Supports "1x1", "2x1", "3x1"
+                    property real desktopX: -1
+                    property real desktopY: -1
+                }
+
+                property JsonObject currencyWidget: JsonObject {
+                    property bool showOnDesktop: false
+                    property bool locked: false
+                    property string sizeMode: "2x1" // Supports "1x1", "2x1"
+                    property real desktopX: -1
+                    property real desktopY: -1
+                    property string baseCurrency: "IDR"
+                    property string quote1: "USD"
+                    property string quote2: "EUR"
+                    property string quote3: "JPY"
+                    property string quote4: "GBP"
+                }
+                
+                property JsonObject lyrics: JsonObject {
+                    property bool showFloatingLyrics: false
+                    property bool lyricsPinned: false
+                    property bool lyricsUseRomaji: false
+                    property real desktopX: -1
+                    property real desktopY: -1
+                    property real desktopCenterX: -1
+                    property real desktopCenterY: -1
+                    property string fontFamily: ""
+                    property int fontSize: 36
+                    property int contextLines: 3
+                    property real customWidth: -1
+                }
+            }
+
+            // --- Language ---
+            property JsonObject language: JsonObject {
+                property string ui: "auto"
+                property JsonObject translator: JsonObject {
+                    property string sourceLanguage: "auto"
+                    property string targetLanguage: "en"
+                }
             }
 
             // --- Workspaces ---
@@ -257,27 +369,39 @@ Singleton {
                 property string distroIcon: "" 
                 property string avatar_path: ""
                 property bool show_network_speed: false
-                property string network_speed_unit: "KB" 
+                property string network_speed_unit: "KB"
+                property int networkSpeedInterval: 3000
             }
 
             // --- Status Bar ---
             property JsonObject statusBar: JsonObject {
+                property string moduleStyle: "base"
                 property real height: 40
                 property string layoutStyle: "standard" 
                 property int centeredWidth: 1200
-                property string clockPosition: "center" 
+                property string centerModule: "clock"
+                property list<string> leftModules: ["distroIcon", "activeWindow", "systemMonitor"]
+                property list<string> rightModules: ["networkSpeed", "sysTray", "statusIconsGroup", "battery"]
+                property bool showSystemMonitorCpu: true
+                property bool showSystemMonitorRam: true
+                property bool showSystemMonitorSwap: false
+                property bool showSystemMonitorTemp: true
+                property bool showSystemMonitorText: false
+                property string systemMonitorStyle: "outline"
                 property string textColorMode: "adaptive" 
                 property bool useGradient: true
                 property int backgroundStyle: 0
                 property int backgroundCornerRadius: 20
                 property string islandStyle: "pill" 
                 property bool autoHide: false
-                property string trayStyle: "adaptive" 
+                property string trayStyle: "adaptive"
+                property bool showVolumeIndicator: true
             }
 
             // --- Quick Settings ---
             property JsonObject quickSettings: JsonObject {
                 property bool caffeineActive: false
+                property bool showBanner: false
                 property bool showPerformanceStats: true
                 property string quickActionsPosition: "top" 
                 property list<var> toggles: [
@@ -333,6 +457,7 @@ Singleton {
             // --- Weather ---
             property JsonObject weather: JsonObject {
                 property bool enable: true
+                property bool showInNotificationCenter: true
                 property bool autoLocation: true
                 property string location: ""
                 property string unit: "C" 
@@ -354,6 +479,7 @@ Singleton {
                 property int timeout_ms: 2000
                 property string counterStyle: "counter"
                 property bool clearOnStartup: true
+                property string hostModule: "distroIcon"
             }
 
             // --- Battery ---
@@ -407,6 +533,8 @@ Singleton {
                 property string lastUpdateCheckDate: ""
                 property bool easyeffectsEnabled: false
                 property bool bluetoothEnabled: true
+                property bool onboardingCompleted: false
+                property bool dndActive: false
                 property list<var> monitoredDisks: [ { "path": "/", "alias": "System" } ]
             }
 
@@ -415,7 +543,6 @@ Singleton {
                 property string priority: ""
                 property bool showMediaCard: true
                 property bool enableMediaHover: true
-                property bool balancedEars: true
                 property string notchMediaStyle: "mini" 
             }
 
@@ -444,6 +571,14 @@ Singleton {
                 property JsonObject annotation: JsonObject { property bool useSatty: false }
             }
 
+            // --- Profile ---
+            property JsonObject profile: JsonObject {
+                property string avatarPicture: ""
+                property string bannerImage: ""
+                property string displayName: ""
+                property string descriptionText: "::distro::"
+            }
+
             // --- GitHub ---
             property JsonObject github: JsonObject { property string githubUsername: ""; property string githubToken: "" }
 
@@ -468,6 +603,13 @@ Singleton {
                 property bool disableAudioProcessing: false
                 property string scaling: "fill" // stretch, fit, fill, cover
                 property bool noPbo: false
+            }
+
+            // --- Interactions ---
+            property JsonObject interactions: JsonObject {
+                property JsonObject desktop: JsonObject {
+                    property bool blockWhenWindowsOpen: true
+                }
             }
 
             // --- Game Mode State ---

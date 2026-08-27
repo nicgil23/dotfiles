@@ -14,7 +14,7 @@ ColumnLayout {
     
     SearchHandler {
         searchString: "Performance"
-        aliases: ["CPU", "RAM", "Monitoring", "Quick Settings", "Performance Stats"]
+        aliases: ["CPU", "RAM", "Monitoring", "Interval", "Update", "Refresh", "System Monitor"]
     }
 
     ColumnLayout {
@@ -39,14 +39,14 @@ ColumnLayout {
 
         SegmentedWrapper {
             Layout.fillWidth: true
-            implicitHeight: perfStatsRow.implicitHeight + 40 * Appearance.effectiveScale
+            implicitHeight: intervalRow.implicitHeight + 40 * Appearance.effectiveScale
             orientation: Qt.Vertical
             color: Appearance.m3colors.m3surfaceContainerHigh
             smallRadius: 8 * Appearance.effectiveScale
             fullRadius: 20 * Appearance.effectiveScale
-            
+
             RowLayout {
-                id: perfStatsRow
+                id: intervalRow
                 anchors.fill: parent
                 anchors.margins: 20 * Appearance.effectiveScale
                 spacing: 20 * Appearance.effectiveScale
@@ -54,52 +54,42 @@ ColumnLayout {
                 ColumnLayout {
                     spacing: 2 * Appearance.effectiveScale
                     StyledText {
-                        text: "Show Performance Stats"
+                        text: "Update Interval"
                         font.pixelSize: Appearance.font.pixelSize.normal
                         font.weight: Font.Medium
                         color: Appearance.colors.colOnLayer1
                     }
                     StyledText {
-                        text: "Display CPU, RAM, and Disk usage in the Quick Settings panel."
+                        text: "How often to refresh system data (statusbar, quick settings, desktop widget)."
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: Appearance.colors.colSubtext
                     }
                 }
-                
+
                 Item { Layout.fillWidth: true }
-                
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: (Config.ready && Config.options.quickSettings && Config.options.quickSettings.showPerformanceStats)
-                        ? Appearance.colors.colPrimary
-                        : Appearance.m3colors.m3surfaceContainerLowest
 
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: (Config.ready && Config.options.quickSettings && Config.options.quickSettings.showPerformanceStats) ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                        color: (Config.ready && Config.options.quickSettings && Config.options.quickSettings.showPerformanceStats)
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
+                StyledSlider {
+                    id: intervalSlider
+                    Layout.preferredWidth: 200 * Appearance.effectiveScale
+                    value: Config.ready ? Config.options.appearance.systemMonitor.updateInterval : 3000
+                    defaultValue: 3000
+                    from: 1000; to: 10000; stepSize: 500
+                    onMoved: if (Config.ready) Config.options.appearance.systemMonitor.updateInterval = Math.round(value)
+                }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (Config.ready && Config.options.quickSettings) {
-                                Config.options.quickSettings.showPerformanceStats = !Config.options.quickSettings.showPerformanceStats;
-                            }
-                        }
+                StyledText {
+                    text: {
+                        let ms = Config.ready ? Config.options.appearance.systemMonitor.updateInterval : 3000;
+                        if (ms < 2000) return ms + "ms";
+                        return (ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1) + "s";
                     }
+                    font.pixelSize: Appearance.font.pixelSize.normal
+                    font.weight: Font.Medium
+                    color: Appearance.colors.colOnLayer1
+                    Layout.preferredWidth: 48 * Appearance.effectiveScale
+                    horizontalAlignment: Text.AlignRight
                 }
             }
         }
     }
 }
-

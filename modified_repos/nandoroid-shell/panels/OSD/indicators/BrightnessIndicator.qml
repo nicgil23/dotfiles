@@ -9,11 +9,14 @@ OsdValueIndicator {
     id: root
     property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
     property var brightnessMonitor: Brightness.getMonitorForScreen(focusedScreen)
+    readonly property bool dimming: Hyprsunset.gamma !== 100
 
-    icon: "light_mode" // Hyprsunset removed
+    icon: dimming ? "wb_twilight" : "light_mode"
     rotateIcon: true
     scaleIcon: true
-    name: "Brightness"
-    value: (root.brightnessMonitor !== undefined) ? root.brightnessMonitor.brightness : 0.5
+    name: dimming ? "Dim" : "Brightness"
+    value: dimming
+        ? (Hyprsunset.gamma - Hyprsunset.gammaLowerLimit) / (100 - Hyprsunset.gammaLowerLimit)
+        : (root.brightnessMonitor !== undefined ? root.brightnessMonitor.brightness : 0.5)
     shape: "Burst"
 }

@@ -1,11 +1,12 @@
-import "../../core"
-import "../../core/functions" as Functions
-import "../../services"
-import "../../widgets"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Services.SystemTray
+import "../../core"
+import "../../core/functions" as Functions
+import "../../services"
+import "../../widgets"
 
 /**
  * Status bar content layout with Android-style gradient.
@@ -44,6 +45,283 @@ Item {
     readonly property real targetSidePadding: isCentered ? Math.max(12 * Appearance.effectiveScale, (root.width - centeredWidth) / 2) : 12 * Appearance.effectiveScale
     property real sidePadding: targetSidePadding
     Behavior on sidePadding { NumberAnimation { duration: 450; easing.type: Easing.OutQuint } }
+
+    // Universal Module Component Library (Root Scoped)
+    Component { id: activeWindowComponent; ActiveWindowTitle {
+        id: activeWinTitle
+        readonly property bool isRight: Config.ready && Config.options.statusBar && Config.options.statusBar.rightModules ? Config.options.statusBar.rightModules.includes("activeWindow") : false
+        readonly property bool hasSysMon: {
+            if (!Config.ready || !Config.options.statusBar) return false;
+            let lefts = Config.options.statusBar.leftModules || [];
+            let rights = Config.options.statusBar.rightModules || [];
+            return lefts.includes("systemMonitor") || rights.includes("systemMonitor");
+        }
+        textAlignment: isRight ? Text.AlignRight : Text.AlignLeft
+        Layout.alignment: Qt.AlignVCenter
+        Layout.fillWidth: true
+        Layout.maximumWidth: {
+            let maxW = activeWinTitle.hasSysMon ? 180 * Appearance.effectiveScale : 400 * Appearance.effectiveScale;
+            let maxPct = activeWinTitle.hasSysMon ? 0.12 : 0.25;
+            return Math.min(implicitWidth, Math.min(maxW, root.width * maxPct));
+        }
+        maxWidth: {
+            let maxW = activeWinTitle.hasSysMon ? 180 * Appearance.effectiveScale : 400 * Appearance.effectiveScale;
+            let maxPct = activeWinTitle.hasSysMon ? 0.12 : 0.25;
+            return Math.min(maxW, root.width * maxPct);
+        }
+        monitor: root.monitor
+        color: root.contentColor
+        subtextColor: root.subtextColor
+    }}
+
+    Component { id: sysMonComponent; SystemMonitorModule {
+        Layout.alignment: Qt.AlignVCenter
+        color: root.contentColor
+        subtextColor: root.subtextColor
+    }}
+
+    Component { id: netSpeedComponent; NetworkSpeedMeter {
+        visible: true
+        Layout.alignment: Qt.AlignVCenter
+        color: root.contentColor
+        subtextColor: root.subtextColor
+    }}
+
+    Component { id: sysTrayComponent; StatusBarTray {
+        Layout.alignment: Qt.AlignVCenter
+    }}
+
+    Component { id: vpnKeyComponent; Item { visible: false; implicitWidth: 0; implicitHeight: 0 } }
+
+    Component { id: batteryComponent; BatteryIndicator {
+        visible: Battery.available
+        Layout.alignment: Qt.AlignVCenter
+        color: root.contentColor
+    }}
+
+    Component { id: statusIconsGroupComponent; RowLayout {
+        spacing: 6 * Appearance.effectiveScale
+        Layout.alignment: Qt.AlignVCenter
+
+        readonly property bool isHost: (Config.ready && Config.options.notifications && Config.options.notifications.hostModule === "statusIconsGroup")
+        readonly property bool showNotifBadge: isHost && (Config.options.notifications.counterStyle ?? "counter") !== "hidden" && Notifications.unread > 0
+
+        // Unread Notification Badge Item (when hosted on Status Icons Group)
+        Item {
+            visible: parent.showNotifBadge
+            Layout.preferredWidth: 16 * Appearance.effectiveScale
+            Layout.preferredHeight: 16 * Appearance.effectiveScale
+            Layout.alignment: Qt.AlignVCenter
+
+            MaterialSymbol {
+                anchors.centerIn: parent
+                text: "notifications_active"
+                iconSize: 16 * Appearance.effectiveScale
+                fill: 1
+                color: root.contentColor
+            }
+
+            Rectangle {
+                visible: (Config.ready && Config.options.notifications ? Config.options.notifications.counterStyle : "counter") === "counter"
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.topMargin: -2 * Appearance.effectiveScale
+                anchors.rightMargin: -2 * Appearance.effectiveScale
+                width: Math.max(12 * Appearance.effectiveScale, badgeTextRight.implicitWidth + 4 * Appearance.effectiveScale)
+                height: 12 * Appearance.effectiveScale
+                radius: 6 * Appearance.effectiveScale
+                color: root.contentColor
+
+                StyledText {
+                    id: badgeTextRight
+                    anchors.centerIn: parent
+                    text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
+                    font.pixelSize: Math.round(8 * Appearance.effectiveScale)
+                    font.weight: Font.DemiBold
+                    color: showBackground ? Appearance.m3colors.m3surface : (Appearance.colors.resolvedStatusBarDarkText ? "#F5F5F5" : "#1E1E1E")
+                }
+            }
+        }
+
+        MaterialSymbol {
+            visible: Network.warpConnected
+            text: "key"
+            iconSize: 16 * Appearance.effectiveScale
+            fill: 1
+            color: root.contentColor
+        }
+
+        // DND Indicator
+        MaterialSymbol {
+            visible: Notifications.silent
+            text: "notifications_paused"
+            iconSize: 16 * Appearance.effectiveScale
+            fill: 1
+            color: root.contentColor
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        MaterialSymbol {
+            visible: Config.ready && Config.options.statusBar ? (Config.options.statusBar.showVolumeIndicator ?? true) : true
+            text: Audio.muted || Audio.volume === 0 ? "volume_off" : (Audio.volume > 0.3 ? "volume_up" : "volume_down")
+            iconSize: 16 * Appearance.effectiveScale
+            fill: 1
+            color: root.contentColor
+        }
+
+        MaterialSymbol {
+            text: Network.materialSymbol
+            iconSize: 16 * Appearance.effectiveScale
+            fill: 1
+            color: root.contentColor
+        }
+
+        RowLayout {
+            visible: BluetoothStatus.available
+            spacing: 2 * Appearance.effectiveScale
+            MaterialSymbol {
+                text: BluetoothStatus.materialSymbol
+                iconSize: 16 * Appearance.effectiveScale
+                fill: BluetoothStatus.connected ? 1 : 0
+                color: root.contentColor
+            }
+
+            Rectangle {
+                readonly property var device: BluetoothStatus.connectedDevices.length > 0 ? BluetoothStatus.connectedDevices[0] : null
+                visible: BluetoothStatus.connected && device && device.batteryAvailable
+                width: 3 * Appearance.effectiveScale
+                height: 12 * Appearance.effectiveScale
+                radius: 1.5 * Appearance.effectiveScale
+                color: root.subtextColor
+                Layout.alignment: Qt.AlignVCenter
+                
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    width: parent.width
+                    height: parent.height * (parent.device ? parent.device.battery : 0)
+                    radius: 1.5 * Appearance.effectiveScale
+                    color: root.contentColor
+                }
+            }
+        }
+    }}
+
+    Component { id: clockComponent; RowLayout {
+        spacing: 6 * Appearance.effectiveScale
+        Layout.alignment: Qt.AlignVCenter
+        visible: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.centerModule !== "clock" : false
+
+        StyledText {
+            text: DateTime.currentDate + " • " + DateTime.currentTime
+            font.pixelSize: Appearance.font.pixelSize.small
+            font.weight: Font.Medium
+            color: root.contentColor
+        }
+    }}
+
+    Component { id: distroIconComponent; Item {
+        implicitWidth: Math.max(distroIconImg.width, 20 * Appearance.effectiveScale)
+        implicitHeight: Math.max(distroIconImg.height, 20 * Appearance.effectiveScale)
+        Layout.alignment: Qt.AlignVCenter
+
+        readonly property bool isHost: (Config.ready && Config.options.notifications && (Config.options.notifications.hostModule ?? "distroIcon") === "distroIcon")
+        readonly property bool showNotif: isHost && (Config.options.notifications.counterStyle ?? "counter") !== "hidden" && Notifications.unread > 0
+
+        CustomIcon {
+            id: distroIconImg
+            anchors.centerIn: parent
+            opacity: parent.showNotif ? 0 : 1
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+
+            source: {
+                if (!Config.ready || !Config.options.bar) return SystemInfo.distroIcon || "linux-symbolic";
+                let custom = Config.options.bar.distroIcon;
+                return (custom && custom !== "") ? custom : (SystemInfo.distroIcon || "linux-symbolic");
+            }
+            colorize: true
+            color: root.contentColor
+            width: (root.monitor && root.monitor.width && root.monitor.width > 2000) ? 20 * Appearance.effectiveScale : 18 * Appearance.effectiveScale
+            height: (root.monitor && root.monitor.width && root.monitor.width > 2000) ? 20 * Appearance.effectiveScale : 18 * Appearance.effectiveScale
+        }
+
+        Item {
+            anchors.fill: parent
+            opacity: parent.showNotif ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+
+            MaterialSymbol {
+                anchors.centerIn: parent
+                text: "notifications_active"
+                iconSize: 16 * Appearance.effectiveScale
+                fill: 1
+                color: root.contentColor
+            }
+
+            Rectangle {
+                visible: (Config.ready && Config.options.notifications ? Config.options.notifications.counterStyle : "counter") === "counter"
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.topMargin: -2 * Appearance.effectiveScale
+                anchors.rightMargin: -2 * Appearance.effectiveScale
+                width: Math.max(12 * Appearance.effectiveScale, badgeText.implicitWidth + 4 * Appearance.effectiveScale)
+                height: 12 * Appearance.effectiveScale
+                radius: 6 * Appearance.effectiveScale
+                color: root.contentColor
+
+                StyledText {
+                    id: badgeText
+                    anchors.centerIn: parent
+                    text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
+                    font.pixelSize: Math.round(8 * Appearance.effectiveScale)
+                    font.weight: Font.DemiBold
+                    color: showBackground ? Appearance.m3colors.m3surface : (Appearance.colors.resolvedStatusBarDarkText ? "#F5F5F5" : "#1E1E1E")
+                }
+            }
+        }
+    }}
+
+    function getVisibleClusterModules(moduleList) {
+        if (!Config.ready || !Config.options.statusBar) return moduleList;
+        let sb = Config.options.statusBar;
+        let isBase = (sb.moduleStyle ?? "base") !== "m3";
+        let isCentered = sb.layoutStyle === "centered";
+        if (!isBase || !isCentered) return moduleList;
+
+        let hasCollision = moduleList.includes("activeWindow") && moduleList.includes("systemMonitor");
+        let currentPoints = 0;
+        let maxPoints = 4;
+        let visibleList = [];
+
+        for (let i = 0; i < moduleList.length; i++) {
+            let mod = moduleList[i];
+            if (mod === "activeWindow" && hasCollision) {
+                continue;
+            }
+            let weight = (mod === "systemMonitor" || mod === "activeWindow" || mod === "clock") ? 2 : 1;
+            if (currentPoints + weight <= maxPoints) {
+                currentPoints += weight;
+                visibleList.push(mod);
+            }
+        }
+        return visibleList;
+    }
+
+    function getModuleComponent(name) {
+        switch (name) {
+            case "distroIcon": return distroIconComponent;
+            case "activeWindow": return activeWindowComponent;
+            case "systemMonitor": return sysMonComponent;
+            case "networkSpeed": return netSpeedComponent;
+            case "sysTray": return sysTrayComponent;
+            case "vpnWarpKey": return vpnKeyComponent;
+            case "battery": return batteryComponent;
+            case "statusIconsGroup": return statusIconsGroupComponent;
+            case "clock": return clockComponent;
+            default: return null;
+        }
+    }
 
     // ── Click-to-close backdrop (invisible, catches unfocused clicks) ──
     MouseArea {
@@ -123,33 +401,15 @@ Item {
                 anchors.fill: parent
                 spacing: 10 * Appearance.effectiveScale
 
-                // Distro icon (config-driven visibility)
-                CustomIcon {
-                    visible: Config.ready && Config.options.bar ? Config.options.bar.show_distro_icon : true
-                    source: {
-                        if (!Config.ready || !Config.options.bar) return SystemInfo.distroIcon || "linux-symbolic";
-                        let custom = Config.options.bar.distroIcon;
-                        return (custom && custom !== "") ? custom : (SystemInfo.distroIcon || "linux-symbolic");
+                Repeater {
+                    model: {
+                        let mods = (Config.ready && Config.options.statusBar && Config.options.statusBar.leftModules) ? Array.from(Config.options.statusBar.leftModules) : ["distroIcon", "activeWindow", "systemMonitor"];
+                        return root.getVisibleClusterModules(mods);
                     }
-                    colorize: true
-                    color: root.contentColor
-                    width: (root.monitor && root.monitor.width && root.monitor.width > 2000) ? 20 * Appearance.effectiveScale : 18 * Appearance.effectiveScale
-                    height: (root.monitor && root.monitor.width && root.monitor.width > 2000) ? 20 * Appearance.effectiveScale : 18 * Appearance.effectiveScale
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                // Workspace indicator (moved to center)
-                // WorkspaceIndicator { ... }
-
-                // Active window title
-                ActiveWindowTitle {
-                    Layout.alignment: Qt.AlignVCenter
-                    // Dynamically calculate max width: proportional to HUD width in centered mode
-                    // Use root.width for stable calculation instead of parent.width
-                    Layout.maximumWidth: root.isCentered ? (root.centeredWidth * 0.2) : Math.min(400 * Appearance.effectiveScale, root.width * 0.25)
-                    monitor: root.monitor
-                    color: root.contentColor
-                    subtextColor: root.subtextColor
+                    delegate: Loader {
+                        Layout.alignment: Qt.AlignVCenter
+                        sourceComponent: root.getModuleComponent(modelData)
+                    }
                 }
             }
         }
@@ -162,11 +422,12 @@ Item {
         anchors.top: parent.top
         monitor: root.monitor
         indicatorWidth: wsIndicator.implicitWidth
+        indicatorStyle: wsIndicator.indicatorStyle
     }
 
     // Time (Left of Notch)
     StyledText {
-        visible: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.clockPosition !== "right" : true
+        visible: Config.ready && Config.options.statusBar && Config.options.statusBar.centerModule === "clock"
         anchors.verticalCenter: parent.verticalCenter
         x: dynamicIsland.x + dynamicIsland.pill.x - width - 16 * Appearance.effectiveScale
         text: DateTime.currentTime
@@ -177,7 +438,7 @@ Item {
 
     // Date (Right of Notch)
     StyledText {
-        visible: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.clockPosition !== "right" : true
+        visible: Config.ready && Config.options.statusBar && Config.options.statusBar.centerModule === "clock"
         anchors.verticalCenter: parent.verticalCenter
         x: dynamicIsland.x + dynamicIsland.pill.x + dynamicIsland.pill.width + 16 * Appearance.effectiveScale
         text: DateTime.currentDate
@@ -192,131 +453,42 @@ Item {
         anchors.centerIn: parent
         monitor: root.monitor
         z: 10 // Ensure it's above the island background
+        onHoveredChanged: (hovered) => {
+            if (hovered) dynamicIsland.triggerMediaHover()
+        }
     }
 
 
     // ── Right Cluster ──
     RowLayout {
         id: rightCluster
-        anchors.right: privacyIndicator.left
+        anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 8 * Appearance.effectiveScale
+        anchors.rightMargin: root.sidePadding + (root.isCentered ? 12 * Appearance.effectiveScale : 0)
         spacing: 4 * Appearance.effectiveScale
 
         RowLayout {
             id: rightClusterContent
             spacing: 6 * Appearance.effectiveScale
 
-            // Network Speed Meter
-            NetworkSpeedMeter {
-                Layout.alignment: Qt.AlignVCenter
-                color: root.contentColor
-                subtextColor: root.subtextColor
-            }
-
-            // System Tray (Apps tray will be to the left of this)
-            StatusBarTray {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.rightMargin: 4 * Appearance.effectiveScale
-            }
-
-            // VPN / WARP Key Icon
-            MaterialSymbol {
-                visible: Network.warpConnected
-                text: "key"
-                iconSize: 16 * Appearance.effectiveScale
-                fill: 1
-                color: root.contentColor
-            }
-
-            // Notification counter (now moved before WiFi)
-            Item {
-                id: notificationCounter
-                readonly property string style: (Config.ready && Config.options.notifications) ? Config.options.notifications.counterStyle : "counter"
-                
-                visible: style !== "hidden" && Notifications.unread > 0
-                Layout.preferredWidth: 20 * Appearance.effectiveScale
-                Layout.preferredHeight: 20 * Appearance.effectiveScale
-                Layout.alignment: Qt.AlignVCenter
-
-                MaterialSymbol {
-                    id: bellIcon
-                    anchors.centerIn: parent
-                    text: "notifications_active"
-                    iconSize: 16 * Appearance.effectiveScale
-                    fill: 1
-                    color: root.contentColor
+            Repeater {
+                model: {
+                    let mods = (Config.ready && Config.options.statusBar && Config.options.statusBar.rightModules) ? Array.from(Config.options.statusBar.rightModules) : ["networkSpeed", "sysTray", "statusIconsGroup", "battery"];
+                    let visible = root.getVisibleClusterModules(mods);
+                    return visible.filter(m => {
+                        if (m === "sysTray") return SystemTray.items.values.length > 0;
+                        if (m === "vpnWarpKey") return false;
+                        return true;
+                    });
                 }
-
-                Rectangle {
-                    visible: parent.style === "counter"
-                    anchors.top: parent.top
-                    anchors.right: parent.right
-                    anchors.topMargin: -2 * Appearance.effectiveScale
-                    anchors.rightMargin: -2 * Appearance.effectiveScale
-                    width: Math.max(12 * Appearance.effectiveScale, badgeText.implicitWidth + 4 * Appearance.effectiveScale)
-                    height: 12 * Appearance.effectiveScale
-                    radius: 6 * Appearance.effectiveScale
-                    color: root.contentColor
-
-                    StyledText {
-                        id: badgeText
-                        anchors.centerIn: parent
-                        text: Notifications.unread > 99 ? "99+" : Notifications.unread.toString()
-                        font.pixelSize: 8 * Appearance.effectiveScale
-                        font.weight: Font.DemiBold
-                        // Inverse color of the badge to ensure contrast
-                        color: showBackground ? Appearance.m3colors.m3surface : (Appearance.colors.resolvedStatusBarDarkText ? "#F5F5F5" : "#1E1E1E")
-                    }
-                }
-            }
-
-            // WiFi (real data from Network service)
-            MaterialSymbol {
-                text: Network.materialSymbol
-                iconSize: 16 * Appearance.effectiveScale
-                fill: 1
-                color: root.contentColor
-            }
-
-            // Bluetooth (real data from BluetoothStatus service)
-            RowLayout {
-                visible: BluetoothStatus.available
-                spacing: 2 * Appearance.effectiveScale
-                MaterialSymbol {
-                    text: BluetoothStatus.materialSymbol
-                    iconSize: 16 * Appearance.effectiveScale
-                    fill: BluetoothStatus.connected ? 1 : 0
-                    color: root.contentColor
-                }
-
-                // Vertical Battery Bar
-                Rectangle {
-                    readonly property var device: BluetoothStatus.connectedDevices.length > 0 ? BluetoothStatus.connectedDevices[0] : null
-                    visible: BluetoothStatus.connected && device && device.batteryAvailable
-                    width: 3 * Appearance.effectiveScale
-                    height: 12 * Appearance.effectiveScale
-                    radius: 1.5 * Appearance.effectiveScale
-                    color: root.subtextColor
+                delegate: Loader {
                     Layout.alignment: Qt.AlignVCenter
-                    
-                    Rectangle {
-                        anchors.bottom: parent.bottom
-                        width: parent.width
-                        height: parent.height * (parent.device ? parent.device.battery : 0)
-                        radius: 1.5 * Appearance.effectiveScale
-                        color: root.contentColor
-                    }
+                    sourceComponent: root.getModuleComponent(modelData)
                 }
             }
 
-            // Battery (Clipped Progress Bar style)
-            BatteryIndicator {
-                visible: Battery.available
-                Layout.alignment: Qt.AlignVCenter
-                color: root.contentColor
-            }
+
 
             // Right-aligned clock
             ColumnLayout {
@@ -343,26 +515,11 @@ Item {
                 }
             }
 
-            // DND Indicator
-            MaterialSymbol {
-                visible: Notifications.silent
-                text: "notifications_paused"
-                iconSize: 16 * Appearance.effectiveScale
-                fill: 1
-                color: root.contentColor
+            // Privacy Indicator (Rightmost inside cluster)
+            PrivacyIndicator {
+                id: privacyIndicator
                 Layout.alignment: Qt.AlignVCenter
             }
-
-
         }
-    }
-
-
-    // Privacy Indicator (Absolute Far Right)
-    PrivacyIndicator {
-        id: privacyIndicator
-        anchors.right: parent.right
-        anchors.rightMargin: root.sidePadding + (root.isCentered ? 8 * Appearance.effectiveScale : -4 * Appearance.effectiveScale)
-        anchors.verticalCenter: parent.verticalCenter
     }
 }

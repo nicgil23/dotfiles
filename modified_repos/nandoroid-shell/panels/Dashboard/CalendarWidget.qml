@@ -33,25 +33,64 @@ Item {
     function getEventsForDate(dateStr) {
         return root.scheduledEvents.filter(ev => {
             if (!ev.date) return false
-            if (ev.date === dateStr) return true
-            // Check recurring
+
+            if (ev.endDate && dateStr > ev.endDate) return false
+
+            if (ev.recurrence === "once") {
+                if (ev.endDate) return dateStr >= ev.date
+                return ev.date === dateStr
+            }
+
             if (ev.recurrence === "daily") return true
             if (ev.recurrence === "weekly") {
-                const evDay = new Date(ev.date).getDay()
-                const chkDay = new Date(dateStr).getDay()
-                const evDate = new Date(ev.date)
-                const chkDate = new Date(dateStr)
-                return evDay === chkDay && chkDate >= evDate
+                const evD = new Date(ev.date)
+                const chkD = new Date(dateStr)
+                return evD.getDay() === chkD.getDay() && chkD >= evD
             }
             if (ev.recurrence === "monthly") {
                 const evD = new Date(ev.date)
                 const chkD = new Date(dateStr)
-                return evD.getDate() === chkD.getDate() && chkDate >= evDate
+                return evD.getDate() === chkD.getDate() && chkD >= evD
             }
             return false
         })
     }
     
+    // ── Localized date/time display (follows SysDateTime settings) ──
+    function _parseDate(str) {
+        if (!str) return null
+        const parts = String(str).trim().split(/[-/]/).map(Number)
+        if (parts.length < 3 || parts.some(isNaN)) return null
+        let y, m, d
+        if (parts[0] > 1000) {
+            y = parts[0]; m = parts[1]; d = parts[2]
+        } else if (parts[2] > 1000) {
+            const style = Config.ready && Config.options.time ? (Config.options.time.dateStyle ?? "DMY") : "DMY"
+            if (style === "MDY") { m = parts[0]; d = parts[1]; y = parts[2] }
+            else { d = parts[0]; m = parts[1]; y = parts[2] }
+        } else {
+            return null
+        }
+        if (y < 1000 || y > 9999 || m < 1 || m > 12 || d < 1 || d > 31) return null
+        return { y, m, d }
+    }
+
+    function _displayDate(dateStr) {
+        const p = root._parseDate(dateStr)
+        if (!p) return dateStr || ""
+        return Qt.formatDate(new Date(p.y, p.m - 1, p.d), Config.ready ? Config.dateFormat : "ddd, dd/MM")
+    }
+
+    function _displayTime(timeStr) {
+        if (!timeStr) return ""
+        const parts = String(timeStr).split(":")
+        if (parts.length < 2) return timeStr
+        const h = parseInt(parts[0], 10)
+        const min = parseInt(parts[1], 10)
+        if (isNaN(h) || isNaN(min)) return timeStr
+        return Qt.formatTime(new Date(2000, 0, 1, h, min), Config.ready ? Config.timeFormat : "HH:mm")
+    }
+
     readonly property string currentDayShort: {
         const today = new Date();
         const todayJsDay = today.getDay();
@@ -72,6 +111,10 @@ Item {
         }
     }
 
+    function closePopup() {
+        eventPopup.visible = false
+    }
+
     MouseArea {
         anchors.fill: parent
         onWheel: (event) => {
@@ -81,7 +124,7 @@ Item {
                 monthShift++;
         }
         // Dismiss popup when clicking outside the grid/buttons
-        onClicked: eventPopup.visible = false
+        onClicked: closePopup()
     }
 
     Connections {
@@ -91,8 +134,8 @@ Item {
                 eventPopup.visible = false
             }
         }
-        function onClosePopups() {
-            eventPopup.visible = false
+        function onCloseSubPopups() {
+            closePopup()
         }
     }
 
@@ -105,12 +148,16 @@ Item {
         id: eventPopup
         visible: false
         z: 10
-        width: 200 * Appearance.effectiveScale
+        width: Math.min(popupCol.implicitWidth + 20 * Appearance.effectiveScale, root.width * 0.7)
         height: popupCol.implicitHeight + 20 * Appearance.effectiveScale
         radius: Appearance.rounding.normal
         color: Appearance.m3colors.m3surfaceContainerHigh
         border.color: Appearance.colors.colOutlineVariant
         border.width: Math.max(1, 1 * Appearance.effectiveScale)
+
+        TapHandler {
+            onTapped: (eventPoint) => eventPoint.accepted = true
+        }
 
         // Clip to stay within CalendarWidget bounds
         x: Math.min(Math.max(0, _popX), root.width - width)
@@ -130,7 +177,7 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: eventPopup.dateStr
+                text: root._displayDate(eventPopup.dateStr)
                 font.pixelSize: Appearance.font.pixelSize.smaller
                 font.weight: Font.DemiBold
                 color: Appearance.colors.colSubtext
@@ -138,43 +185,52 @@ Item {
 
             Repeater {
                 model: eventPopup.events
-                delegate: RowLayout {
+                delegate: ColumnLayout {
                     required property var modelData
                     Layout.fillWidth: true
-                    spacing: 6 * Appearance.effectiveScale
-                    Rectangle {
-                        width: 6 * Appearance.effectiveScale; height: 6 * Appearance.effectiveScale; radius: 3 * Appearance.effectiveScale
-                        color: Appearance.colors.colPrimary
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-                    ColumnLayout {
-                        spacing: 0
+                    spacing: 2 * Appearance.effectiveScale
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6 * Appearance.effectiveScale
+                        Rectangle {
+                            width: 6 * Appearance.effectiveScale; height: 6 * Appearance.effectiveScale; radius: width / 2
+                            color: Appearance.colors.colPrimary
+                            Layout.alignment: Qt.AlignTop
+                            Layout.topMargin: 6 * Appearance.effectiveScale
+                        }
                         StyledText {
+                            Layout.fillWidth: true
                             text: modelData.title
                             font.pixelSize: Appearance.font.pixelSize.small
                             font.weight: Font.Medium
                             color: Appearance.colors.colOnLayer1
-                            elide: Text.ElideRight
-                            Layout.fillWidth: true
-                        }
-                        StyledText {
-                            text: modelData.description || ""
-                            visible: Boolean(modelData.description) && String(modelData.description).trim().length > 0
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colSubtext
                             wrapMode: Text.WordWrap
-                            Layout.fillWidth: true
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
                         }
-                        StyledText {
-                            text: {
-                                let t = modelData.time
-                                if (modelData.endTime) t += " - " + modelData.endTime
-                                if (modelData.recurrence !== "once") t += " · " + modelData.recurrence
-                                return t
-                            }
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colSubtext
+                    }
+
+                    StyledText {
+                        Layout.leftMargin: 12 * Appearance.effectiveScale
+                        text: modelData.description || ""
+                        visible: Boolean(modelData.description) && String(modelData.description).trim().length > 0
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: Appearance.colors.colSubtext
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                    }
+                    StyledText {
+                        Layout.leftMargin: 12 * Appearance.effectiveScale
+                        text: {
+                            let t = root._displayTime(modelData.time)
+                            if (modelData.endTime) t += " - " + root._displayTime(modelData.endTime)
+                            if (modelData.endDate && modelData.endDate !== modelData.date) t += " · End " + root._displayDate(modelData.endDate)
+                            if (modelData.recurrence !== "once") t += " · " + modelData.recurrence
+                            return t
                         }
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: Appearance.colors.colSubtext
                     }
                 }
             }
@@ -311,7 +367,7 @@ Item {
 
                             onClicked: {
                                 if (cell.today === -1) {
-                                    eventPopup.visible = false
+                                    closePopup()
                                     return  // greyed out
                                 }
                                 const m = root.viewingDate.getMonth() + 1
@@ -321,18 +377,15 @@ Item {
                                 const dateStr = y + "-" + mm + "-" + dd
                                 
                                 if (!root.hasEvent(y, m, cell.day)) {
-                                    eventPopup.visible = false
+                                    closePopup()
                                     return
                                 }
 
-                                // mapToItem(root, x, y): map button's bottom-center
-                                // from button-local coords → CalendarWidget root coords
-                                const pos = mapToItem(root, width / 2, height + 4 * Appearance.effectiveScale)
-                                
-                                // Toggle if same date, update and ensure visible if different date
-                                if (eventPopup.visible && eventPopup.dateStr === dateStr) {
-                                    eventPopup.visible = false
-                                } else {
+                                const wasOpenForThisDate = eventPopup.visible && eventPopup.dateStr === dateStr
+                                closePopup()
+
+                                if (!wasOpenForThisDate) {
+                                    const pos = mapToItem(root, width / 2, height + 4 * Appearance.effectiveScale)
                                     eventPopup._popX = pos.x - eventPopup.width / 2
                                     eventPopup._popY = pos.y
                                     eventPopup.dateStr = dateStr

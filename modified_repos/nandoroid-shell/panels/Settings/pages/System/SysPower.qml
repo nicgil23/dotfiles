@@ -69,34 +69,12 @@ ColumnLayout {
                 
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: (Config.ready && Config.options.powerProfile && Config.options.powerProfile.enabled)
-                        ? Appearance.colors.colPrimary
-                        : Appearance.m3colors.m3surfaceContainerLowest
-
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: (Config.ready && Config.options.powerProfile && Config.options.powerProfile.enabled) ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                        color: (Config.ready && Config.options.powerProfile && Config.options.powerProfile.enabled)
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
+                AndroidToggle {
+                        checked: (Config.ready && Config.options.powerProfile && Config.options.powerProfile.enabled)
+                        onToggled: {
                             if (Config.ready && Config.options.powerProfile) {
                                 Config.options.powerProfile.enabled = !Config.options.powerProfile.enabled;
-                            }
-                        }
+                    }
                     }
                 }
             }
@@ -139,37 +117,15 @@ ColumnLayout {
 
                 Item { Layout.fillWidth: true }
 
-                Rectangle {
+                StyledTextInput {
+                    id: powerPathInput
                     Layout.preferredWidth: 250 * Appearance.effectiveScale
                     Layout.preferredHeight: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: powerPathInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: powerPathInput
-                        anchors.fill: parent
-                        anchors.leftMargin: 16 * Appearance.effectiveScale
-                        anchors.rightMargin: 16 * Appearance.effectiveScale
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        clip: true
-                        text: (Config.ready && Config.options.powerProfile) ? Config.options.powerProfile.customPath : "/tmp/ryzen_mode"
-                        onEditingFinished: { 
-                            if (Config.ready && Config.options.powerProfile) {
-                                Config.options.powerProfile.customPath = text;
-                            }
-                        }
-                        
-                        StyledText {
-                            anchors.fill: parent
-                            verticalAlignment: Text.AlignVCenter
-                            text: "Enter path (e.g., /tmp/ryzen_mode)"
-                            color: Appearance.colors.colSubtext
-                            visible: powerPathInput.text === "" && !powerPathInput.activeFocus
+                    text: (Config.ready && Config.options.powerProfile) ? Functions.FileUtils.shortenHomePath(Config.options.powerProfile.customPath) : "/tmp/ryzen_mode"
+                    placeholder: "Enter path (e.g., /tmp/ryzen_mode)"
+                    onEditingFinished: { 
+                        if (Config.ready && Config.options.powerProfile) {
+                            Config.options.powerProfile.customPath = Functions.FileUtils.expandHomePath(text);
                         }
                     }
                 }

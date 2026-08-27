@@ -7,8 +7,10 @@ import "core"
 import "services"
 import "widgets"
 import "panels/StatusBar"
+import "panels/Dashboard"
 import "panels/NotificationCenter"
 import "panels/QuickSettings"
+import "panels/QuickActions"
 import "panels/WallpaperSelector"
 import "panels/Background"
 import "panels/NotificationPopup"
@@ -16,15 +18,16 @@ import "panels/OSD"
 import "panels/Lock"
 import "panels/Session"
 import "panels/Launcher"
-import "panels/Dashboard"
 import "panels/SystemMonitor"
 import "panels/Polkit"
 import "panels/RegionSelector"
 import "panels/ScreenCorners"
 import "panels/Overview"
 import "panels/Dock"
-
-import "panels/QuickActions"
+import "panels/Onboarding"
+import "panels/FloatingLyrics"
+import "panels/DatePicker"
+import "panels/TimePicker"
 
 import QtQuick
 import Quickshell
@@ -34,7 +37,9 @@ import Quickshell.Hyprland
 ShellRoot {
     id: root
 
-    // Reference singleton to ensure it is instantiated
+    // Reference singletons to ensure they are instantiated at startup
+    readonly property var _caffeine: Caffeine
+    readonly property var _versionService: VersionService
     readonly property var _idle: Idle
 
     Process {
@@ -55,12 +60,22 @@ ShellRoot {
         SmartAutomation.runAutomationCycle() // Kickstart smart automation
     }
 
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready && !Config.options.system.onboardingCompleted) {
+                GlobalStates.onboardingOpen = true;
+            }
+        }
+    }
+
     // ── Phase 0: Lock Screen ──
     Lock {}
 
     // ── Phase 1: Background ──
     Background {}
     DesktopWidgets {}
+    FloatingLyrics {}
 
     // ── Phase 2: Status Bar ──
     StatusBar {}
@@ -70,14 +85,23 @@ ShellRoot {
     // ── Phase 3: Popups ──
     NotificationPopup {}
 
-    // ── Phase 4: Notification Center ──
-    NotificationCenter {}
+    // ── Phase 4: Floating Panels (Dashboard, NotificationCenter, QuickSettings, QuickActions) ──
+    NotificationCenterPanel {}
+    QuickSettingsPanel {}
+    DashboardPanel {}
+    QuickActionsPanel {}
 
-    // ── Phase 5: Quick Settings ──
-    QuickSettings {}
-
-    // ── Phase 5.6: Quick Actions ──
-    QuickActions {}
+    // ── Phase 5: Popup closer (bridges closePopups signal to panel states) ──
+    Connections {
+        target: GlobalStates
+        function onClosePopups() {
+            GlobalStates.notificationCenterOpen = false;
+            GlobalStates.quickSettingsOpen = false;
+            GlobalStates.quickSettingsEditMode = false;
+            GlobalStates.dashboardOpen = false;
+            GlobalStates.quickActionsOpen = false;
+        }
+    }
 
     // ── Phase 6: Wallpaper Selector & Screen Decor ──
     WallpaperSelector {}
@@ -116,14 +140,15 @@ ShellRoot {
     // ── Phase 10: Settings ──
     Settings {}
 
-    // ── Phase 11: Dashboard ──
-    Dashboard {}
 
-    // ── Phase 12: System Monitor ──
+    // ── Phase 12: System Monitor & Onboarding ──
     SystemMonitorPanel {}
+    OnboardingPanel {}
 
-    // ── Phase 13: Polkit Agent ──
+    // ── Phase 13: Polkit Agent & Date / Time Pickers ──
     PolkitPanel {}
+    DatePickerPanel {}
+    TimePickerPanel {}
 
     IpcHandler {
         target: "launcher"
@@ -151,12 +176,13 @@ ShellRoot {
 
     Process {
         id: avatarPickerProc
-        command: ["zenity", "--file-selection", "--title=Select Avatar", "--file-filter=Images | *.png *.jpg *.jpeg *.webp *.svg"]
+        command: ["zenity", "--file-selection", "--title=Select Avatar", "--file-filter=Images | *.png *.jpg *.jpeg *.webp *.svg", "--modal"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const path = this.text.trim();
                 if (path !== "") {
                     Config.options.bar.avatar_path = path;
+                    Config.options.profile.avatarPicture = path;
                 }
             }
         }

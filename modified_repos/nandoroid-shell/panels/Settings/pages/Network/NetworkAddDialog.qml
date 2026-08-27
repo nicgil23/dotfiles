@@ -93,8 +93,8 @@ import Quickshell
                     Layout.preferredHeight: 52 * Appearance.effectiveScale
                     radius: 8 * Appearance.effectiveScale
                     color: "transparent"
-                    border.width: ssidInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : Math.max(1, 1 * Appearance.effectiveScale)
-                    border.color: ssidInput.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
+                    border.width: ssidInput.input.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : Math.max(1, 1 * Appearance.effectiveScale)
+                    border.color: ssidInput.input.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
 
                     // Floating Label
                     Rectangle {
@@ -110,27 +110,20 @@ import Quickshell
                             text: "Network Name"
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             font.weight: Font.Medium
-                            color: ssidInput.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
+                            color: ssidInput.input.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
                         }
                     }
 
-                    TextInput {
+                    StyledTextInput {
                         id: ssidInput
                         anchors.fill: parent
                         anchors.leftMargin: 16 * Appearance.effectiveScale
                         anchors.rightMargin: 16 * Appearance.effectiveScale
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: Appearance.colors.colOnLayer1
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        
-                        Text {
-                            anchors.left: ssidInput.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: !ssidInput.text && !ssidInput.activeFocus
-                            text: "SSID"
-                            color: Appearance.colors.colSubtext
-                            font.pixelSize: Appearance.font.pixelSize.normal
-                        }
+                        placeholder: "SSID"
+                        backgroundColor: "transparent"
+                        inputRadius: 0
+                        borderInactiveWidth: 0
+                        showActiveBorder: false
                     }
                 }
 
@@ -140,8 +133,8 @@ import Quickshell
                     Layout.preferredHeight: 52 * Appearance.effectiveScale
                     radius: 8 * Appearance.effectiveScale
                     color: "transparent"
-                    border.width: hiddenPassInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : Math.max(1, 1 * Appearance.effectiveScale)
-                    border.color: hiddenPassInput.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
+                    border.width: hiddenPassInput.input.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : Math.max(1, 1 * Appearance.effectiveScale)
+                    border.color: hiddenPassInput.input.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
 
                     // Floating Label
                     Rectangle {
@@ -157,7 +150,7 @@ import Quickshell
                             text: "Password"
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             font.weight: Font.Medium
-                            color: hiddenPassInput.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
+                            color: hiddenPassInput.input.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline
                         }
                     }
 
@@ -166,22 +159,15 @@ import Quickshell
                         anchors.leftMargin: 16 * Appearance.effectiveScale
                         anchors.rightMargin: 8 * Appearance.effectiveScale
                         
-                        TextInput {
+                        StyledTextInput {
                             id: hiddenPassInput
                             Layout.fillWidth: true
-                            verticalAlignment: TextInput.AlignVCenter
                             echoMode: addNetworkDialog.showPassword ? TextInput.Normal : TextInput.Password
-                            color: Appearance.colors.colOnLayer1
-                            font.pixelSize: Appearance.font.pixelSize.normal
-                            
-                            Text {
-                                anchors.left: hiddenPassInput.left
-                                anchors.verticalCenter: parent.verticalCenter
-                                visible: !hiddenPassInput.text && !hiddenPassInput.activeFocus
-                                text: "Optional"
-                                color: Appearance.colors.colSubtext
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                            }
+                            placeholder: "Optional"
+                            backgroundColor: "transparent"
+                            inputRadius: 0
+                            borderInactiveWidth: 0
+                            showActiveBorder: false
                         }
 
                         RippleButton {

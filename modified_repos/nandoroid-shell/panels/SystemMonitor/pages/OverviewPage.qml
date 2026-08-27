@@ -32,37 +32,43 @@ Item {
             }
             spacing: 24 * Appearance.effectiveScale
 
-            StyledText {
-                text: "System Overview"
-                font.pixelSize: Appearance.font.pixelSize.huge
-                font.weight: Font.DemiBold
-                color: Appearance.m3colors.m3onSurface
-            }
-
-            // --- System Information Header ---
+            // --- Header Row (Title on Left, Stats on Right via justify-between) ---
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 24 * Appearance.effectiveScale
-                
-                ColumnLayout {
-                    spacing: 0
-                    StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
-                    StyledText { text: SystemData.uptime || "--"; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
+                spacing: 16 * Appearance.effectiveScale
+
+                StyledText {
+                    text: "System Overview"
+                    font.pixelSize: Appearance.font.pixelSize.huge
+                    font.weight: Font.DemiBold
+                    color: Appearance.m3colors.m3onSurface
+                    Layout.alignment: Qt.AlignVCenter
                 }
-                
-                ColumnLayout {
-                    spacing: 0
-                    StyledText { text: "LOAD AVG"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
-                    StyledText { text: SystemData.loadAverage || "--"; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
-                }
-                
-                ColumnLayout {
-                    spacing: 0
-                    StyledText { text: "PROCESSES"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
-                    StyledText { text: `${SystemData.processCount} (${SystemData.threadCount} threads)`; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
-                }
-                
+
                 Item { Layout.fillWidth: true }
+
+                RowLayout {
+                    spacing: 24 * Appearance.effectiveScale
+                    Layout.alignment: Qt.AlignVCenter
+
+                    ColumnLayout {
+                        spacing: 1 * Appearance.effectiveScale
+                        StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
+                        StyledText { text: SystemData.uptime || "--"; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
+                    }
+
+                    ColumnLayout {
+                        spacing: 1 * Appearance.effectiveScale
+                        StyledText { text: "LOAD AVG"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
+                        StyledText { text: SystemData.loadAverage || "--"; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
+                    }
+
+                    ColumnLayout {
+                        spacing: 1 * Appearance.effectiveScale
+                        StyledText { text: "PROCESSES"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
+                        StyledText { text: `${SystemData.processCount} (${SystemData.threadCount} threads)`; font.pixelSize: Appearance.font.pixelSize.small; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
+                    }
+                }
             }
 
             // Top Row: Performance Graphs
@@ -81,86 +87,13 @@ Item {
                     Layout.fillWidth: true
                 }
 
-                // GPU card — always visible; shows a placeholder when no data
-                Rectangle {
+                GraphCard {
+                    title: "GPU Usage"
+                    value: SystemData.availableGpus.length > 0 ? Math.round(SystemData.availableGpus[0].usage) + "%" : "0%"
+                    subValue: SystemData.availableGpus.length > 0 && SystemData.availableGpus[0].temp > 0 ? `${SystemData.availableGpus[0].temp}°C` : ""
+                    history: SystemData.gpuHistory
+                    accentColor: Appearance.m3colors.m3tertiary
                     Layout.fillWidth: true
-                    implicitHeight: 180 * Appearance.effectiveScale
-                    radius: 16 * Appearance.effectiveScale
-                    color: Appearance.colors.colLayer2
-                    border.color: Functions.ColorUtils.applyAlpha(
-                        SystemData.availableGpus.length > 0
-                            ? Appearance.m3colors.m3primary
-                            : Appearance.colors.colSubtext,
-                        Appearance.m3colors.darkmode ? 0.35 : 0.55
-                    )
-                    border.width: 2 * Appearance.effectiveScale
-
-                    // ── Real GPU content ──────────────────────────────────
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 16 * Appearance.effectiveScale
-                        spacing: 8 * Appearance.effectiveScale
-                        visible: SystemData.hasValidGpuData
-
-                        RowLayout {
-                            Layout.fillWidth: true
-
-                            StyledText {
-                                text: "GPU"
-                                font.pixelSize: Appearance.font.pixelSize.small
-                                font.weight: Font.Medium
-                                color: Appearance.m3colors.m3onSurfaceVariant
-                            }
-                            Item { Layout.fillWidth: true }
-                            StyledText {
-                                text: SystemData.availableGpus.length > 0
-                                    ? (SystemData.availableGpus[0].temp > 0
-                                        ? SystemData.availableGpus[0].temp + "°C"
-                                        : "Ready")
-                                    : "--"
-                                font.pixelSize: Appearance.font.pixelSize.large
-                                font.weight: Font.Black
-                                color: Appearance.m3colors.m3onSurface
-                            }
-                        }
-
-                        PerformanceGraph {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            history: []
-                            lineColor: Appearance.m3colors.m3primary
-                            fillColor: Appearance.m3colors.m3primary
-                            maxValue: 100
-                        }
-                    }
-
-                    // ── Fallback placeholder ──────────────────────────────
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 8 * Appearance.effectiveScale
-                        visible: !SystemData.hasValidGpuData
-
-                        MaterialSymbol {
-
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "videogame_asset_off"
-                            iconSize: 28 * Appearance.effectiveScale
-                            color: Appearance.colors.colSubtext
-                        }
-                        StyledText {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "GPU"
-                            font.pixelSize: Appearance.font.pixelSize.small
-                            font.weight: Font.Medium
-                            color: Appearance.m3colors.m3onSurfaceVariant
-                        }
-                        StyledText {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "No GPU data found"
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colSubtext
-                        }
-                    }
                 }
 
 
@@ -250,8 +183,8 @@ Item {
         Layout.preferredHeight: 180 * Appearance.effectiveScale
         radius: 16 * Appearance.effectiveScale
         color: Appearance.colors.colLayer2
-        border.color: Functions.ColorUtils.applyAlpha(card.accentColor, Appearance.m3colors.darkmode ? 0.45 : 0.75)
-        border.width: 2 * Appearance.effectiveScale
+        border.color: Functions.ColorUtils.applyAlpha(card.accentColor, 0.25)
+        border.width: Math.max(1, 1 * Appearance.effectiveScale)
         
         ColumnLayout {
             anchors.fill: parent
@@ -273,7 +206,7 @@ Item {
                         visible: card.subValue !== ""
                         text: card.subValue
                         font.pixelSize: Appearance.font.pixelSize.smallest
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Medium
                         color: Appearance.colors.colSubtext
                     }
                 }
@@ -281,7 +214,7 @@ Item {
                 StyledText {
                     text: card.value
                     font.pixelSize: Appearance.font.pixelSize.large
-                    font.weight: Font.Black
+                    font.weight: Font.DemiBold
                     color: Appearance.m3colors.m3onSurface
                 }
             }

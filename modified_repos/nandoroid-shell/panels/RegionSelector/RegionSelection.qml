@@ -36,7 +36,6 @@ PanelWindow {
     readonly property int actionRecordWithSound: 5
     readonly property int actionRecordFullscreenWithSound: 6
     readonly property int actionQRCode: 7
-    readonly property int actionMathOCR: 8
     
     readonly property int modeRect: 0
     readonly property int modeCircle: 1
@@ -45,7 +44,6 @@ PanelWindow {
     property int selectionMode: modeRect
     signal dismiss()
 
-    property string finalScreenshotPath: ""
     property string screenshotDir: Directories.screenshotTemp
     property color overlayColor: Qt.rgba(0, 0, 0, 0.4)
     property color selectionBorderColor: Appearance.colors.colPrimary
@@ -156,7 +154,7 @@ PanelWindow {
         id: cropProcess
         onExited: (exitCode, exitStatus) => {
             if (root.action === actionCopy || root.action === actionEdit) {
-                GlobalStates.screenshotTaken(root.finalScreenshotPath);
+                GlobalStates.screenshotTaken(root.screenshotPath);
             }
             root.dismiss();
         }
@@ -228,22 +226,29 @@ PanelWindow {
             case actionRecordWithSound: actionEnum = ScreenshotAction.Action.RecordWithSound; break;
             case actionRecordFullscreenWithSound: actionEnum = ScreenshotAction.Action.RecordFullscreenWithSound; break;
             case actionQRCode: actionEnum = ScreenshotAction.Action.QRCode; break;
-            case actionMathOCR: actionEnum = ScreenshotAction.Action.MathRecognition; break;
         }
 
         
-        const actionResult = ScreenshotAction.getCommand(
+        const command = ScreenshotAction.getCommand(
             root.regionX * root.monitorScale,
             root.regionY * root.monitorScale,
             root.regionWidth * root.monitorScale,
             root.regionHeight * root.monitorScale,
             root.screenshotPath,
-            actionEnum
+            actionEnum,
+            root.isRecording ? "" : (Config.options.screenshot.autoSave ? Config.options.screenshot.savePath : "temp")
         )
         
         root.visible = false; // Hide immediately
-        root.finalScreenshotPath = actionResult.targetPath;
-        cropProcess.command = actionResult.command;
+        if (root.isRecording) {
+            const rx = Math.round(root.regionX * root.monitorScale);
+            const ry = Math.round(root.regionY * root.monitorScale);
+            const rw = Math.round(root.regionWidth * root.monitorScale);
+            const rh = Math.round(root.regionHeight * root.monitorScale);
+            ScreenRecord.active = true;
+            ScreenRecord.geometry = root.action === actionRecordFullscreenWithSound ? "fullscreen" : `${rx},${ry} ${rw}x${rh}`;
+        }
+        cropProcess.command = command;
         cropProcess.running = true;
     }
 
@@ -363,31 +368,16 @@ PanelWindow {
                 }
             }
             
-            Row {
+            // Close Button
+            M3IconButton {
+                id: closeButton
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 anchors.margins: 20 * Appearance.effectiveScale
-                spacing: 12 * Appearance.effectiveScale
+                iconName: "close"
+                onClicked: root.dismiss()
                 z: 10000
                 visible: root.visible
-
-                M3IconButton {
-                    id: fullscreenButton
-                    iconName: "fullscreen"
-                    onClicked: {
-                        root.regionX = 0;
-                        root.regionY = 0;
-                        root.regionWidth = root.width;
-                        root.regionHeight = root.height;
-                        root.snip();
-                    }
-                }
-
-                M3IconButton {
-                    id: closeButton
-                    iconName: "close"
-                    onClicked: root.dismiss()
-                }
             }
         }
     }

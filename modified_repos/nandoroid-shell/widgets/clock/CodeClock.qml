@@ -19,16 +19,18 @@ ColumnLayout {
         return Config.options.appearance.clock.code
     }
 
+    // Switch between lock and desktop color palettes
+    readonly property var m3: isLockscreen ? Appearance.lockM3colors : Appearance.m3colors
+
     // ── Color resolver ──────────────────────────────────────────
     function resolveColor(style) {
-        if (isLockscreen) return Appearance.colors.colLockscreenClock
         switch (style) {
-            case "primary":   return Appearance.colors.colPrimary
-            case "secondary": return Appearance.colors.colSecondary
-            case "tertiary":  return Appearance.colors.colTertiary
-            case "onSurface": return Appearance.m3colors.m3onSurface
-            case "surface":   return Appearance.m3colors.m3surfaceContainerHighest
-            default:          return Appearance.m3colors.m3onSurface
+            case "primary":   return m3.m3primary
+            case "secondary": return m3.m3secondary
+            case "tertiary":  return m3.m3tertiary
+            case "onSurface": return m3.m3onSurface
+            case "surface":   return m3.m3surfaceContainerHighest
+            default:          return m3.m3onSurface
         }
     }
 
@@ -40,8 +42,9 @@ ColumnLayout {
     // ── Config ──────────────────────────────────────────────────
     readonly property int    cfgSize:    Config.ready ? cfg.fontSize  : 18 * Appearance.effectiveScale
     readonly property string blockType:  Config.ready ? cfg.blockType : "js"
-    readonly property bool   showDate:   Config.ready && Config.options.appearance.clock.showDate
-    readonly property string fontFamily: (Config.ready && cfg.fontFamily) || Appearance.font.family.monospace
+    readonly property bool showDate: Config.ready ? (root.isLockscreen ? (Config.options.appearance.clock.useSameStyle ? Config.options.appearance.clock.showDesktopDate : Config.options.appearance.clock.showLockscreenDate) : Config.options.appearance.clock.showDesktopDate) : true
+    readonly property string customTimeFont: root.isLockscreen ? Config.options.appearance.clockFonts.lockscreenTimeFont : Config.options.appearance.clockFonts.desktopTimeFont
+    readonly property string fontFamily: (Config.ready && customTimeFont !== "") ? customTimeFont : Appearance.font.family.monospace
 
     readonly property string currentTime: DateTime.currentTime
     readonly property string currentDate: DateTime.currentDate
@@ -75,7 +78,7 @@ ColumnLayout {
             text: root.lang.indent
             color: "transparent"
             font.family: root.fontFamily
-            font.pixelSize: root.cfgSize
+            font.pixelSize: Math.round(root.cfgSize)
             renderType: Text.NativeRendering
         }
         // "time" or "date" keyword
@@ -83,7 +86,7 @@ ColumnLayout {
             text: cl.keyword
             color: root.keywordColor
             font.family: root.fontFamily
-            font.pixelSize: root.cfgSize
+            font.pixelSize: Math.round(root.cfgSize)
             font.weight: Font.DemiBold
             renderType: Text.NativeRendering
         }
@@ -92,7 +95,7 @@ ColumnLayout {
             text: "="
             color: root.keywordColor
             font.family: root.fontFamily
-            font.pixelSize: root.cfgSize
+            font.pixelSize: Math.round(root.cfgSize)
             renderType: Text.NativeRendering
         }
         // quoted value
@@ -114,7 +117,7 @@ ColumnLayout {
             text: modelData
             color: root.blockColor
             font.family: root.fontFamily
-            font.pixelSize: root.cfgSize
+            font.pixelSize: Math.round(root.cfgSize)
             font.weight: Font.DemiBold
             renderType: Text.NativeRendering
         }
@@ -143,7 +146,7 @@ ColumnLayout {
             text: modelData
             color: root.blockColor
             font.family: root.fontFamily
-            font.pixelSize: root.cfgSize
+            font.pixelSize: Math.round(root.cfgSize)
             font.weight: Font.DemiBold
             renderType: Text.NativeRendering
         }

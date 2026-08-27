@@ -60,7 +60,7 @@ ColumnLayout {
                         color: Appearance.colors.colOnLayer1
                     }
                     StyledText {
-                        text: "Show the weather widget in the notification center."
+                        text: "Fetch weather data for the notification center, desktop widget, and lock screen."
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: Appearance.colors.colSubtext
                     }
@@ -68,33 +68,11 @@ ColumnLayout {
                 
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: (Config.ready && Config.options.weather && Config.options.weather.enable)
-                        ? Appearance.colors.colPrimary
-                        : Appearance.m3colors.m3surfaceContainerLowest
-
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: (Config.ready && Config.options.weather && Config.options.weather.enable) ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                        color: (Config.ready && Config.options.weather && Config.options.weather.enable)
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (Config.ready && Config.options.weather) {
-                                Config.options.weather.enable = !Config.options.weather.enable;
-                            }
+                AndroidToggle {
+                    checked: (Config.ready && Config.options.weather && Config.options.weather.enable)
+                    onToggled: {
+                        if (Config.ready && Config.options.weather) {
+                            Config.options.weather.enable = !Config.options.weather.enable;
                         }
                     }
                 }
@@ -143,8 +121,8 @@ ColumnLayout {
                     
                     Repeater {
                         model: [
-                            { label: "Open-Meteo", value: "openmeteo" },
-                            { label: "wttr.in", value: "wttr" }
+                            { label: "Open-Meteo", value: "open-meteo" },
+                            { label: "wttr.in", value: "wttr.in" }
                         ]
                         delegate: SegmentedButton {
                             isHighlighted: (Config.ready && Config.options.weather) ? Config.options.weather.provider === modelData.value : false
@@ -197,7 +175,7 @@ ColumnLayout {
                         color: Appearance.colors.colOnLayer1
                     }
                     StyledText {
-                        text: "Automatically detect location or set coordinates manually."
+                        text: "Automatically detect location or set a city name manually."
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: Appearance.colors.colSubtext
                     }
@@ -237,7 +215,7 @@ ColumnLayout {
             }
         }
 
-        // 3b. Manual Location Inputs (Only visible if manual)
+        // 3b. Manual city name (geocoded by Weather service — same idea as end4)
         SegmentedWrapper {
             Layout.fillWidth: true
             implicitHeight: manualLocationInner.implicitHeight + 40 * Appearance.effectiveScale
@@ -252,119 +230,29 @@ ColumnLayout {
                 id: manualLocationInner
                 anchors.fill: parent
                 anchors.margins: 20 * Appearance.effectiveScale
-                spacing: 16 * Appearance.effectiveScale
+                spacing: 8 * Appearance.effectiveScale
 
                 StyledText {
-                    text: "Manual Coordinates & City Name"
+                    text: "City name"
                     font.pixelSize: Appearance.font.pixelSize.normal
                     font.weight: Font.Medium
                     color: Appearance.colors.colOnLayer1
                 }
-
-                RowLayout {
-                    spacing: 12 * Appearance.effectiveScale
-                    Layout.fillWidth: true
-
-                    // Latitude Input
-                    ColumnLayout {
-                        spacing: 4 * Appearance.effectiveScale
-                        Layout.fillWidth: true
-                        StyledText {
-                            text: "Latitude"
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colSubtext
-                        }
-                        Rectangle {
-                            Layout.fillWidth: true
-                            height: 40 * Appearance.effectiveScale
-                            radius: 8 * Appearance.effectiveScale
-                            color: Appearance.m3colors.m3surfaceContainerLow
-                            border.width: latInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                            border.color: Appearance.colors.colPrimary
-
-                            TextInput {
-                                id: latInput
-                                anchors.fill: parent
-                                anchors.leftMargin: 12 * Appearance.effectiveScale
-                                anchors.rightMargin: 12 * Appearance.effectiveScale
-                                verticalAlignment: TextInput.AlignVCenter
-                                font.family: Appearance.font.family.main
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                                color: Appearance.colors.colOnLayer1
-                                text: (Config.ready && Config.options.weather) ? Config.options.weather.lat : ""
-                                onEditingFinished: {
-                                    if (Config.ready && Config.options.weather) Config.options.weather.lat = text;
-                                }
-                            }
-                        }
-                    }
-
-                    // Longitude Input
-                    ColumnLayout {
-                        spacing: 4 * Appearance.effectiveScale
-                        Layout.fillWidth: true
-                        StyledText {
-                            text: "Longitude"
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colSubtext
-                        }
-                        Rectangle {
-                            Layout.fillWidth: true
-                            height: 40 * Appearance.effectiveScale
-                            radius: 8 * Appearance.effectiveScale
-                            color: Appearance.m3colors.m3surfaceContainerLow
-                            border.width: lonInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                            border.color: Appearance.colors.colPrimary
-
-                            TextInput {
-                                id: lonInput
-                                anchors.fill: parent
-                                anchors.leftMargin: 12 * Appearance.effectiveScale
-                                anchors.rightMargin: 12 * Appearance.effectiveScale
-                                verticalAlignment: TextInput.AlignVCenter
-                                font.family: Appearance.font.family.main
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                                color: Appearance.colors.colOnLayer1
-                                text: (Config.ready && Config.options.weather) ? Config.options.weather.lon : ""
-                                onEditingFinished: {
-                                    if (Config.ready && Config.options.weather) Config.options.weather.lon = text;
-                                }
-                            }
-                        }
-                    }
+                StyledText {
+                    text: "Used to resolve coordinates via geocoding (e.g. Jakarta)."
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    color: Appearance.colors.colSubtext
                 }
 
-                // City Name Input
-                ColumnLayout {
-                    spacing: 4 * Appearance.effectiveScale
+                StyledTextInput {
+                    id: cityInput
                     Layout.fillWidth: true
-                    StyledText {
-                        text: "City / Location Name (Displayed in UI)"
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colSubtext
-                    }
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 40 * Appearance.effectiveScale
-                        radius: 8 * Appearance.effectiveScale
-                        color: Appearance.m3colors.m3surfaceContainerLow
-                        border.width: cityInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                        border.color: Appearance.colors.colPrimary
-
-                        TextInput {
-                            id: cityInput
-                            anchors.fill: parent
-                            anchors.leftMargin: 12 * Appearance.effectiveScale
-                            anchors.rightMargin: 12 * Appearance.effectiveScale
-                            verticalAlignment: TextInput.AlignVCenter
-                            font.family: Appearance.font.family.main
-                            font.pixelSize: Appearance.font.pixelSize.normal
-                            color: Appearance.colors.colOnLayer1
-                            text: (Config.ready && Config.options.weather) ? Config.options.weather.city : ""
-                            onEditingFinished: {
-                                if (Config.ready && Config.options.weather) Config.options.weather.city = text;
-                            }
-                        }
+                    Layout.preferredHeight: 40 * Appearance.effectiveScale
+                    inputRadius: 8
+                    text: (Config.ready && Config.options.weather) ? Config.options.weather.location : ""
+                    onEditingFinished: {
+                        if (Config.ready && Config.options.weather)
+                            Config.options.weather.location = text;
                     }
                 }
             }
@@ -406,39 +294,86 @@ ColumnLayout {
                 
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: (Config.ready && Config.options.weather && Config.options.weather.showDailyForecast)
-                        ? Appearance.colors.colPrimary
-                        : Appearance.m3colors.m3surfaceContainerLowest
-
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: (Config.ready && Config.options.weather && Config.options.weather.showDailyForecast) ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                        color: (Config.ready && Config.options.weather && Config.options.weather.showDailyForecast)
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
+                AndroidToggle {
+                        checked: (Config.ready && Config.options.weather && Config.options.weather.showDailyForecast)
+                        onToggled: {
                             if (Config.ready && Config.options.weather) {
                                 Config.options.weather.showDailyForecast = !Config.options.weather.showDailyForecast;
+                    }
+                    }
+                }
+            }
+        }
+
+        // 5. Temperature unit
+        SegmentedWrapper {
+            Layout.fillWidth: true
+            implicitHeight: weatherUnitRow.implicitHeight + 40 * Appearance.effectiveScale
+            orientation: Qt.Vertical
+            color: Appearance.m3colors.m3surfaceContainerHigh
+            smallRadius: 8 * Appearance.effectiveScale
+            fullRadius: 20 * Appearance.effectiveScale
+            
+            enabled: Config.ready && Config.options.weather && Config.options.weather.enable
+            opacity: enabled ? 1.0 : 0.5
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            
+            RowLayout {
+                id: weatherUnitRow
+                anchors.fill: parent
+                anchors.margins: 20 * Appearance.effectiveScale
+                spacing: 20 * Appearance.effectiveScale
+
+                ColumnLayout {
+                    spacing: 2 * Appearance.effectiveScale
+                    StyledText {
+                        text: "Temperature Unit"
+                        font.pixelSize: Appearance.font.pixelSize.normal
+                        font.weight: Font.Medium
+                        color: Appearance.colors.colOnLayer1
+                    }
+                    StyledText {
+                        text: "Choose Celsius or Fahrenheit for weather temperatures."
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colSubtext
+                    }
+                }
+                
+                Item { Layout.fillWidth: true }
+                
+                RowLayout {
+                    spacing: 4 * Appearance.effectiveScale
+                    Layout.preferredHeight: 40 * Appearance.effectiveScale
+                    
+                    Repeater {
+                        model: [
+                            { label: "°C", value: "C" },
+                            { label: "°F", value: "F" }
+                        ]
+                        delegate: SegmentedButton {
+                            isHighlighted: (Config.ready && Config.options.weather) ? Config.options.weather.unit === modelData.value : false
+                            Layout.fillHeight: true
+                            
+                            buttonText: modelData.label
+                            leftPadding: 16 * Appearance.effectiveScale
+                            rightPadding: 16 * Appearance.effectiveScale
+                            
+                            colActive: Appearance.m3colors.m3primary
+                            colActiveText: Appearance.m3colors.m3onPrimary
+                            colInactive: Appearance.m3colors.m3surfaceContainerLow
+                            
+                            onClicked: {
+                                if (Config.ready && Config.options.weather) {
+                                    Config.options.weather.unit = modelData.value;
+                                }
                             }
                         }
                     }
                 }
             }
         }
-        // 5. Update Interval Card (Bottom)
+
+        // 6. Update Interval Card (Bottom)
         SegmentedWrapper {
             Layout.fillWidth: true
             implicitHeight: intervalRow.implicitHeight + 40 * Appearance.effectiveScale

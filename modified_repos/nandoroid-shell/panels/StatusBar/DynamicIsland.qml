@@ -19,20 +19,31 @@ Item {
     
     property HyprlandMonitor monitor
     property bool pomodoroActive: PomodoroService.isSessionRunning
-    property bool timerActive: TimerService.active || (TimerService.remainingTime < TimerService.duration && TimerService.remainingTime > 0)
-    property bool stopwatchActive: StopwatchService.active || StopwatchService.elapsedMs > 0
     property real indicatorWidth: 52 * Appearance.effectiveScale 
     
     width: 0 
     height: 40 * Appearance.effectiveScale // Matches status bar height for safe rendering
 
-    readonly property string islandStyle: Config.options.statusBar?.islandStyle ?? "pill"
+    property string forcedStyle: ""
+    readonly property string islandStyle: forcedStyle !== "" ? forcedStyle : (Config.options.statusBar && Config.options.statusBar.islandStyle !== undefined ? Config.options.statusBar.islandStyle : "pill")
     readonly property bool isWaterdrop: islandStyle === "waterdrop"
+    readonly property bool isM3: islandStyle === "m3"
+    property string indicatorStyle: "pill"
 
     // Expose the background pill for absolute anchoring
     property alias pill: backgroundPill
 
+    // Expand ears on hover without opening media notch
+    function triggerMediaHover() {
+        if (MprisController.activePlayer) {
+            root.mediaShowing = true;
+            mediaTimer.restart();
+            if (GlobalStates.mediaNotchOpen) GlobalStates.stopMediaNotchTimer();
+        }
+    }
+
     // --- State Logic ---
+    property string islandStateOverride: ""
     property bool mediaShowing: false
     Timer { id: mediaTimer; interval: 3000; onTriggered: root.mediaShowing = false }
 
@@ -51,11 +62,10 @@ Item {
     }
 
     readonly property string islandState: {
+        if (islandStateOverride !== "") return islandStateOverride
         if (Notifications.activePopup) return "notification"
         if (ScreenRecord.active) return "recording"
         if ((mediaShowing || GlobalStates.mediaNotchOpen) && MprisController.activePlayer) return "media"
-        if (timerActive) return "timer"
-        if (stopwatchActive) return "stopwatch"
         if (pomodoroActive) return "pomodoro"
         return "idle"
     }
@@ -77,15 +87,37 @@ Item {
     readonly property real earMaxWidthHud: 100 * Appearance.effectiveScale 
     readonly property real currentEarMaxWidth: (islandState === "idle") ? earMaxWidthNormal : earMaxWidthHud
 
-    // Balanced Width Calculation - Use the LARGER side as reference, clamped by max width
-    readonly property real sharedMediaWidth: {
-        if (islandState !== "media") return 0
-        let maxNatural = Math.max(mediaLeftNaturalWidth, mediaRightNaturalWidth)
+    // Universal Ear Width Calculation for ALL States
+    readonly property real leftNaturalWidth: {
+        if (islandState === "notification") {
+            let w = 0
+            if (notifLogo.visible) w += (20 * Appearance.effectiveScale) + (6 * Appearance.effectiveScale)
+            if (notifAppNameLabel.visible) w += Math.min(notifAppNameLabel.implicitWidth, 80 * Appearance.effectiveScale) + (4 * Appearance.effectiveScale)
+            return w > 0 ? w + (4 * Appearance.effectiveScale) : 0
+        }
+        if (islandState === "recording") return 24 * Appearance.effectiveScale
+        if (islandState === "media") return mediaLeftNaturalWidth
+        if (islandState === "pomodoro") return pomoModeLabel.implicitWidth + (8 * Appearance.effectiveScale)
+        return 0
+    }
+    
+    readonly property real rightNaturalWidth: {
+        if (islandState === "notification") return notifSummaryLabel.visible ? Math.min(notifSummaryLabel.implicitWidth, root.currentEarMaxWidth - (8 * Appearance.effectiveScale)) + (8 * Appearance.effectiveScale) : 0
+        if (islandState === "recording") return recordTimeLabel.implicitWidth + (8 * Appearance.effectiveScale)
+        if (islandState === "media") return mediaRightNaturalWidth
+        if (islandState === "pomodoro") return pomoTimeLabel.implicitWidth + (8 * Appearance.effectiveScale)
+        return 0
+    }
+
+    // Balanced Width Calculation - Forces symmetric expansion
+    readonly property real sharedEarWidth: {
+        if (islandState === "idle") return 0
+        let maxNatural = Math.max(leftNaturalWidth, rightNaturalWidth)
         return Math.min(maxNatural, root.currentEarMaxWidth)
     }
 
-    // Gap width: 4px in idle, tight 2px in active states.
-    readonly property real gapHalf: (indicatorWidth / 2) + (islandState === "idle" ? 4 * Appearance.effectiveScale : 2 * Appearance.effectiveScale)
+    // Gap width: 0px in idle, tight 2px in active states (0 means ear flush with pill edge)
+    readonly property real gapHalf: (indicatorWidth / 2) + (islandState === "idle" ? 0 : 8 * Appearance.effectiveScale)
 
     // --- LEFT EAR ---
     Item {
@@ -107,25 +139,7 @@ Item {
             }
         }
         
-        width: {
-            if (islandState === "notification") {
-                let w = 0
-                if (notifLogo.visible) w += (20 * Appearance.effectiveScale) + (6 * Appearance.effectiveScale)
-                if (notifAppNameLabel.visible) w += Math.min(notifAppNameLabel.implicitWidth, 80 * Appearance.effectiveScale) + (4 * Appearance.effectiveScale)
-                let finalW = w > 0 ? w + (4 * Appearance.effectiveScale) : 0
-                return Math.min(finalW, root.currentEarMaxWidth)
-            }
-            if (islandState === "recording") return Math.min(24 * Appearance.effectiveScale, root.currentEarMaxWidth)
-            if (islandState === "media") {
-                let w = (Config.ready && Config.options.media && Config.options.media.balancedEars) 
-                    ? root.sharedMediaWidth : root.mediaLeftNaturalWidth
-                return Math.min(w, root.currentEarMaxWidth)
-            }
-            if (islandState === "timer") return Math.min(timerLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
-            if (islandState === "stopwatch") return Math.min(stopwatchLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
-            if (islandState === "pomodoro") return Math.min(pomoModeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
-            return 0
-        }
+        width: root.sharedEarWidth
 
         Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
         Behavior on anchors.rightMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
@@ -141,19 +155,20 @@ Item {
                 visible: islandState === "notification"
                 opacity: parent.parent.width > (24 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                appIcon: Notifications.activePopup?.appIcon || Notifications.activePopup?.appName || ""
+                appIcon: Notifications.activePopup?.appIcon || (islandStateOverride !== "" ? "chat" : "")
+                appName: Notifications.activePopup?.appName || ""
                 image: Notifications.activePopup?.image || ""
-                summary: Notifications.activePopup?.summary || ""
+                summary: Notifications.activePopup?.summary || (islandStateOverride !== "" ? "New Message" : "")
                 urgency: Notifications.activePopup?.urgency || "normal"
                 color: "transparent"
             }
             StyledText {
                 id: notifAppNameLabel
-                text: Notifications.activePopup?.appName || "Notification"
+                text: Notifications.activePopup?.appName || (islandStateOverride !== "" ? "Messages" : "Notification")
                 visible: islandState === "notification"
                 opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.Medium
+                font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.Medium
                 color: Appearance.colors.colNotchText
                 width: Math.min(implicitWidth, root.currentEarMaxWidth - (notifLogo.visible ? 28 * Appearance.effectiveScale : 8 * Appearance.effectiveScale))
                 elide: Text.ElideRight
@@ -214,7 +229,7 @@ Item {
                 id: mediaArtistLabel; text: MprisController.trackArtist || "Unknown Artist"
                 visible: islandState === "media"; opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.Medium; color: Appearance.colors.colNotchText
+                font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.Medium; color: Appearance.colors.colNotchText
                 width: Math.min(implicitWidth, parent.parent.width - (mediaLogo.visible ? 28 * Appearance.effectiveScale : 8 * Appearance.effectiveScale))
                 elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter
             }
@@ -225,26 +240,8 @@ Item {
             id: pomoModeLabel; anchors.centerIn: parent
             text: PomodoroService.modeName
             opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
             visible: islandState === "pomodoro"
-        }
-
-        // Timer - centered
-        StyledText {
-            id: timerLabel; anchors.centerIn: parent
-            text: "Timer"
-            opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
-            visible: islandState === "timer"
-        }
-
-        // Stopwatch - centered
-        StyledText {
-            id: stopwatchLabel; anchors.centerIn: parent
-            text: "Cronómetro"
-            opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
-            visible: islandState === "stopwatch"
         }
     }
 
@@ -268,30 +265,18 @@ Item {
             }
         }
         
-        width: {
-            if (islandState === "notification") return notifSummaryLabel.visible ? Math.min(notifSummaryLabel.implicitWidth, root.currentEarMaxWidth - (8 * Appearance.effectiveScale)) + (8 * Appearance.effectiveScale) : 0
-            if (islandState === "recording") return Math.min(recordTimeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
-            if (islandState === "media") {
-                let w = (Config.ready && Config.options.media && Config.options.media.balancedEars) 
-                    ? root.sharedMediaWidth : root.mediaRightNaturalWidth
-                return Math.min(w, root.currentEarMaxWidth)
-            }
-            if (islandState === "timer") return Math.min(timerTimeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
-            if (islandState === "stopwatch") return Math.min(stopwatchTimeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
-            if (islandState === "pomodoro") return Math.min(pomoTimeLabel.implicitWidth + (8 * Appearance.effectiveScale), root.currentEarMaxWidth)
-            return 0
-        }
+        width: root.sharedEarWidth
 
         Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
         Behavior on anchors.leftMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
 
         StyledText {
             id: notifSummaryLabel; anchors.centerIn: parent
-            text: Notifications.activePopup?.summary || ""
+            text: Notifications.activePopup?.summary || (islandStateOverride !== "" ? "New Message" : "")
             visible: islandState === "notification"
             opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold
+            font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.DemiBold
             color: Appearance.colors.colNotchText
             width: Math.min(implicitWidth, root.currentEarMaxWidth - (8 * Appearance.effectiveScale))
             elide: Text.ElideRight
@@ -301,7 +286,7 @@ Item {
             id: recordTimeLabel; anchors.centerIn: parent
             text: Functions.General.formatDuration(ScreenRecord.seconds)
             opacity: parent.width > (10 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
             font.family: Appearance.font.family.numbers; visible: islandState === "recording"
         }
 
@@ -310,7 +295,7 @@ Item {
             text: MprisController.trackTitle || ""
             visible: text !== "" && islandState === "media"; opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
             width: Math.min(implicitWidth, parent.width - (8 * Appearance.effectiveScale))
             elide: Text.ElideRight
         }
@@ -319,26 +304,8 @@ Item {
             id: pomoTimeLabel; anchors.centerIn: parent
             text: PomodoroService.timeString
             opacity: parent.width > (10 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
+            font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
             font.family: Appearance.font.family.numbers; visible: islandState === "pomodoro"
-        }
-
-        // Timer duration - centered
-        StyledText {
-            id: timerTimeLabel; anchors.centerIn: parent
-            text: TimerService.timeString
-            opacity: parent.width > (10 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
-            font.family: Appearance.font.family.numbers; visible: islandState === "timer"
-        }
-
-        // Stopwatch elapsed - centered
-        StyledText {
-            id: stopwatchTimeLabel; anchors.centerIn: parent
-            text: StopwatchService.timeString
-            opacity: parent.width > (10 * Appearance.effectiveScale) ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 200 } }
-            font.pixelSize: 12 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
-            font.family: Appearance.font.family.numbers; visible: islandState === "stopwatch"
         }
     }
 
@@ -347,13 +314,13 @@ Item {
         id: backgroundPill
         color: "black"
         
-        // Idle: y=6, height=28. Waterdrop: y=0, height=34.
-        y: isWaterdrop ? 0 : 6 * Appearance.effectiveScale
-        height: isWaterdrop ? 34 * Appearance.effectiveScale : 28 * Appearance.effectiveScale
+        // Idle: y=6, height=28. Waterdrop: y=0, height=34. M3: y=4, height=32.
+        y: isWaterdrop ? 0 : (isM3 ? 4 * Appearance.effectiveScale : 6 * Appearance.effectiveScale)
+        height: isWaterdrop ? 34 * Appearance.effectiveScale : (isM3 ? 32 * Appearance.effectiveScale : 28 * Appearance.effectiveScale)
         radius: height / 2
         
         z: -1
-        readonly property real margin: (islandState === "idle") ? 10 * Appearance.effectiveScale : 8 * Appearance.effectiveScale
+        readonly property real margin: isM3 ? 8 * Appearance.effectiveScale : (isWaterdrop && root.indicatorStyle === "unified" ? 10 : root.indicatorStyle === "unified" ? 4 : 10) * Appearance.effectiveScale
         x: leftEar.x - margin
         width: (rightEar.x + rightEar.width) - leftEar.x + (2 * margin)
 
@@ -394,8 +361,7 @@ Item {
                 if (mouse.button === Qt.RightButton) { GlobalStates.overviewOpen = !GlobalStates.overviewOpen; return; }
                 if (islandState === "notification" && Notifications.activePopup) { Notifications.activePopup.expanded = !Notifications.activePopup.expanded }
                 else if (islandState === "media") { MprisController.raisePlayer(); GlobalStates.closeAllPanels() }
-                else if (islandState === "pomodoro") { GlobalStates.dashboardActiveTab = 0; GlobalStates.dashboardOpen = true }
-                else if (islandState === "timer" || islandState === "stopwatch") { GlobalStates.dashboardActiveTab = 3; GlobalStates.dashboardOpen = true }
+                else if (islandState === "pomodoro") { GlobalStates.dashboardOpen = true }
             }
             onScrollUp: {
                 if (root.monitor && root.monitor.activeWorkspace && root.monitor.activeWorkspace.id > 1) {

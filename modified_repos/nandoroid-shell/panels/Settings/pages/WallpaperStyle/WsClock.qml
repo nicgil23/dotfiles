@@ -10,14 +10,15 @@ import Quickshell
 import Quickshell.Io
 
 ColumnLayout {
+    id: rootClock
     Layout.fillWidth: true
     spacing: 0
+    
+    property bool isDedicatedContext: false
+    property bool dedicatedIsLock: false
+    property bool isSubSection: false
 
-    SearchHandler { 
-        searchString: "Clock Style"
-        aliases: ["Clock", "Time", "Watch"]
-    }
-
+    // Search handled per-context
     // ── Clock Section ──
     ColumnLayout {
         id: clockStyleSection
@@ -25,7 +26,7 @@ ColumnLayout {
         Layout.topMargin: 12 * Appearance.effectiveScale
         spacing: 16 * Appearance.effectiveScale
         
-        property string activeContext: "desktop"
+        property string activeContext: rootClock.isDedicatedContext ? (rootClock.dedicatedIsLock ? "lock" : "desktop") : "desktop"
         property bool showAdvanced: false
 
         function mapAlign(align) {
@@ -43,30 +44,48 @@ ColumnLayout {
         // Section Header
         RowLayout {
             spacing: 12 * Appearance.effectiveScale
-            Layout.bottomMargin: 4 * Appearance.effectiveScale
+            Layout.bottomMargin: (rootClock.isSubSection ? 0 : 4) * Appearance.effectiveScale
             MaterialSymbol {
                 text: "watch"
-                iconSize: 24 * Appearance.effectiveScale
+                iconSize: (rootClock.isSubSection ? 20 : 24) * Appearance.effectiveScale
                 color: Appearance.colors.colPrimary
             }
             StyledText {
-                text: "Clock Style"
-                font.pixelSize: Appearance.font.pixelSize.large
+                text: "Clock"
+                font.pixelSize: rootClock.isSubSection ? Appearance.font.pixelSize.small : Appearance.font.pixelSize.large
                 font.weight: Font.Medium
                 color: Appearance.colors.colOnLayer1
                 Layout.fillWidth: true
             }
             
-            RippleButton {
-                visible: !Config.options.appearance.clock.useSameStyle || clockStyleSection.activeContext === "desktop"
-                Layout.preferredHeight: 32 * Appearance.effectiveScale
-                implicitWidth: 120 * Appearance.effectiveScale
-                buttonText: "Reset Position"
-                onClicked: {
-                    Config.options.appearance.clock.offsetX = 0
-                    Config.options.appearance.clock.offsetY = -50
+            StyledText {
+                visible: !rootClock.dedicatedIsLock
+                text: "Reset Position"
+                font.pixelSize: Appearance.font.pixelSize.small
+                color: maResetClock.containsMouse ? Appearance.colors.colPrimaryHover : Appearance.colors.colPrimary
+
+                MouseArea {
+                    id: maResetClock
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (!Config.ready) return;
+                        Config.options.appearance.clock.desktopX = -1;
+                        Config.options.appearance.clock.desktopY = -1;
+                        Config.options.appearance.clock.desktopCenterX = -1;
+                        Config.options.appearance.clock.desktopCenterY = -1;
+                        Config.options.appearance.clock.desktopRightX = -1;
+                        Config.options.appearance.clock.offsetX = 0;
+                        Config.options.appearance.clock.offsetY = -50;
+                    }
                 }
-                colBackground: Appearance.m3colors.m3surfaceContainerHighest
+            }
+            
+            AndroidToggle {
+                visible: !rootClock.dedicatedIsLock
+                checked: Config.ready && Config.options.appearance.clock.showOnDesktop
+                onToggled: if (Config.ready) Config.options.appearance.clock.showOnDesktop = !Config.options.appearance.clock.showOnDesktop
             }
         }
 
@@ -75,7 +94,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredHeight: 52 * Appearance.effectiveScale
             spacing: 4 * Appearance.effectiveScale
-            visible: Config.ready && !Config.options.appearance.clock.useSameStyle
+            visible: !rootClock.isDedicatedContext && Config.ready && !Config.options.appearance.clock.useSameStyle
             
             SegmentedButton {
                 width: (parent.width - (4 * Appearance.effectiveScale)) / 2
@@ -97,75 +116,65 @@ ColumnLayout {
             }
         }
 
-        // Style Picker
-        Rectangle {
+        // Style Picker (single row)
+        RowLayout {
             Layout.fillWidth: true
-            implicitHeight: 120 * Appearance.effectiveScale
-            radius: 20 * Appearance.effectiveScale
-            color: Appearance.m3colors.m3surfaceContainerHigh
-            
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: 20 * Appearance.effectiveScale
-                spacing: 20 * Appearance.effectiveScale
+            visible: rootClock.dedicatedIsLock || (Config.ready && !Config.options.appearance.clock.useSameStyle)
+            spacing: 4 * Appearance.effectiveScale
 
-                Repeater {
-                    model: [
-                        { id: "digital", name: "Digital", icon: "numbers" },
-                        { id: "analog",  name: "Analog",  icon: "watch" },
-                        { id: "stacked", name: "Stacked", icon: "view_day" },
-                        { id: "text",    name: "Text",    icon: "text_fields" },
-                        { id: "pill",    name: "Pill",    icon: "smart_button" },
-                        { id: "code",    name: "Code",    icon: "code" }
-                    ]
-                    delegate: RippleButton {
-                        id: clockStyleBtn
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        buttonRadius: 16 * Appearance.effectiveScale
-                        
-                        readonly property bool isSelected: {
-                            if (!Config.ready) return false
-                            if (Config.options.appearance.clock.useSameStyle || clockStyleSection.activeContext === "desktop") {
-                                return Config.options.appearance.clock.style === modelData.id
-                            } else {
-                                return Config.options.appearance.clock.styleLocked === modelData.id
-                            }
-                        }
-                        
-                        colBackground: isSelected ? Appearance.colors.colPrimary : Appearance.m3colors.m3surfaceContainerLow
-                        colRipple: Appearance.m3colors.m3primary
-                        
-                        onClicked: {
-                            if (!Config.ready) return
-                            if (Config.options.appearance.clock.useSameStyle) {
-                                Config.options.appearance.clock.style = modelData.id
+            Repeater {
+                model: [
+                    { id: "digital", name: "Digital", icon: "numbers" },
+                    { id: "analog",  name: "Analog",  icon: "watch" },
+                    { id: "stacked", name: "Stacked", icon: "view_day" },
+                    { id: "text",    name: "Text",    icon: "text_fields" },
+                    { id: "pill",    name: "Pill",    icon: "smart_button" },
+                    { id: "code",    name: "Code",    icon: "code" }
+                ]
+                delegate: RippleButton {
+                    id: clockStyleBtn
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 68 * Appearance.effectiveScale
+                    buttonRadius: 20 * Appearance.effectiveScale
+                    
+                    readonly property bool isSelected: {
+                        if (!Config.ready) return false
+                        if (Config.options.appearance.clock.useSameStyle) return Config.options.appearance.clock.styleLocked === modelData.id
+                        if (clockStyleSection.activeContext === "lock") return Config.options.appearance.clock.styleLocked === modelData.id
+                        return Config.options.appearance.clock.style === modelData.id
+                    }
+                    
+                    colBackground: isSelected ? Appearance.colors.colPrimary : Appearance.m3colors.m3surfaceContainerHigh
+                    colRipple: Appearance.m3colors.m3primary
+                    
+                    onClicked: {
+                        if (!Config.ready) return
+                        if (Config.options.appearance.clock.useSameStyle) {
+                            Config.options.appearance.clock.styleLocked = modelData.id
+                        } else {
+                            if (clockStyleSection.activeContext === "lock") {
                                 Config.options.appearance.clock.styleLocked = modelData.id
                             } else {
-                                if (clockStyleSection.activeContext === "desktop") {
-                                    Config.options.appearance.clock.style = modelData.id
-                                } else {
-                                    Config.options.appearance.clock.styleLocked = modelData.id
-                                }
+                                Config.options.appearance.clock.style = modelData.id
                             }
                         }
-                        
-                        ColumnLayout {
-                            anchors.centerIn: parent
-                            spacing: 8 * Appearance.effectiveScale
-                            MaterialSymbol {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: modelData.icon
-                                iconSize: 24 * Appearance.effectiveScale
-                                color: clockStyleBtn.isSelected ? Appearance.colors.colOnPrimary : Appearance.m3colors.m3onSurfaceVariant
-                            }
-                            StyledText {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: modelData.name
-                                font.pixelSize: 12 * Appearance.effectiveScale
-                                font.weight: clockStyleBtn.isSelected ? Font.DemiBold : Font.Normal
-                                color: clockStyleBtn.isSelected ? Appearance.colors.colOnPrimary : Appearance.m3colors.m3onSurface
-                            }
+                    }
+                    
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: 4 * Appearance.effectiveScale
+                        MaterialSymbol {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: modelData.icon
+                            iconSize: 22 * Appearance.effectiveScale
+                            color: clockStyleBtn.isSelected ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer1
+                        }
+                        StyledText {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: modelData.name
+                            font.pixelSize: Math.round(11 * Appearance.effectiveScale)
+                            font.weight: clockStyleBtn.isSelected ? Font.DemiBold : Font.Normal
+                            color: clockStyleBtn.isSelected ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer1
                         }
                     }
                 }
@@ -175,6 +184,7 @@ ColumnLayout {
         // Advanced Settings Toggle
         RippleButton {
             Layout.fillWidth: true
+            visible: rootClock.dedicatedIsLock || (Config.ready && !Config.options.appearance.clock.useSameStyle)
             Layout.preferredHeight: 48 * Appearance.effectiveScale
             buttonRadius: 16 * Appearance.effectiveScale
             colBackground: Appearance.m3colors.m3surfaceContainerHigh
@@ -200,16 +210,16 @@ ColumnLayout {
         ColumnLayout {
             id: advancedPanel
             Layout.fillWidth: true
-            visible: clockStyleSection.showAdvanced
+            visible: clockStyleSection.showAdvanced && (rootClock.dedicatedIsLock || (Config.ready && !Config.options.appearance.clock.useSameStyle))
             spacing: 12 * Appearance.effectiveScale
 
             readonly property string currentStyle: {
                 if (!Config.ready) return "digital"
-                if (Config.options.appearance.clock.useSameStyle || clockStyleSection.activeContext === "desktop") return Config.options.appearance.clock.style;
-                return Config.options.appearance.clock.styleLocked;
+                if (Config.options.appearance.clock.useSameStyle) return Config.options.appearance.clock.styleLocked;
+                return (clockStyleSection.activeContext === "lock") ? Config.options.appearance.clock.styleLocked : Config.options.appearance.clock.style;
             }
 
-            readonly property bool isLockCtx: clockStyleSection.activeContext === "lock" && !Config.options.appearance.clock.useSameStyle
+            readonly property bool isLockCtx: clockStyleSection.activeContext === "lock" || Config.options.appearance.clock.useSameStyle
             readonly property var digitalCfg: isLockCtx ? Config.options.appearance.clock.digitalLocked : Config.options.appearance.clock.digital
             readonly property var analogCfg:  isLockCtx ? Config.options.appearance.clock.analogLocked  : Config.options.appearance.clock.analog
             readonly property var codeCfg:    isLockCtx ? Config.options.appearance.clock.codeLocked    : Config.options.appearance.clock.code
@@ -226,15 +236,16 @@ ColumnLayout {
                     columns: 2
                     Layout.fillWidth: true
                     rowSpacing: 12 * Appearance.effectiveScale
-                    StyledText { text: "Color Style"; color: Appearance.colors.colOnLayer1 }
+                    StyledText { text: "Color"; color: Appearance.colors.colOnLayer1 }
                     Row {
                         Layout.alignment: Qt.AlignRight
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "onSurface", "surface"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.digitalCfg.colorStyle === modelData
                                 onClicked: advancedPanel.digitalCfg.colorStyle = modelData
                             }
@@ -285,6 +296,20 @@ ColumnLayout {
                             onMoved: advancedPanel.digitalCfg.dateGap = Math.round(value)
                         }
                         StyledText { text: Math.round(advancedPanel.digitalCfg.dateGap ?? 4).toString() + "px"; color: Appearance.colors.colOnLayer1; Layout.preferredWidth: 40 * Appearance.effectiveScale; horizontalAlignment: Text.AlignRight }
+                    }
+                    StyledText { text: "Alignment"; color: Appearance.colors.colOnLayer1 }
+                    Row {
+                        Layout.alignment: Qt.AlignRight
+                        spacing: 2 * Appearance.effectiveScale
+                        Repeater {
+                            model: ["left", "center", "right"]
+                            delegate: SegmentedButton {
+                                required property string modelData
+                                iconName: "format_align_" + modelData
+                                isHighlighted: Config.ready && advancedPanel.digitalCfg.alignment === modelData
+                                onClicked: advancedPanel.digitalCfg.alignment = modelData
+                            }
+                        }
                     }
                 }
             }
@@ -429,9 +454,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "tertiary", "onSurface", "surface"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.codeCfg.valueColorStyle === modelData
                                 onClicked: advancedPanel.codeCfg.valueColorStyle = modelData
                             }
@@ -443,9 +469,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "tertiary", "onSurface", "surface"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.codeCfg.keywordColorStyle === modelData
                                 onClicked: advancedPanel.codeCfg.keywordColorStyle = modelData
                             }
@@ -457,9 +484,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "tertiary", "onSurface", "surface"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.codeCfg.blockColorStyle === modelData
                                 onClicked: advancedPanel.codeCfg.blockColorStyle = modelData
                             }
@@ -512,9 +540,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "tertiary", "error", "onSurface"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.stackedCfg.colorStyle === modelData
                                 onClicked: advancedPanel.stackedCfg.colorStyle = modelData
                             }
@@ -526,9 +555,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "tertiary", "onSurface", "surface"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.stackedCfg.textColorStyle === modelData
                                 onClicked: advancedPanel.stackedCfg.textColorStyle = modelData
                             }
@@ -542,7 +572,7 @@ ColumnLayout {
                             model: ["left", "center", "right"]
                             delegate: SegmentedButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                iconName: "format_align_" + modelData
                                 isHighlighted: Config.ready && advancedPanel.stackedCfg.alignment === modelData
                                 onClicked: advancedPanel.stackedCfg.alignment = modelData
                             }
@@ -587,9 +617,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "onSurface", "surface", "error"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.textCfg.timeColorStyle === modelData
                                 onClicked: advancedPanel.textCfg.timeColorStyle = modelData
                             }
@@ -601,9 +632,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "onSurface", "surface", "error"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.textCfg.dateColorStyle === modelData
                                 onClicked: advancedPanel.textCfg.dateColorStyle = modelData
                             }
@@ -617,7 +649,7 @@ ColumnLayout {
                             model: ["left", "center", "right"]
                             delegate: SegmentedButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                iconName: "format_align_" + modelData
                                 isHighlighted: Config.ready && advancedPanel.textCfg.alignment === modelData
                                 onClicked: advancedPanel.textCfg.alignment = modelData
                             }
@@ -662,9 +694,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primary", "secondary", "onSurface", "surface"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: modelData.charAt(0).toUpperCase() + modelData.slice(1)
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.pillCfg.timeColorStyle === modelData
                                 onClicked: advancedPanel.pillCfg.timeColorStyle = modelData
                             }
@@ -676,14 +709,10 @@ ColumnLayout {
                         spacing: 2 * Appearance.effectiveScale
                         Repeater {
                             model: ["primaryContainer", "secondaryContainer", "surfaceContainerHigh", "surfaceContainerLowest"]
-                            delegate: SegmentedButton {
+                            delegate: ColorPickerButton {
                                 required property string modelData
-                                buttonText: {
-                                    if (modelData === "surfaceContainerHigh") return "Surface";
-                                    if (modelData === "primaryContainer") return "Primary";
-                                    if (modelData === "secondaryContainer") return "Secondary";
-                                    return "Glass";
-                                }
+                                colorString: modelData
+                                useLockColors: rootClock.dedicatedIsLock
                                 isHighlighted: Config.ready && advancedPanel.pillCfg.pillColorStyle === modelData
                                 onClicked: advancedPanel.pillCfg.pillColorStyle = modelData
                             }
@@ -713,50 +742,119 @@ ColumnLayout {
             }
         }
 
-        // Global Toggles
+        // Clock Fonts & Date Settings
         ColumnLayout {
             Layout.fillWidth: true; spacing: 4 * Appearance.effectiveScale
+            z: 10 // Ensure dropdowns overlap below elements
+            visible: rootClock.dedicatedIsLock || (Config.ready && !Config.options.appearance.clock.useSameStyle)
+
+            Rectangle {
+                Layout.fillWidth: true; implicitHeight: 64 * Appearance.effectiveScale; color: Appearance.m3colors.m3surfaceContainerHigh
+                topLeftRadius: 20 * Appearance.effectiveScale
+                topRightRadius: 20 * Appearance.effectiveScale
+                bottomLeftRadius: (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                bottomRightRadius: (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                z: 2 // Make sure top combo overlaps bottom combo
+                RowLayout {
+                    anchors.fill: parent; anchors.leftMargin: 16 * Appearance.effectiveScale; anchors.rightMargin: 16 * Appearance.effectiveScale
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "text_fields"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { 
+                        text: Config.options.appearance.clock.useSameStyle ? "Time Font" : (clockStyleSection.activeContext === "desktop" ? "Desktop Time Font" : "Lockscreen Time Font")
+                        Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 
+                    }
+                    StyledComboBox {
+                        Layout.preferredWidth: 300 * Appearance.effectiveScale
+                        model: SystemFonts.all
+                        text: {
+                            if (!Config.ready) return "Default";
+                            const val = clockStyleSection.activeContext === "desktop" ? Config.options.appearance.clockFonts.desktopTimeFont : Config.options.appearance.clockFonts.lockscreenTimeFont;
+                            return (val === "" || val === undefined) ? "Default" : val;
+                        }
+                        onAccepted: (val) => {
+                            if (!Config.ready) return;
+                            if (clockStyleSection.activeContext === "desktop") Config.options.appearance.clockFonts.desktopTimeFont = (val === "Default" ? "" : val);
+                            else Config.options.appearance.clockFonts.lockscreenTimeFont = (val === "Default" ? "" : val);
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true; implicitHeight: 64 * Appearance.effectiveScale; color: Appearance.m3colors.m3surfaceContainerHigh
+                topLeftRadius: (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                topRightRadius: (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                bottomLeftRadius: rootClock.dedicatedIsLock ? 20 * Appearance.effectiveScale : (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                bottomRightRadius: rootClock.dedicatedIsLock ? 20 * Appearance.effectiveScale : (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                z: 1
+                RowLayout {
+                    anchors.fill: parent; anchors.leftMargin: 16 * Appearance.effectiveScale; anchors.rightMargin: 16 * Appearance.effectiveScale
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "calendar_month"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { 
+                        text: Config.options.appearance.clock.useSameStyle ? "Date Font" : (clockStyleSection.activeContext === "desktop" ? "Desktop Date Font" : "Lockscreen Date Font")
+                        Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 
+                    }
+                    StyledComboBox {
+                        Layout.preferredWidth: 300 * Appearance.effectiveScale
+                        model: SystemFonts.all
+                        text: {
+                            if (!Config.ready) return "Default";
+                            const val = clockStyleSection.activeContext === "desktop" ? Config.options.appearance.clockFonts.desktopDateFont : Config.options.appearance.clockFonts.lockscreenDateFont;
+                            return (val === "" || val === undefined) ? "Default" : val;
+                        }
+                        onAccepted: (val) => {
+                            if (!Config.ready) return;
+                            if (clockStyleSection.activeContext === "desktop") Config.options.appearance.clockFonts.desktopDateFont = (val === "Default" ? "" : val);
+                            else Config.options.appearance.clockFonts.lockscreenDateFont = (val === "Default" ? "" : val);
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                visible: !rootClock.dedicatedIsLock
+                Layout.fillWidth: true; implicitHeight: 64 * Appearance.effectiveScale; color: Appearance.m3colors.m3surfaceContainerHigh
+                topLeftRadius: (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                topRightRadius: (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+                bottomLeftRadius: 20 * Appearance.effectiveScale
+                bottomRightRadius: 20 * Appearance.effectiveScale
+                z: 0
+                RowLayout {
+                    anchors.fill: parent; anchors.leftMargin: 16 * Appearance.effectiveScale; anchors.rightMargin: 16 * Appearance.effectiveScale
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "calendar_today"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { text: "Show date on desktop"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                    AndroidToggle { checked: Config.ready && Config.options.appearance.clock.showDesktopDate; onToggled: if(Config.ready) Config.options.appearance.clock.showDesktopDate = !Config.options.appearance.clock.showDesktopDate }
+                }
+            }
+        }
+
+        // Global Toggles
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 4 * Appearance.effectiveScale
             SegmentedWrapper {
                 Layout.fillWidth: true; implicitHeight: 64 * Appearance.effectiveScale; color: Appearance.m3colors.m3surfaceContainerHigh
                 orientation: Qt.Vertical
                 maxRadius: 20 * Appearance.effectiveScale
+                visible: !rootClock.dedicatedIsLock
                 RowLayout {
                     anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
-                    MaterialSymbol { text: "sync"; color: Appearance.colors.colPrimary }
-                    StyledText { text: "Use same style for lockscreen"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "sync"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { text: "Sync desktop with lockscreen"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
                     AndroidToggle {
                         checked: Config.ready && Config.options.appearance.clock.useSameStyle
                         onToggled: {
                             if (Config.ready) {
                                 Config.options.appearance.clock.useSameStyle = !Config.options.appearance.clock.useSameStyle
-                                if (Config.options.appearance.clock.useSameStyle) Config.options.appearance.clock.styleLocked = Config.options.appearance.clock.style
                             }
                         }
                     }
                 }
             }
-            SegmentedWrapper {
-                Layout.fillWidth: true; implicitHeight: 64 * Appearance.effectiveScale; color: Appearance.m3colors.m3surfaceContainerHigh
-                orientation: Qt.Vertical
-                maxRadius: 20 * Appearance.effectiveScale
-                RowLayout {
-                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
-                    MaterialSymbol { text: "desktop_windows"; color: Appearance.colors.colPrimary }
-                    StyledText { text: "Show clock on desktop"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
-                    AndroidToggle { checked: Config.ready && Config.options.appearance.clock.showOnDesktop; onToggled: if(Config.ready) Config.options.appearance.clock.showOnDesktop = !Config.options.appearance.clock.showOnDesktop }
-                }
-            }
-            SegmentedWrapper {
-                Layout.fillWidth: true; implicitHeight: 64 * Appearance.effectiveScale; color: Appearance.m3colors.m3surfaceContainerHigh
-                orientation: Qt.Vertical
-                maxRadius: 20 * Appearance.effectiveScale
-                RowLayout {
-                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
-                    MaterialSymbol { text: "calendar_today"; color: Appearance.colors.colPrimary }
-                    StyledText { text: "Show date"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
-                    AndroidToggle { checked: Config.ready && Config.options.appearance.clock.showDate; onToggled: if(Config.ready) Config.options.appearance.clock.showDate = !Config.options.appearance.clock.showDate }
-                }
-            }
+
         }
     }
 }

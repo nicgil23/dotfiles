@@ -7,10 +7,10 @@ import "../../services"
 
 Rectangle {
     id: root
-    height: 48 * Appearance.effectiveScale
+    height: 40 * Appearance.effectiveScale
     implicitHeight: height
     Layout.preferredHeight: height
-    radius: 12 * Appearance.effectiveScale
+    radius: height / 2
     
     readonly property bool isSpotlightMode: root.launcherContent && root.launcherContent.isSpotlight
     
@@ -30,7 +30,7 @@ Rectangle {
             id: input
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - searchIcon.width - parent.spacing
-            font.pixelSize: root.isSpotlightMode ? 18 * Appearance.effectiveScale : 16 * Appearance.effectiveScale
+            font.pixelSize: Math.round(16 * Appearance.effectiveScale)
             color: Appearance.m3colors.m3onSurface
             focus: true
 

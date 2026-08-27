@@ -131,35 +131,48 @@ Button {
         }
     }
 
+    // Sibling mask source to ensure high-quality antialiasing on the clipped ripple
+    Rectangle {
+        id: rippleMask
+        visible: false
+        width: bgContainer.width
+        height: bgContainer.height
+        antialiasing: true
+        topLeftRadius: root.topLeftRadius
+        topRightRadius: root.topRightRadius
+        bottomLeftRadius: root.bottomLeftRadius
+        bottomRightRadius: root.bottomRightRadius
+    }
+
     // ── STABLE BACKGROUND ──
     background: Rectangle {
         id: bgContainer
+        clip: false
+        antialiasing: true
         color: root.baseColor
         topLeftRadius: root.topLeftRadius
         topRightRadius: root.topRightRadius
         bottomLeftRadius: root.bottomLeftRadius
         bottomRightRadius: root.bottomRightRadius
         
+        layer.enabled: root.rippleEnabled && ripple.opacity > 0
+        layer.smooth: true
+        layer.effect: OpacityMask {
+            maskSource: rippleMask
+        }
+        
         Behavior on color { 
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(bgContainer)
-        }
-
-        layer.enabled: true
-        layer.effect: OpacityMask {
-            maskSource: Rectangle {
-                width: bgContainer.width; height: bgContainer.height
-                radius: bgContainer.radius
-                topLeftRadius: bgContainer.topLeftRadius
-                topRightRadius: bgContainer.topRightRadius
-                bottomLeftRadius: bgContainer.bottomLeftRadius
-                bottomRightRadius: bgContainer.bottomRightRadius
-                antialiasing: true // Reduce clipping artifacts (shadows)
-            }
         }
 
         // State Layer (Highlight)
         Rectangle {
             anchors.fill: parent
+            topLeftRadius: bgContainer.topLeftRadius
+            topRightRadius: bgContainer.topRightRadius
+            bottomLeftRadius: bgContainer.bottomLeftRadius
+            bottomRightRadius: bgContainer.bottomRightRadius
+            antialiasing: true
             color: root.textColor
             opacity: root.down ? 0.12 : (root.hovered ? 0.08 : 0)
             Behavior on opacity { NumberAnimation { duration: 150 } }

@@ -10,8 +10,23 @@ import Quickshell
 import Quickshell.Io
 
 ColumnLayout {
+    id: root
     Layout.fillWidth: true
     spacing: 0
+
+    property string activeFontName: {
+        if (titleCombo.isOpened) return titleCombo.activeFont;
+        if (numbersCombo.isOpened) return numbersCombo.activeFont;
+        if (monoCombo.isOpened) return monoCombo.activeFont;
+        return mainCombo.activeFont;
+    }
+
+    property string activeComboLabel: {
+        if (titleCombo.isOpened) return "Title Font";
+        if (numbersCombo.isOpened) return "Numbers Font";
+        if (monoCombo.isOpened) return "Monospace Font";
+        return "Main Font";
+    }
 
     SearchHandler { searchString: "Typography" }
 
@@ -36,78 +51,202 @@ ColumnLayout {
                         font.pixelSize: Appearance.font.pixelSize.large
                         font.weight: Font.Medium
                         color: Appearance.colors.colOnLayer1
+                        Layout.fillWidth: true
+                    }
+
+                    StyledText {
+                        text: "Refresh Font"
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: maRefreshFont.containsMouse ? Appearance.colors.colPrimaryHover : Appearance.colors.colPrimary
+
+                        MouseArea {
+                            id: maRefreshFont
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: SystemFonts.fetchAndCache()
+                        }
                     }
                 }
                 
-                GridLayout {
+                RowLayout {
                     Layout.fillWidth: true
-                    columns: 2
-                    rowSpacing: 24 * Appearance.effectiveScale
-                    columnSpacing: 24 * Appearance.effectiveScale
-                    
-                    property var fontOptions: ["Google Sans Flex", "Google Sans Mono", "Cantarell", "JetBrainsMono Nerd Font", "FantasqueSansM Nerd Font", "Inter", "Roboto", "Outfit", "Lexend", "Cascadia Code", "Iosevka", "Public Sans"]
-    
+                    spacing: 24 * Appearance.effectiveScale
+
                     ColumnLayout {
-                        id: mainComboContainer
                         Layout.fillWidth: true
-                        spacing: 8 * Appearance.effectiveScale
-                        z: mainCombo.isOpened ? 10 : 1
-                        StyledText { text: "Main Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
-                        StyledComboBox {
-                            id: mainCombo
+                        spacing: 16 * Appearance.effectiveScale
+
+                        ColumnLayout {
+                            id: mainComboContainer
                             Layout.fillWidth: true
-                            isFontPicker: true
-                            text: Config.options.appearance.fonts.main
-                            model: parent.parent.fontOptions
-                            onAccepted: (val) => Config.options.appearance.fonts.main = val
+                            spacing: 8 * Appearance.effectiveScale
+                            z: mainCombo.isOpened ? 10 : 1
+                            StyledText { text: "Main Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
+                            StyledComboBox {
+                                id: mainCombo
+                                Layout.fillWidth: true
+                                text: Config.options.appearance.fonts.main
+                                model: SystemFonts.all
+                                onAccepted: (val) => Config.options.appearance.fonts.main = val
+                            }
+                        }
+
+                        ColumnLayout {
+                            id: titleComboContainer
+                            Layout.fillWidth: true
+                            spacing: 8 * Appearance.effectiveScale
+                            z: titleCombo.isOpened ? 10 : 1
+                            StyledText { text: "Title Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
+                            StyledComboBox {
+                                id: titleCombo
+                                Layout.fillWidth: true
+                                text: Config.options.appearance.fonts.title
+                                model: SystemFonts.all
+                                onAccepted: (val) => Config.options.appearance.fonts.title = val
+                            }
+                        }
+
+                        ColumnLayout {
+                            id: numbersComboContainer
+                            Layout.fillWidth: true
+                            spacing: 8 * Appearance.effectiveScale
+                            z: numbersCombo.isOpened ? 10 : 1
+                            StyledText { text: "Numbers Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
+                            StyledComboBox {
+                                id: numbersCombo
+                                Layout.fillWidth: true
+                                text: Config.options.appearance.fonts.numbers
+                                model: SystemFonts.all
+                                onAccepted: (val) => Config.options.appearance.fonts.numbers = val
+                            }
+                        }
+
+                        ColumnLayout {
+                            id: monoComboContainer
+                            Layout.fillWidth: true
+                            spacing: 8 * Appearance.effectiveScale
+                            z: monoCombo.isOpened ? 10 : 1
+                            StyledText { text: "Monospace Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
+                            StyledComboBox {
+                                id: monoCombo
+                                Layout.fillWidth: true
+                                text: Config.options.appearance.fonts.monospace
+                                model: SystemFonts.mono
+                                onAccepted: (val) => Config.options.appearance.fonts.monospace = val
+                            }
                         }
                     }
-                    
-                    ColumnLayout {
-                        id: titleComboContainer
+
+                    // ── Font Preview ──
+                    Rectangle {
                         Layout.fillWidth: true
-                        spacing: 8 * Appearance.effectiveScale
-                        z: titleCombo.isOpened ? 10 : 1
-                        StyledText { text: "Title Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
-                        StyledComboBox {
-                            id: titleCombo
-                            Layout.fillWidth: true
-                            isFontPicker: true
-                            text: Config.options.appearance.fonts.title
-                            model: parent.parent.fontOptions
-                            onAccepted: (val) => Config.options.appearance.fonts.title = val
-                        }
-                    }
-                    
-                    ColumnLayout {
-                        id: numbersComboContainer
-                        Layout.fillWidth: true
-                        spacing: 8 * Appearance.effectiveScale
-                        z: numbersCombo.isOpened ? 10 : 1
-                        StyledText { text: "Numbers Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
-                        StyledComboBox {
-                            id: numbersCombo
-                            Layout.fillWidth: true
-                            isFontPicker: true
-                            text: Config.options.appearance.fonts.numbers
-                            model: parent.parent.fontOptions
-                            onAccepted: (val) => Config.options.appearance.fonts.numbers = val
-                        }
-                    }
-                    
-                    ColumnLayout {
-                        id: monoComboContainer
-                        Layout.fillWidth: true
-                        spacing: 8 * Appearance.effectiveScale
-                        z: monoCombo.isOpened ? 10 : 1
-                        StyledText { text: "Monospace Font"; font.weight: Font.Medium; color: Appearance.colors.colOnLayer1 }
-                        StyledComboBox {
-                            id: monoCombo
-                            Layout.fillWidth: true
-                            isFontPicker: true
-                            text: Config.options.appearance.fonts.monospace
-                            model: parent.parent.fontOptions
-                            onAccepted: (val) => Config.options.appearance.fonts.monospace = val
+                        Layout.preferredWidth: 320 * Appearance.effectiveScale
+                        Layout.maximumWidth: 400 * Appearance.effectiveScale
+                        Layout.fillHeight: true
+                        radius: 12 * Appearance.effectiveScale
+                        color: Appearance.colors.colLayer1
+                        border.width: Math.max(1, 1 * Appearance.effectiveScale)
+                        border.color: Appearance.colors.colOutlineVariant
+
+                        ColumnLayout {
+                            id: previewContent
+                            anchors.fill: parent
+                            anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 8 * Appearance.effectiveScale
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8 * Appearance.effectiveScale
+
+                                Text {
+                                    text: "Preview"
+                                    font.family: Appearance.font.family.main
+                                    font.pixelSize: Appearance.font.pixelSize.small
+                                    font.weight: Font.Medium
+                                    color: Appearance.colors.colOnLayer1
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.activeComboLabel
+                                    font.family: Appearance.font.family.main
+                                    font.pixelSize: Appearance.font.pixelSize.small
+                                    color: Appearance.colors.colSubtext
+                                    elide: Text.ElideRight
+                                    horizontalAlignment: Text.AlignRight
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.activeFontName
+                                font.family: Appearance.font.family.main
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                font.weight: Font.Medium
+                                color: Appearance.colors.colOnLayer1
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.topMargin: 4 * Appearance.effectiveScale
+                                Layout.bottomMargin: 4 * Appearance.effectiveScale
+                                height: Math.max(1, 1 * Appearance.effectiveScale)
+                                color: Appearance.colors.colOutlineVariant
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: "The quick brown fox jumps over the lazy dog"
+                                font.family: root.activeFontName
+                                font.pixelSize: Appearance.font.pixelSize.larger
+                                color: Appearance.colors.colOnLayer1
+                                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: "0123456789"
+                                font.family: root.activeFontName
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                color: Appearance.colors.colOnLayer1
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                font.family: root.activeFontName
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                color: Appearance.colors.colSubtext
+                                wrapMode: Text.WrapAnywhere
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: "abcdefghijklmnopqrstuvwxyz"
+                                font.family: root.activeFontName
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                color: Appearance.colors.colSubtext
+                                wrapMode: Text.WrapAnywhere
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: "!@#$%^&*()_+-=[]{};':,.<>/?|"
+                                font.family: root.activeFontName
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                color: Appearance.colors.colSubtext
+                                wrapMode: Text.WrapAnywhere
+                                verticalAlignment: Text.AlignVCenter
+                            }
                         }
                     }
                 }

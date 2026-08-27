@@ -19,6 +19,8 @@ Flickable {
     contentHeight: mainCol.implicitHeight + (48 * Appearance.effectiveScale)
     clip: true
     
+    property bool isOnboarding: false
+    
     ScrollBar.vertical: StyledScrollBar {}
 
     SequentialAnimation {
@@ -74,8 +76,6 @@ Flickable {
     property var matugenPreviews: ({})
     property var pendingPreviews: ({})
     property string desktopSourceHex: ""
-    property string lockscreenSourceHex: ""
-    readonly property string currentSourceHex: previewMatugen.currentSource === "lockscreen" ? lockscreenSourceHex : desktopSourceHex
 
     Timer {
         id: batchUpdateTimer
@@ -105,9 +105,9 @@ Flickable {
 
     Process {
         id: previewMatugen
-        command: root.currentSourceHex === "" 
+        command: root.desktopSourceHex === "" 
             ? ["bash", "-c", `[ -f "$3" ] && matugen -c ~/.config/matugen/config.toml -t "$1" -m "$2" image "$3" --dry-run -j hex --old-json-output --source-color-index 0`, "matugen", currentScheme, (Config.options.appearance.background.darkmode ? "dark" : "light"), currentPath]
-            : ["bash", "-c", `matugen -c ~/.config/matugen/config.toml -t "$1" -m "$2" color hex "$3" --dry-run -j hex --old-json-output`, "matugen", currentScheme, (Config.options.appearance.background.darkmode ? "dark" : "light"), root.currentSourceHex]
+            : ["bash", "-c", `matugen -c ~/.config/matugen/config.toml -t "$1" -m "$2" color hex "$3" --dry-run -j hex --old-json-output`, "matugen", currentScheme, (Config.options.appearance.background.darkmode ? "dark" : "light"), root.desktopSourceHex]
         property string currentScheme: ""
         property string currentPath: ""
         property string currentSource: ""
@@ -135,29 +135,37 @@ Flickable {
                     
                     const data = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
                     
-                    if (root.currentSourceHex === "" && data.colors && data.colors.source_color) {
+                    if (root.desktopSourceHex === "" && data.colors && data.colors.source_color) {
                         const sc = data.colors.source_color;
                         let extracted = sc.default || (sc.light ? sc.light : (sc.dark ? sc.dark : ""));
                         if (typeof extracted === 'object') extracted = extracted.color || "";
                         if (typeof extracted === 'string' && extracted.startsWith("#")) {
-                            if (previewMatugen.currentSource === "lockscreen") {
-                                root.lockscreenSourceHex = extracted;
-                            } else {
-                                root.desktopSourceHex = extracted;
-                            }
+                            root.desktopSourceHex = extracted;
                         }
                     }
                     
                     const mode = Config.options.appearance.background.darkmode ? "dark" : "light";
                     let colors = [];
-                    
+
                     // Handle various matugen JSON formats (old vs new)
                     if (data.colors) {
                         if (data.colors.primary && typeof data.colors.primary === 'object') {
+                            // Pick a tone by mode, falling back to .default.
+                            const tone = (node) => (node && (node[mode] || node.default)) || "";
+                            // In light mode the normal primary/secondary/tertiary tones are deliberately
+                            // dark (inverse of the bright surface), making the preview swatches look harshly
+                            // contrasted against the card. Use *_container tones instead — they stay closer
+                            // to each scheme's real character while staying distinguishable. Dark mode keeps
+                            // the natural tones.
+                            const useContainer = (mode === "light");
+                            const container = (key) => {
+                                const node = data.colors[key + "_container"];
+                                return tone(node);
+                            };
                             colors = [
-                                data.colors.primary[mode] || data.colors.primary.default, 
-                                data.colors.secondary[mode] || data.colors.secondary.default, 
-                                data.colors.tertiary[mode] || data.colors.tertiary.default
+                                (useContainer && container("primary"))   || tone(data.colors.primary),
+                                (useContainer && container("secondary")) || tone(data.colors.secondary),
+                                (useContainer && container("tertiary"))  || tone(data.colors.tertiary)
                             ];
                         } else if (data.colors.light) {
                              colors = [data.colors.light.primary, data.colors.light.surface_container_high, data.colors.light.secondary];
@@ -189,20 +197,13 @@ Flickable {
             }
 
             if (previewIndex >= matugenSchemes.length) {
-                if (previewSource === "desktop" && Config.options.lock.useSeparateWallpaper) {
-                    previewSource = "lockscreen";
-                    previewIndex = 0;
-                } else {
-                    return;
-                }
+                return;
             }
             
             const scheme = matugenSchemes[previewIndex].id;
-            let path = (previewSource === "lockscreen" && Config.options.lock) 
-                ? Config.options.lock.wallpaperPath 
-                : (Config.options.appearance && Config.options.appearance.background ? Config.options.appearance.background.wallpaperPath : "");
+            let path = Config.options.appearance && Config.options.appearance.background ? Config.options.appearance.background.wallpaperPath : "";
             
-            if (previewSource === "desktop" && WallpaperEngineService.active) {
+            if (WallpaperEngineService.active) {
                 path = WallpaperEngineService.screenshotPath;
             }
             
@@ -234,7 +235,6 @@ Flickable {
         previewSource = "desktop";
         root.pendingPreviews = {};
         root.desktopSourceHex = "";
-        root.lockscreenSourceHex = "";
         previewIterateTimer.restart();
     }
 
@@ -246,17 +246,15 @@ Flickable {
         onTriggered: refreshPreviews()
     }
 
+    // Watch darkmode via Appearance.m3colors.darkmode (proper QML signal)
+    property bool currentDarkMode: Appearance.m3colors.darkmode
+    onCurrentDarkModeChanged: refreshPreviews()
+
     Connections {
         target: Config.ready ? Config.options.appearance.background : null
         function onWallpaperPathChanged() { refreshPreviews() }
     }
     
-    Connections {
-        target: Config.ready ? Config.options.lock : null
-        function onWallpaperPathChanged() { refreshPreviews() }
-        function onUseSeparateWallpaperChanged() { refreshPreviews() }
-    }
-
     Connections {
         target: WallpaperEngineService
         function onScreenshotVersionChanged() { refreshPreviews() }
@@ -271,7 +269,7 @@ Flickable {
 
     ColumnLayout {
         id: mainCol
-        width: parent.width
+        width: parent.width - (24 * Appearance.effectiveScale)
         spacing: 32 * Appearance.effectiveScale
         anchors.margins: 4 * Appearance.effectiveScale
         visible: Config.ready
@@ -283,6 +281,7 @@ Flickable {
         // ── Header ──
         ColumnLayout {
             spacing: 4 * Appearance.effectiveScale
+            visible: !root.isOnboarding
             StyledText {
                 text: "Style"
                 font.pixelSize: Appearance.font.pixelSize.huge
@@ -352,8 +351,9 @@ Flickable {
             }
             
             // ── Wallpaper Auto-Cycle ──
-            WsWallpaperCycle { 
+            WsWallpaperCycle {
                 Layout.fillWidth: true
+                visible: !root.isOnboarding
             }
 
             // ── Wallpaper Transition ──
@@ -366,7 +366,7 @@ Flickable {
         RowLayout {
             id: previewRow
             Layout.fillWidth: true
-            spacing: 24 * Appearance.effectiveScale
+            spacing: 12 * Appearance.effectiveScale
 
             property string selection: "desktop"
 
@@ -411,31 +411,31 @@ Flickable {
         WsThemeColor { Layout.fillWidth: true }
 
         // ── Launcher Settings Section ──
-        WsLauncher { Layout.fillWidth: true }
+        WsLauncher { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         // ── Dock Settings Section ──
-        WsDock { Layout.fillWidth: true }
+        WsDock { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         // ── Overview Settings Section ──
-        WsOverview { Layout.fillWidth: true }
-
-        // ── Clock Style Section ──
-        WsClock { Layout.fillWidth: true }
+        WsOverview { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         // ── Visualizer Section ──
-        WsCava { Layout.fillWidth: true }
+        WsCava { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         // ── Lockscreen Section ──
-        WsLockscreen { Layout.fillWidth: true }
+        WsLockscreen { Layout.fillWidth: true; visible: !root.isOnboarding }
+
+        // ── Overlay Section (Notification Center / Quick Settings) ──
+        WsOverlay { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         // ── Status Bar Section ──
-        WsStatusBar { Layout.fillWidth: true }
+        WsStatusBar { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         // ── Screen Decor Section ──
-        WsScreenDecor { Layout.fillWidth: true }
+        WsScreenDecor { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         // ── Typography Section ──
-        WsTypography { Layout.fillWidth: true }
+        WsTypography { Layout.fillWidth: true; visible: !root.isOnboarding }
 
         Item { Layout.fillHeight: true; Layout.preferredHeight: 32 * Appearance.effectiveScale }
     }

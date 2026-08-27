@@ -29,16 +29,7 @@ Singleton {
         }
     }
 
-    // Periodically re-enforce preference to handle system overrides (like waking from sleep)
-    Timer {
-        id: persistenceTimer
-        interval: 5000 // Check every 5 seconds
-        repeat: true
-        running: true
-        triggeredOnStart: true
-        onTriggered: root.enforcePreference()
-    }
-
+    // Enforce preference on startup and when adapter re-initializes (e.g. after sleep)
     Connections {
         target: Config
         function onReadyChanged() { root.enforcePreference(); }
@@ -46,17 +37,19 @@ Singleton {
 
     Connections {
         target: Bluetooth
-        function onDefaultAdapterChanged() { 
-            // Delay slightly to allow the adapter to initialize after sleep/resume
-            enforceTimer.restart();
+        function onDefaultAdapterChanged() {
+            Qt.callLater(() => root.enforcePreference());
         }
     }
 
-    Timer {
-        id: enforceTimer
-        interval: 1000
-        repeat: false
-        onTriggered: root.enforcePreference()
+    // Catch kernel/hardware resetting the enabled state (e.g. after sleep/wake)
+    Connections {
+        target: Bluetooth.defaultAdapter
+        function onEnabledChanged() {
+            if (!Config.ready || !Config.options.system) return;
+            if (Bluetooth.defaultAdapter.enabled === Config.options.system.bluetoothEnabled) return;
+            Bluetooth.defaultAdapter.enabled = Config.options.system.bluetoothEnabled;
+        }
     }
 
     signal deviceConnected(var device)
@@ -273,8 +266,8 @@ Singleton {
         return a.name.localeCompare(b.name);
     }
 
-    readonly property var connectedDevices: Bluetooth.devices.values.filter(d => d.connected && d.address !== pairingAddress).sort(sortFunction)
-    readonly property var pairedButNotConnectedDevices: Bluetooth.devices.values.filter(d => (d.paired || d.trusted) && !d.connected && d.address !== pairingAddress).sort(sortFunction)
+    readonly property var connectedDevices: Bluetooth.devices.values.filter(d => d.connected).sort(sortFunction)
+    readonly property var pairedButNotConnectedDevices: Bluetooth.devices.values.filter(d => (d.paired || d.trusted) && !d.connected).sort(sortFunction)
     readonly property var unpairedDevices: {
         let list = Bluetooth.devices.values.filter(d => (!d.paired && !d.trusted && !d.connected) || d.address === pairingAddress);
         if (pairingAddress !== "" && !list.some(d => d.address === pairingAddress) && lastPairingDevice) {

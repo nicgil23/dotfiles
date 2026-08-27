@@ -23,6 +23,13 @@ Item {
     property bool isOpened: false
     property bool isFiltering: false // Only filter when user starts typing
     property int maxHeight: 240 * Appearance.effectiveScale
+
+    property string activeFont: {
+        if (root.isOpened && listView.currentIndex >= 0 && listView.currentIndex < root.filteredModel.length) {
+            return root.filteredModel[listView.currentIndex];
+        }
+        return root.text;
+    }
     
     signal accepted(string value)
     
@@ -32,9 +39,9 @@ Item {
 
     // Update internal search model when text changes or model changes
     property var filteredModel: {
-        if (!searchable || !isFiltering || text === "") return model;
+        if (!searchable || !isFiltering || input.text === "") return model;
         let results = [];
-        const lowerText = text.toLowerCase();
+        const lowerText = input.text.toLowerCase();
         for (let i = 0; i < model.length; i++) {
             if (model[i].toLowerCase().includes(lowerText)) {
                 results.push(model[i]);
@@ -78,20 +85,29 @@ Item {
                 color: Appearance.colors.colOnLayer1
                 verticalAlignment: TextInput.AlignVCenter
                 readOnly: !root.searchable
-                focus: root.searchable
                 selectByMouse: root.searchable
                 clip: true
                 
                 onTextChanged: {
                     if (root.searchable && activeFocus && root.isOpened) {
-                        root.text = text;
                         root.isFiltering = true;
                     }
                     if (!activeFocus) cursorPosition = 0;
                 }
+                
+                Connections {
+                    target: root
+                    function onTextChanged() {
+                        if (!input.activeFocus) {
+                            input.text = root.text;
+                        }
+                    }
+                }
+
                 onActiveFocusChanged: {
                     if (activeFocus && root.searchable) {
                         root.isOpened = true;
+                        input.selectAll(); // Select all text so typing immediately replaces it
                     }
                 }
 
@@ -112,13 +128,21 @@ Item {
                         event.accepted = true;
                     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                         if (listView.currentIndex >= 0 && listView.currentIndex < listView.count) {
-                            root.selectItem(root.filteredModel[listView.currentIndex]);
-                            root.isOpened = false;
-                            input.focus = false;
+                            let selectedVal = root.filteredModel[listView.currentIndex];
+                            input.text = selectedVal; // Manually update input text to fix visual lag
+                            input.focus = false; // Drop focus synchronously
+                            root.selectItem(selectedVal);
+                            Qt.callLater(() => {
+                                root.isOpened = false;
+                            });
                         }
                         event.accepted = true;
                     } else if (event.key === Qt.Key_Escape) {
-                        root.isOpened = false;
+                        input.text = root.text; // Restore original text
+                        input.focus = false;
+                        Qt.callLater(() => {
+                            root.isOpened = false;
+                        });
                         event.accepted = true;
                     }
                 }
@@ -152,12 +176,12 @@ Item {
     // Dropdown Popup
     Popup {
         id: dropdownPopup
-        y: bg.height + 4 * Appearance.effectiveScale
+        y: root.computePopupY()
         width: root.width
-        visible: root.isOpened && filteredModel.length > 0
-        padding: 0
+        padding: 4 * Appearance.effectiveScale
         margins: 0
         z: 2000
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent | Popup.CloseOnPressOutside
         
         background: Rectangle {
             radius: 12 * Appearance.effectiveScale
@@ -165,6 +189,7 @@ Item {
             border.width: Math.max(1, 1 * Appearance.effectiveScale)
             border.color: Appearance.colors.colOutlineVariant
             clip: true
+            visible: root.filteredModel.length > 0
         }
 
         enter: Transition {
@@ -172,18 +197,14 @@ Item {
             NumberAnimation { property: "scale"; from: 0.95; to: 1; duration: 200; easing.type: Easing.OutBack }
         }
         
-        exit: Transition {
-            NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 150; easing.type: Easing.InCubic }
-            NumberAnimation { property: "scale"; from: 1; to: 0.95; duration: 150; easing.type: Easing.InCubic }
-        }
+        // exit transition removed to prevent Wayland click grab bugs during fade out
 
         contentItem: ListView {
             id: listView
-            implicitHeight: Math.min(root.maxHeight, contentHeight + 8 * Appearance.effectiveScale)
+            implicitHeight: Math.min(root.maxHeight - 8 * Appearance.effectiveScale, contentHeight)
             model: root.filteredModel
             boundsBehavior: Flickable.StopAtBounds
             clip: true
-            anchors.margins: 4 * Appearance.effectiveScale
             highlightFollowsCurrentItem: true
             highlight: Rectangle {
                 color: Appearance.colors.colLayer2Hover
@@ -202,6 +223,10 @@ Item {
                 
                 property bool isCurrent: ListView.isCurrentItem
 
+                onRealHoveredChanged: {
+                    if (delegateRoot.realHovered) listView.currentIndex = index;
+                }
+
                 contentItem: StyledText {
                     text: modelData
                     anchors.fill: parent
@@ -213,8 +238,12 @@ Item {
                 }
                 
                 onClicked: {
+                    input.text = modelData;
+                    input.focus = false; // Drop focus synchronously
                     root.selectItem(modelData);
-                    root.isOpened = false;
+                    Qt.callLater(() => {
+                        root.isOpened = false;
+                    });
                 }
             }
             
@@ -228,7 +257,56 @@ Item {
         }
     }
     
+    function findViewport() {
+        var p = root.parent;
+        while (p !== null && p !== undefined) {
+            if (p instanceof Flickable) return p;
+            p = p.parent;
+        }
+        return null;
+    }
+
+    function popupHeight() {
+        return Math.min(root.maxHeight, listView.contentHeight + 8 * Appearance.effectiveScale);
+    }
+
+    function computePopupY() {
+        const gap = 4 * Appearance.effectiveScale;
+        const h = root.popupHeight();
+        const vp = root.findViewport();
+        if (vp) {
+            const contentY = vp.contentY;
+            const topInContent = root.mapToItem(vp.contentItem, 0, 0).y;
+            const bottomInContent = root.mapToItem(vp.contentItem, 0, bg.height).y;
+            const spaceAbove = topInContent - contentY;
+            const spaceBelow = vp.height - (bottomInContent - contentY);
+            if (spaceBelow >= h) return bg.height + gap;
+            if (spaceAbove >= h) return -(h + gap);
+            return (spaceBelow >= spaceAbove) ? (bg.height + gap) : -(h + gap);
+        }
+        const win = root.Window;
+        if (win) {
+            const spaceBelow = win.height - root.mapToItem(null, 0, bg.height).y;
+            if (spaceBelow >= h) return bg.height + gap;
+        }
+        return -(h + gap);
+    }
+
+    function syncPopup() {
+        if (root.isOpened) {
+            dropdownPopup.open();
+        } else {
+            dropdownPopup.close();
+        }
+    }
+
+    onFilteredModelChanged: {
+        if (root.isOpened) syncPopup();
+    }
+
     onIsOpenedChanged: {
+        syncPopup();
+        
         if (isOpened) {
             // Mutual exclusion: Close other open dropdowns
             if (GlobalStates.activeComboBox && GlobalStates.activeComboBox !== root) {
@@ -260,6 +338,15 @@ Item {
                 GlobalStates.activeComboBox = null;
             }
             root.isFiltering = false;
+            // VERY IMPORTANT: Clear focus so it doesn't reopen when the window regains focus
+            input.focus = false;
+        }
+    }
+    
+    property bool _windowActive: Window.active
+    on_WindowActiveChanged: {
+        if (!_windowActive) {
+            root.isOpened = false;
         }
     }
 

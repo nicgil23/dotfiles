@@ -53,7 +53,15 @@ ColumnLayout {
                     Layout.rightMargin: 4 * Appearance.effectiveScale
     
                     Repeater {
-                        model: parent.parent.showAllShapes ? parent.parent.allShapes : parent.parent.allShapes.slice(0, 8)
+                        model: {
+                            if (parent.parent.showAllShapes)
+                                return parent.parent.allShapes
+                            const top8 = parent.parent.allShapes.slice(0, 8)
+                            const selected = Config.ready && Config.options.search ? Config.options.search.iconShape : null
+                            if (selected && !top8.includes(selected))
+                                return parent.parent.allShapes.slice(0, 7).concat([selected])
+                            return top8
+                        }
                         delegate: RippleButton {
                             id: shapeBtn
                             Layout.fillWidth: true
@@ -80,7 +88,7 @@ ColumnLayout {
                                 StyledText {
                                     Layout.alignment: Qt.AlignHCenter
                                     text: modelData
-                                    font.pixelSize: 10 * Appearance.effectiveScale
+                                    font.pixelSize: Math.round(10 * Appearance.effectiveScale)
                                     font.weight: shapeBtn.isSelected ? Font.DemiBold : Font.Normal
                                     color: shapeBtn.isSelected ? Appearance.colors.colNotchText : Appearance.m3colors.m3onSurface
                                 }

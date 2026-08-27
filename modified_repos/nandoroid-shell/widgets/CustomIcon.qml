@@ -24,10 +24,11 @@ Item {
     readonly property string resolvedSource: {
         if (!root.source) return "";
         let s = root.source;
+        if (s.startsWith("/")) return "file://" + s;
+        if (s.includes("://")) return s;
         if (!s.includes(".") && !s.startsWith("image://")) {
             s += ".svg";
         }
-        if (s.startsWith("/") || s.includes("://")) return s;
 
         // Fallback-friendly relative resolution
         // widgets/ -> ../ -> assets/icons/
@@ -75,7 +76,7 @@ Item {
             anchors.fill: parent
             source: maskSource
             color: root.color
-            visible: root.colorize && maskSource.status === Image.Ready
+            visible: root.colorize && (maskSource.status === Image.Ready || maskSource.implicitWidth > 0)
         }
     }
 }

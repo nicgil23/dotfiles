@@ -29,8 +29,13 @@ Singleton {
     readonly property var ipcPrefix: ["qs", "-p", Quickshell.shellPath("shell.qml")]
     readonly property string ipcCommandPrefixString: `qs -p '${Quickshell.shellPath("shell.qml")}'`
 
+    // Presets
+    property string presetsPath: `${shellConfig}/presets`
+    property string presetsScriptPath: `${Quickshell.shellPath("scripts")}/presets.sh`
+
     // Matugen colors path
     property string generatedMaterialThemePath: Functions.FileUtils.trimFileProtocol(`${state}/user/generated/colors.json`)
+    property string generatedLockColorsPath: Functions.FileUtils.trimFileProtocol(`${state}/user/generated/lockscreencolors.json`)
 
     // Notifications cache
     property string notificationsPath: Functions.FileUtils.trimFileProtocol(`${cache}/notifications/notifications.json`)
@@ -43,9 +48,10 @@ Singleton {
     property string screenshotTemp: "/tmp/nandoroid/screenshots"
     property string screenshotDir: Functions.FileUtils.trimFileProtocol(`${pictures}/Screenshots`)
 
-    // Ensure config dir exists
+    // Ensure dirs and temp files exist (silences FileView warnings)
     Component.onCompleted: {
         Quickshell.execDetached(["mkdir", "-p", `${shellConfig}`])
+        Quickshell.execDetached(["mkdir", "-p", `${presetsPath}`])
         Quickshell.execDetached(["mkdir", "-p", `${screenshotTemp}`])
         Quickshell.execDetached(["mkdir", "-p", `${cache.toString().substring(7)}/nandoroid`])
         
@@ -53,5 +59,10 @@ Singleton {
         const matugenFile = generatedMaterialThemePath;
         const matugenDir = matugenFile.substring(0, matugenFile.lastIndexOf('/'));
         Quickshell.execDetached(["mkdir", "-p", matugenDir])
+
+        // Pre-create state files for FileView watchers
+        Quickshell.execDetached(["mkdir", "-p", `${Functions.FileUtils.trimFileProtocol(state)}/quickshell`])
+        Quickshell.execDetached(["touch", `${Functions.FileUtils.trimFileProtocol(state)}/quickshell/nandoroid_states.json`])
+        Quickshell.execDetached(["touch", "/tmp/nandoroid_cava.conf"])
     }
 }

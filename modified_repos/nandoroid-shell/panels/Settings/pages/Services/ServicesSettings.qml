@@ -31,7 +31,7 @@ Flickable {
 
     ColumnLayout {
         id: mainCol
-        width: parent.width
+        width: parent.width - (24 * Appearance.effectiveScale)
         spacing: 32 * Appearance.effectiveScale
 
         // ── Header ──
@@ -39,7 +39,7 @@ Flickable {
             spacing: 4 * Appearance.effectiveScale
             StyledText {
                 text: "Services"
-                font.pixelSize: 24 * Appearance.effectiveScale
+                font.pixelSize: Math.round(24 * Appearance.effectiveScale)
                 font.weight: Font.DemiBold
                 color: Appearance.colors.colOnLayer1
             }
@@ -61,6 +61,9 @@ Flickable {
 
         // ── Media Section ──
         ServicesMedia { Layout.fillWidth: true }
+
+        // ── Lyrics Section ──
+        ServicesLyrics { Layout.fillWidth: true }
 
         // ── GitHub Section ──
         ServicesGitHub { Layout.fillWidth: true }

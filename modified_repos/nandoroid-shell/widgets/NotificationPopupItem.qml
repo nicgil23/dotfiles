@@ -161,7 +161,7 @@ Item {
                     }
                     StyledText {
                         text: "Restart Required"
-                        font.pixelSize: 11 * Appearance.effectiveScale
+                        font.pixelSize: Math.round(11 * Appearance.effectiveScale)
                         font.weight: Font.Bold
                         color: Appearance.colors.colOnWarning
                         anchors.verticalCenter: parent.verticalCenter
@@ -185,7 +185,7 @@ Item {
                         return summary !== "" ? summary : body;
                     }
                 }
-                font.pixelSize: 14 * Appearance.effectiveScale
+                font.pixelSize: Math.round(14 * Appearance.effectiveScale)
                 horizontalAlignment: notificationObject && notificationObject.isRestartRequired ? Text.AlignHCenter : Text.AlignLeft
                 
                 wrapMode: root.expanded ? Text.Wrap : Text.NoWrap
@@ -231,10 +231,17 @@ Item {
                         spacing: 8 * Appearance.effectiveScale
                     
                         readonly property bool isWarning: notificationObject && notificationObject.isRestartRequired
+                        readonly property bool hasDefaultAction: {
+                            if (!notificationObject) return false;
+                            for (var i = 0; i < notificationObject.actions.length; i++) {
+                                if (notificationObject.actions[i].identifier === "default") return true;
+                            }
+                            return false;
+                        }
                         readonly property color btnBg: isWarning ? "transparent" : (notificationObject && notificationObject.urgency == NotificationUrgency.Critical ? Appearance.m3colors.m3secondaryContainer : Appearance.m3colors.m3surfaceContainerHighest)
                         readonly property color btnHover: isWarning ? Functions.ColorUtils.applyAlpha("white", 0.05) : (notificationObject && notificationObject.urgency == NotificationUrgency.Critical ? Appearance.m3colors.m3secondaryFixedDim : Appearance.m3colors.m3surfaceBright)
 
-                        readonly property int totalButtons: (notificationObject ? notificationObject.actions.length : 0) + (notificationObject && notificationObject.isRestartRequired ? 4 : 3)
+                        readonly property int totalButtons: (notificationObject ? notificationObject.actions.length : 0) + (notificationObject && notificationObject.isRestartRequired ? 3 : 2)
                         readonly property real buttonWidth: Math.max(100 * Appearance.effectiveScale, (actionsFlickable.width - (spacing * (totalButtons - 1))) / totalButtons)
 
                         NotificationActionButton {
@@ -261,7 +268,7 @@ Item {
                                     }
                                     StyledText {
                                         text: "Restart"
-                                        font.pixelSize: 12 * Appearance.effectiveScale
+                                        font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                                         anchors.verticalCenter: parent.verticalCenter
                                         visible: parent.parent.parent.width > 60 * Appearance.effectiveScale
                                         color: Appearance.colors.colOnWarning
@@ -271,6 +278,7 @@ Item {
                         }
 
                         NotificationActionButton {
+                            visible: actionsRow.hasDefaultAction
                             width: actionsRow.buttonWidth
                             onClicked: {
                                 if (notificationObject) Notifications.attemptInvokeAction(notificationObject.notificationId, "default");
@@ -294,7 +302,7 @@ Item {
                                     }
                                     StyledText {
                                         text: "View"
-                                        font.pixelSize: 12 * Appearance.effectiveScale
+                                        font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                                         anchors.verticalCenter: parent.verticalCenter
                                         visible: parent.parent.parent.width > 60 * Appearance.effectiveScale
                                         color: parent.parent.parent.colText
@@ -328,7 +336,7 @@ Item {
                                     }
                                     StyledText {
                                         text: "Close"
-                                        font.pixelSize: 12 * Appearance.effectiveScale
+                                        font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                                         anchors.verticalCenter: parent.verticalCenter
                                         visible: parent.parent.parent.width > 60 * Appearance.effectiveScale
                                         color: parent.parent.parent.colText
@@ -371,7 +379,7 @@ Item {
                                     }
                                     StyledText {
                                         text: "Copy"
-                                        font.pixelSize: 12 * Appearance.effectiveScale
+                                        font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                                         anchors.verticalCenter: parent.verticalCenter
                                         visible: parent.parent.parent.width > 60 * Appearance.effectiveScale
                                         color: parent.parent.parent.colText
@@ -383,6 +391,7 @@ Item {
                         Repeater {
                             model: notificationObject ? notificationObject.actions : []
                             NotificationActionButton {
+                                visible: modelData.identifier !== "default"
                                 width: actionsRow.buttonWidth
                                 required property var modelData
                                 buttonText: modelData.text

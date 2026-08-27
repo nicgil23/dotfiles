@@ -47,8 +47,8 @@ Item {
                     Item { Layout.fillWidth: true }
                     StyledText { 
                         text: Math.round(SystemData.cpuUsage * 100) + "%"
-                        font.pixelSize: 32 * Appearance.effectiveScale
-                        font.weight: Font.Black
+                        font.pixelSize: Math.round(32 * Appearance.effectiveScale)
+                        font.weight: Font.DemiBold
                         color: Appearance.m3colors.m3primary
                     }
                 }
@@ -67,22 +67,22 @@ Item {
                     spacing: 20 * Appearance.effectiveScale
                     
                     ColumnLayout {
-                        spacing: 0
-                        StyledText { text: "TEMPERATURE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
+                        spacing: 2 * Appearance.effectiveScale
+                        StyledText { text: "TEMPERATURE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
                         StyledText { text: Math.round(SystemData.cpuTemperature) + "°C"; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small }
                     }
 
                     ColumnLayout {
-                        spacing: 0
-                        StyledText { text: "LOAD AVERAGE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
+                        spacing: 2 * Appearance.effectiveScale
+                        StyledText { text: "LOAD AVERAGE"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
                         StyledText { text: SystemData.loadAverage; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small }
                     }
 
                     Item { Layout.fillWidth: true }
 
                     ColumnLayout {
-                        spacing: 0
-                        StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.DemiBold; color: Appearance.m3colors.m3outline }
+                        spacing: 2 * Appearance.effectiveScale
+                        StyledText { text: "UPTIME"; font.pixelSize: Appearance.font.pixelSize.smallest; font.weight: Font.Medium; color: Appearance.colors.colSubtext }
                         StyledText { text: SystemData.uptime; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small; horizontalAlignment: Text.AlignRight }
                     }
                 }

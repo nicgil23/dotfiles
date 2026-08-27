@@ -92,8 +92,8 @@ PanelWindow {
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             
-            width: actionRow.implicitWidth + (20 * Appearance.effectiveScale)
-            height: 40 * Appearance.effectiveScale + (20 * Appearance.effectiveScale)
+            width: actionRow.implicitWidth + (16 * Appearance.effectiveScale)
+            height: 40 * Appearance.effectiveScale + (16 * Appearance.effectiveScale)
             radius: 16 * Appearance.effectiveScale
             
             color: Appearance.m3colors.m3surfaceContainerHigh

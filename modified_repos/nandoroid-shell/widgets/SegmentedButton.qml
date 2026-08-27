@@ -15,6 +15,7 @@ SegmentedWrapper {
     // ── Input Properties ──
     property bool checked: false // Use a dedicated property instead of aliasing to internal button.toggled
     property string iconName: ""
+    property string iconSource: ""
     property int iconSize: 24 * Appearance.effectiveScale
     property string buttonText: ""
     property bool isHighlighted: false
@@ -40,7 +41,6 @@ SegmentedWrapper {
         id: button
         anchors.fill: parent
         iconName: ""
-        buttonRadius: root.fullRadius
         
         // Pass radii through from wrapper
         topLeftRadius: root.rTopLeft
@@ -75,13 +75,23 @@ SegmentedWrapper {
                     iconSize: root.iconSize
                     color: root.active ? root.colActiveText : root.colInactiveText
                 }
+
+                CustomIcon {
+                    visible: root.iconSource !== ""
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: root.iconSource
+                    width: root.iconSize
+                    height: root.iconSize
+                    colorize: true
+                    color: root.active ? root.colActiveText : root.colInactiveText
+                }
                 
                 StyledText {
                     id: label
                     visible: root.buttonText !== ""
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.buttonText
-                    font.pixelSize: 12 * Appearance.effectiveScale
+                    font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                     font.weight: Font.Medium
                     color: root.active ? root.colActiveText : root.colInactiveText
                 }

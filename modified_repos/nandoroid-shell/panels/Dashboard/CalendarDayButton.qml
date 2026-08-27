@@ -40,7 +40,7 @@ RippleButton {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 3 * Appearance.effectiveScale
-        width: 4 * Appearance.effectiveScale; height: 4 * Appearance.effectiveScale; radius: 2 * Appearance.effectiveScale
+        width: 4 * Appearance.effectiveScale; height: 4 * Appearance.effectiveScale; radius: Appearance.rounding.unsharpen
         color: Appearance.colors.colPrimary
         opacity: 0.85
     }
@@ -51,7 +51,7 @@ RippleButton {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 3 * Appearance.effectiveScale
-        width: 4 * Appearance.effectiveScale; height: 4 * Appearance.effectiveScale; radius: 2 * Appearance.effectiveScale
+        width: 4 * Appearance.effectiveScale; height: 4 * Appearance.effectiveScale; radius: Appearance.rounding.unsharpen
         color: Appearance.m3colors.m3onPrimary
         opacity: 0.85
     }

@@ -29,8 +29,9 @@ Item {
         
         onPaint: {
             var ctx = getContext("2d");
-            ctx.reset();
-            
+
+            ctx.clearRect(0, 0, width, height);
+
             if (!history || history.length < 2) return;
             
             var w = width;

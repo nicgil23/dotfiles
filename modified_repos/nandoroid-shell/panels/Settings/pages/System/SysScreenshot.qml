@@ -69,34 +69,12 @@ ColumnLayout {
                 
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoSave)
-                        ? Appearance.colors.colPrimary
-                        : Appearance.m3colors.m3surfaceContainerLowest
-
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoSave) ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                        color: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoSave)
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
+                AndroidToggle {
+                        checked: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoSave)
+                        onToggled: {
                             if (Config.ready && Config.options.screenshot) {
                                 Config.options.screenshot.autoSave = !Config.options.screenshot.autoSave;
-                            }
-                        }
+                    }
                     }
                 }
             }
@@ -134,34 +112,12 @@ ColumnLayout {
                 
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoCopy)
-                        ? Appearance.colors.colPrimary
-                        : Appearance.m3colors.m3surfaceContainerLowest
-
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoCopy) ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                        color: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoCopy)
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
+                AndroidToggle {
+                        checked: (Config.ready && Config.options.screenshot && Config.options.screenshot.autoCopy)
+                        onToggled: {
                             if (Config.ready && Config.options.screenshot) {
                                 Config.options.screenshot.autoCopy = !Config.options.screenshot.autoCopy;
-                            }
-                        }
+                    }
                     }
                 }
             }
@@ -199,34 +155,12 @@ ColumnLayout {
                 
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: (Config.ready && Config.options.screenshot && Config.options.screenshot.showPreview)
-                        ? Appearance.colors.colPrimary
-                        : Appearance.m3colors.m3surfaceContainerLowest
-
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: (Config.ready && Config.options.screenshot && Config.options.screenshot.showPreview) ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                        color: (Config.ready && Config.options.screenshot && Config.options.screenshot.showPreview)
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
+                AndroidToggle {
+                        checked: (Config.ready && Config.options.screenshot && Config.options.screenshot.showPreview)
+                        onToggled: {
                             if (Config.ready && Config.options.screenshot) {
                                 Config.options.screenshot.showPreview = !Config.options.screenshot.showPreview;
-                            }
-                        }
+                    }
                     }
                 }
             }
@@ -255,36 +189,15 @@ ColumnLayout {
                     Layout.preferredWidth: 200 * Appearance.effectiveScale
                 }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: pathInput
                     Layout.fillWidth: true
                     Layout.preferredHeight: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: pathInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: pathInput
-                        anchors.fill: parent
-                        anchors.leftMargin: 16 * Appearance.effectiveScale
-                        anchors.rightMargin: 16 * Appearance.effectiveScale
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.screenshot) ? Config.options.screenshot.savePath : ""
-                        onEditingFinished: {
-                            if (Config.ready && Config.options.screenshot) {
-                                Config.options.screenshot.savePath = Functions.FileUtils.trimFileProtocol(text);
-                            }
-                        }
-                        
-                        StyledText {
-                            anchors.fill: parent
-                            verticalAlignment: Text.AlignVCenter
-                            text: "Enter screenshot directory path"
-                            color: Appearance.colors.colSubtext
-                            visible: pathInput.text === "" && !pathInput.activeFocus
+                    text: (Config.ready && Config.options.screenshot) ? Functions.FileUtils.shortenHomePath(Config.options.screenshot.savePath) : ""
+                    placeholder: "Enter screenshot directory path"
+                    onEditingFinished: {
+                        if (Config.ready && Config.options.screenshot) {
+                            Config.options.screenshot.savePath = Functions.FileUtils.expandHomePath(Functions.FileUtils.trimFileProtocol(text));
                         }
                     }
                 }
@@ -314,36 +227,15 @@ ColumnLayout {
                     Layout.preferredWidth: 200 * Appearance.effectiveScale
                 }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: recordPathInput
                     Layout.fillWidth: true
                     Layout.preferredHeight: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: recordPathInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: recordPathInput
-                        anchors.fill: parent
-                        anchors.leftMargin: 16 * Appearance.effectiveScale
-                        anchors.rightMargin: 16 * Appearance.effectiveScale
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.screenshot) ? Config.options.screenshot.recordPath : ""
-                        onEditingFinished: {
-                            if (Config.ready && Config.options.screenshot) {
-                                Config.options.screenshot.recordPath = Functions.FileUtils.trimFileProtocol(text);
-                            }
-                        }
-                        
-                        StyledText {
-                            anchors.fill: parent
-                            verticalAlignment: Text.AlignVCenter
-                            text: "Enter recording directory path"
-                            color: Appearance.colors.colSubtext
-                            visible: recordPathInput.text === "" && !recordPathInput.activeFocus
+                    text: (Config.ready && Config.options.screenshot) ? Functions.FileUtils.shortenHomePath(Config.options.screenshot.recordPath) : ""
+                    placeholder: "Enter recording directory path"
+                    onEditingFinished: {
+                        if (Config.ready && Config.options.screenshot) {
+                            Config.options.screenshot.recordPath = Functions.FileUtils.expandHomePath(Functions.FileUtils.trimFileProtocol(text));
                         }
                     }
                 }

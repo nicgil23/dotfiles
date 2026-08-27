@@ -9,7 +9,7 @@ Singleton {
     id: root
     
     // Directory to scan for wallpapers
-    property url directory: Qt.resolvedUrl(Directories.home + "/Pictures/wallpapers")
+    property url directory: Qt.resolvedUrl(Directories.home + "/Pictures/Wallpapers")
     property string searchQuery: ""
     
     readonly property list<string> imagePatterns: ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.avif"]
@@ -105,6 +105,31 @@ Singleton {
         }
     }
 
+    // Lockscreen colors file watcher
+    FileView {
+        id: lockColorsFile
+        path: "file://" + Directories.generatedLockColorsPath
+        watchChanges: true
+        onFileChanged: {
+            reload()
+        }
+        onLoaded: {
+            try {
+                const content = text();
+                if (content.trim() !== "") {
+                    MaterialThemeLoader.applyLockColors(content);
+                }
+            } catch(e) {
+                console.error("[Wallpapers] Failed to load lockscreen colors:", e);
+            }
+        }
+        onLoadFailed: error => {
+            if (error != FileViewError.FileNotFound) {
+                console.error("[Wallpapers] Lockscreen colors load error:", error);
+            }
+        }
+    }
+
     // Helper process to generate material colors
     Process {
         id: matugenProc
@@ -146,36 +171,56 @@ Singleton {
         }
     }
 
-    /**
-     * PATH 1 — Immediate color loading via stdout.
-     * Mirrors `getPreviewColoursProc` from the Caelestia shell's Wallpapers.qml.
-     * Uses `matugen -j hex image PATH` which outputs full M3 JSON to stdout
-     * without writing any template files, completing in ~1s.
-     * MaterialThemeLoader.load() detects the stdout format and applies instantly.
-     */
+    // Process to generate lockscreen matugen colors (output as JSON, no config file needed)
     Process {
-        id: matugenColorsProc
-        command: ["matugen",
-            "-t", colorsScheme,
-            "-m", (Config.options.appearance.background.darkmode ? "dark" : "light"),
-            "-j", "hex",
-            "image", colorsFilePath,
-            "--source-color-index", "0"
+        id: matugenLockscreenProc
+        command: [
+            "bash", "-c",
+            `matugen --dry-run -t "$1" -m "$2" image "$3" --source-color-index 0 -j hex --old-json-output`,
+            "matugen",
+            scheme,
+            (Config.options.appearance.background.darkmode ? "dark" : "light"),
+            filePath
         ]
-        property string colorsFilePath
-        property string colorsScheme: Config.options.appearance.background.matugenScheme || "scheme-tonal-spot"
+        property string filePath
+        property string scheme: {
+            if (Config.ready && !Config.options.appearance.background.matugen) return "scheme-tonal-spot";
+            return Config.options.appearance.background.matugenScheme || "scheme-tonal-spot";
+        }
+
+        onRunningChanged: if (running) CavaService.stop(); else CavaService.start();
 
         stdout: StdioCollector {
             onStreamFinished: {
-                if (text.trim() !== "") {
-                    MaterialThemeLoader.load(text);
+                try {
+                    const json = JSON.parse(this.text);
+                    const mode = Config.options.appearance.background.darkmode ? "dark" : "light";
+                    const flat = {};
+                    for (const key in json.colors) {
+                        flat[key] = json.colors[key][mode] || json.colors[key]["default"];
+                    }
+                    const flatStr = JSON.stringify(flat, null, 2);
+                    Quickshell.execDetached([
+                        "sh", "-c", 'printf "%s" "$1" > "$2"',
+                        "sh", flatStr, Directories.generatedLockColorsPath
+                    ]);
+                } catch(e) {
+                    console.error("[Wallpapers] Failed to process lockscreen matugen:", e);
+                }
+            }
+        }
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                if (this.text.includes("Failed to generate base16 color schemes") || this.text.includes("Invalid PNG signature")) {
+                    Wallpapers.sendNotification("Lockscreen Theming Error", "Failed to process lockscreen wallpaper.");
                 }
             }
         }
     }
 
     function sendNotification(title, body) {
-        const iconPath = Quickshell.shellPath("assets/icons/NAnDoroid.svg");
+        const iconPath = Directories.home.replace("file://", "") + "/.config/quickshell/nandoroid/assets/icons/NAnDoroid.svg";
         const cmd = [
             "notify-send",
             "-a", "NAnDoroid",
@@ -208,17 +253,21 @@ Singleton {
             const path = root.getWallpaperPath(source)
             const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString()
             if (cleanPath !== "") {
-                // PATH 1: immediate via stdout
-                matugenColorsProc.colorsFilePath = cleanPath
-                matugenColorsProc.running = false
-                Qt.callLater(() => { matugenColorsProc.running = true; })
-                // PATH 2 (templates + system files): runs in background
                 matugenProc.filePath = cleanPath
                 matugenProc.running = true
             }
         } else {
             const hex = Config.options.appearance.background.matugenCustomColor
             if (hex) applyColor(hex)
+        }
+
+        // Also regenerate lockscreen colors if using separate wallpaper
+        if (Config.options.lock.useSeparateWallpaper && Config.options.lock.wallpaperPath) {
+            const lockPath = Config.options.lock.wallpaperPath.toString().replace("file://", "");
+            if (lockPath !== "") {
+                matugenLockscreenProc.filePath = lockPath
+                matugenLockscreenProc.running = true
+            }
         }
     }
 
@@ -230,15 +279,15 @@ Singleton {
         if (Config.options.lock && !Config.options.lock.useSeparateWallpaper) {
             Config.options.lock.wallpaperPath = "file://" + cleanPath
         }
-        
+
         if (Config.options.appearance.background.matugen) {
-            // PATH 1: immediate via stdout
-            matugenColorsProc.colorsFilePath = cleanPath
-            matugenColorsProc.running = false
-            Qt.callLater(() => { matugenColorsProc.running = true; })
-            // PATH 2 (templates + system files): runs in background
             matugenProc.filePath = cleanPath
             matugenProc.running = true
+        } else {
+            // Reset from custom accent to matugen-from-wallpaper
+            Config.options.appearance.background.matugen = true
+            Config.options.appearance.background.matugenCustomColor = ""
+            Config.options.appearance.background.matugenThemeFile = ""
         }
     }
 
@@ -252,18 +301,27 @@ Singleton {
             const path = root.getWallpaperPath(source)
             const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString()
             if (cleanPath === "") return
-            // PATH 1: immediate via stdout
-            matugenColorsProc.colorsFilePath = cleanPath
-            matugenColorsProc.running = false
-            Qt.callLater(() => { matugenColorsProc.running = true; })
-            // PATH 2 (templates + system files)
             matugenProc.filePath = cleanPath
             matugenProc.running = true
         }
+
+        // Also regenerate lockscreen colors if using separate wallpaper
+        if (Config.options.lock.useSeparateWallpaper && Config.options.lock.wallpaperPath) {
+            const lockPath = Config.options.lock.wallpaperPath.toString().replace("file://", "");
+            if (lockPath !== "") {
+                matugenLockscreenProc.filePath = lockPath
+                matugenLockscreenProc.running = true
+            }
+        }
     }
+
+    property bool _applyingTheme: false
 
     function applyColor(hex, source = "desktop") {
         if (!Config.ready) return;
+        var savedApplyingTheme = root._applyingTheme;
+        root._applyingTheme = false;
+
         Config.options.appearance.background.matugen = false // Disable wallpaper-based matugen
         Config.options.appearance.background.matugenCustomColor = hex
         Config.options.appearance.background.matugenThemeFile = ""
@@ -273,6 +331,19 @@ Singleton {
         matugenColorProc.hexColor = hex;
         // Small delay to ensure process state reset
         Qt.callLater(() => { matugenColorProc.running = true; });
+
+        // Accent for desktop only — regenerate lockscreen colors only if using a different wallpaper
+        if (source !== "lockscreen" && Config.options.lock.useSeparateWallpaper && Config.options.lock.wallpaperPath) {
+            const lockPath = Config.options.lock.wallpaperPath.toString().replace("file://", "");
+            const desktopPath = Config.options.appearance.background.wallpaperPath.toString().replace("file://", "");
+            if (lockPath !== "" && lockPath !== desktopPath) {
+                matugenLockscreenProc.running = false;
+                matugenLockscreenProc.filePath = lockPath;
+                Qt.callLater(() => { matugenLockscreenProc.running = true; });
+            }
+        }
+
+        root._applyingTheme = savedApplyingTheme;
     }
 
     function pickAccent(target = "desktop") {
@@ -283,9 +354,9 @@ Singleton {
             sleep 0.5
             HEX=$(hyprpicker --no-fancy)
             if [[ "$HEX" =~ ^#[0-9A-Fa-f]{6}$ ]]; then
-                ${Directories.ipcCommandPrefixString} ipc call wallpaper_accent apply_accent "$HEX" "${finalTarget}"
+                quickshell -c nandoroid ipc call wallpaper_accent apply_accent "$HEX" "${finalTarget}"
             else
-                ${Directories.ipcCommandPrefixString} ipc call wallpaper_accent close_accent
+                quickshell -c nandoroid ipc call wallpaper_accent close_accent
             fi
         `;
         Quickshell.execDetached(["bash", "-c", cmd]);
@@ -300,14 +371,6 @@ Singleton {
         }
         function close_accent(): void {
             GlobalStates.accentPickerOpen = false;
-        }
-    }
-
-    IpcHandler {
-        target: "wallpaper"
-        function random_favorite(): void {
-            console.log("[Wallpapers] IPC call received to select random favorite");
-            root.selectRandomFavorite();
         }
     }
 
@@ -328,9 +391,24 @@ Singleton {
         property string targetPath: Directories.generatedMaterialThemePath
     }
 
+    Process {
+        id: themeReadProc
+        command: ["cat", filePath]
+        property string filePath
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    MaterialThemeLoader.applyColors(this.text);
+                } catch(e) {
+                    console.error("[Wallpapers] Theme Load Error:", e);
+                }
+            }
+        }
+    }
 
     function applyTheme(fileName) {
         if (!Config.ready) return;
+        root._applyingTheme = true;
         const themesDir = Qt.resolvedUrl("../assets/themes/").toString();
         const cleanDir = themesDir.startsWith("file://") ? themesDir.substring(7) : themesDir;
         const fullPath = cleanDir + fileName;
@@ -357,13 +435,24 @@ Singleton {
             matugenColorProc.running = true;
         }
 
-        // 1. Save for persistence
+        // 1. apply immediately to UI (for fast feedback)
+        themeReadProc.filePath = fullPath;
+        themeReadProc.running = true;
+        
+        // 2. Save for persistence (MaterialThemeLoader watches this)
         themeWriteProc.sourcePath = fullPath;
         themeWriteProc.running = true;
 
-        // 2. Force immediate UI reload (FileView watcher fires after write,
-        //    but for static themes we trigger it explicitly for instant feedback)
-        MaterialThemeLoader.reapplyTheme();
+        // Basic themes apply to both desktop and lockscreen
+        Qt.callLater(() => {
+            root._applyingTheme = false;
+            if (Config.ready && Config.options.lock.useSeparateWallpaper) {
+                Quickshell.execDetached([
+                    "sh", "-c", 'cp "$1" "$2"',
+                    "sh", Directories.generatedMaterialThemePath, Directories.generatedLockColorsPath
+                ]);
+            }
+        });
     }
     
     function initializeMatugen() {
@@ -377,11 +466,6 @@ Singleton {
             const path = root.getWallpaperPath(source);
             const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString();
             if (cleanPath !== "") {
-                // PATH 1: immediate — load colors from stdout (-j hex, no template files written)
-                matugenColorsProc.colorsFilePath = cleanPath;
-                matugenColorsProc.running = false;
-                Qt.callLater(() => { matugenColorsProc.running = true; });
-                // PATH 2: full template run (writes GTK, Hyprland, colors.json, etc.)
                 matugenProc.filePath = cleanPath;
                 matugenProc.running = true;
             }
@@ -433,6 +517,18 @@ Singleton {
     function selectForLockscreen(path) {
         const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString()
         Config.options.lock.wallpaperPath = "file://" + cleanPath
+
+        if (cleanPath === matugenProc.filePath) {
+            // Same wallpaper as desktop — reuse desktop colors, skip duplicate matugen run
+            Quickshell.execDetached([
+                "sh", "-c", 'cp "$1" "$2"',
+                "sh", Directories.generatedMaterialThemePath, Directories.generatedLockColorsPath
+            ]);
+        } else {
+            matugenLockscreenProc.running = false;
+            matugenLockscreenProc.filePath = cleanPath
+            Qt.callLater(() => { matugenLockscreenProc.running = true; });
+        }
     }
 
     function generateColors(path) {
@@ -440,6 +536,13 @@ Singleton {
         if (Config.options.appearance.background.matugen) {
             matugenProc.filePath = cleanPath
             matugenProc.running = true
+        }
+        // Also generate lockscreen colors if the lockscreen uses this path
+        if (Config.options.lock.useSeparateWallpaper &&
+            Config.options.lock.wallpaperPath &&
+            Config.options.lock.wallpaperPath === path) {
+            matugenLockscreenProc.filePath = cleanPath
+            matugenLockscreenProc.running = true
         }
     }
 
@@ -499,7 +602,17 @@ Singleton {
             autoCycleStartTimer.restart();
         }
 
-        root.scanDirectory();
+        // Generate lockscreen colors on startup if using separate wallpaper
+        if (Config.options.lock.useSeparateWallpaper &&
+            Config.options.lock.wallpaperPath &&
+            Config.options.lock.wallpaperPath !== "" &&
+            Config.options.appearance.background.matugen) {
+            const lockPath = Config.options.lock.wallpaperPath.toString().replace("file://", "");
+            if (lockPath !== "") {
+                matugenLockscreenProc.filePath = lockPath;
+                matugenLockscreenProc.running = true;
+            }
+        }
     }
 
     Connections {
@@ -518,7 +631,7 @@ Singleton {
     // --- Folder Picker ---
     Process {
         id: folderPickerProc
-        command: ["zenity", "--file-selection", "--directory", "--title=Select Wallpaper Folder"]
+        command: ["zenity", "--file-selection", "--directory", "--title=Select Wallpaper Folder", "--modal"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const path = this.text.trim();
@@ -551,129 +664,68 @@ Singleton {
         folderPickerProc.running = true;
     }
 
+    // --- Auto-Cycle Folder Picker ---
+    Process {
+        id: cycleFolderPickerProc
+        command: ["zenity", "--file-selection", "--directory", "--title=Select Wallpapers Directory", "--modal"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const path = this.text.trim();
+                if (path !== "") {
+                    root.setAutoCycleDirectory(path);
+                }
+            }
+        }
+    }
+
+    function browseCycleFolder() {
+        cycleFolderPickerProc.running = true;
+    }
+
     // Model for grid view
     property alias folderModel: model
-    ListModel {
+    FolderListModel {
         id: model
+        folder: {
+            if (!root._autoCycleEnabled || root._autoCycleDirectory === "") return root.directory;
+            let dir = root._autoCycleDirectory;
+            if (!dir.startsWith("file://")) dir = "file://" + dir;
+            return dir;
+        }
+        onFolderChanged: {
+            if (root._autoCycleEnabled) {
+                root.autoCyclePending = true;
+                // If the folder changed, we might need to re-trigger the cycle
+                autoCycleStartTimer.restart();
+            }
+        }
+        function ciGlob(text) {
+            var out = ""
+            for (var i = 0; i < text.length; i++) {
+                var ch = text[i]
+                var lo = ch.toLowerCase()
+                var up = ch.toUpperCase()
+                if (lo !== up)
+                    out += "[" + lo + up + "]"
+                else
+                    out += ch
+            }
+            return out
+        }
+        nameFilters: {
+            if (root.searchQuery === "") return root.imagePatterns;
+            var ci = ciGlob(root.searchQuery)
+            return root.imagePatterns.map(p => `*${ci}*${p.substring(1)}`);
+        }
+        showDirs: false
+        showDotAndDotDot: false
+        sortField: root.sortField
+        sortReversed: root.sortReversed
+        sortCaseSensitive: false
         onCountChanged: {
             if (count > 0 && root._autoCycleEnabled && root.autoCyclePending) {
                 root.autoCyclePending = false;
                 root.nextWallpaper();
-            }
-        }
-    }
-
-    property string activeFolder: {
-        if (!root._autoCycleEnabled || root._autoCycleDirectory === "") return root.directory.toString();
-        let dir = root._autoCycleDirectory;
-        if (!dir.startsWith("file://")) dir = "file://" + dir;
-        return dir;
-    }
-    
-    onActiveFolderChanged: scanDirectory()
-    onSearchQueryChanged: refreshModel()
-    onSortFieldChanged: refreshModel()
-    onSortReversedChanged: refreshModel()
-
-    property var _allWallpapers: []
-    property bool loading: false
-
-    function scanDirectory() {
-        let path = activeFolder;
-        if (path.startsWith("file://")) {
-            path = path.substring(7);
-        }
-        if (path === "") return;
-        
-        let isRecursive = path.toLowerCase().includes("/pictures/wallpapers");
-        if (!isRecursive) {
-            const custom = Config.options.appearance.background.customFolders || [];
-            for (let i = 0; i < custom.length; i++) {
-                if (path.startsWith(custom[i])) {
-                    isRecursive = true;
-                    break;
-                }
-            }
-        }
-        
-        scannerProcess.running = false;
-        
-        let cmd = ["find", "-L", path];
-        if (!isRecursive) {
-            cmd.push("-maxdepth", "1");
-        }
-        cmd.push("-type", "f", "(", "-iname", "*.jpg", "-o", "-iname", "*.jpeg", "-o", "-iname", "*.png", "-o", "-iname", "*.webp", "-o", "-iname", "*.avif", ")");
-        
-        scannerProcess.command = cmd;
-        root.loading = true;
-        scannerProcess.running = true;
-    }
-
-    Process {
-        id: scannerProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.loading = false;
-                const lines = this.text.split("\n");
-                let list = [];
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (line !== "") {
-                        list.push(line);
-                    }
-                }
-                root._allWallpapers = list;
-                root.refreshModel();
-            }
-        }
-    }
-
-    function refreshModel() {
-        model.clear();
-        
-        let filtered = root._allWallpapers.slice();
-        if (root.searchQuery !== "") {
-            const queryLower = root.searchQuery.toLowerCase();
-            filtered = filtered.filter(p => {
-                const fileName = p.substring(p.lastIndexOf('/') + 1);
-                return fileName.toLowerCase().includes(queryLower);
-            });
-        }
-        
-        // Sort by filename (case-insensitive)
-        filtered.sort((a, b) => {
-            const fileA = a.substring(a.lastIndexOf('/') + 1).toLowerCase();
-            const fileB = b.substring(b.lastIndexOf('/') + 1).toLowerCase();
-            let cmp = fileA.localeCompare(fileB);
-            return root.sortReversed ? -cmp : cmp;
-        });
-        
-        // Populate
-        for (let i = 0; i < filtered.length; i++) {
-            const path = filtered[i];
-            const fileName = path.substring(path.lastIndexOf('/') + 1);
-            model.append({
-                "filePath": path,
-                "fileName": fileName,
-                "fileUrl": "file://" + path
-            });
-        }
-    }
-
-    function notifyFileDeleted(path) {
-        const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString();
-        const index = _allWallpapers.indexOf(cleanPath);
-        if (index !== -1) {
-            _allWallpapers.splice(index, 1);
-            refreshModel();
-        }
-    }
-
-    Connections {
-        target: GlobalStates
-        function onWallpaperSelectorOpenChanged() {
-            if (GlobalStates.wallpaperSelectorOpen) {
-                root.scanDirectory();
             }
         }
     }
@@ -702,8 +754,7 @@ Singleton {
     }
 
     Connections {
-        // Matugen doesn't suffer as much because it's usually called by other UI interactions
-        // but we'll leave it as is or handle it similarly if needed
+        // Only trigger onMatugenChanged when explicitly changed via UI toggle, not from preset script external changes
         target: (Config.ready && Config.options.appearance) ? Config.options.appearance.background : null
         ignoreUnknownSignals: true
         function onMatugenChanged() {
@@ -711,15 +762,6 @@ Singleton {
             const bg = Config.options.appearance.background;
             if (bg.matugen) {
                 root.initializeMatugen();
-            } else {
-                const theme = bg.matugenThemeFile;
-                if (theme && theme !== "") {
-                    root.applyTheme(theme);
-                } else if (bg.matugenCustomColor && bg.matugenCustomColor !== "") {
-                    root.applyColor(bg.matugenCustomColor);
-                } else {
-                    root.applyTheme("mocha.json");
-                }
             }
         }
     }
@@ -746,16 +788,7 @@ Singleton {
         }
 
         let index = Math.floor(Math.random() * count);
-        let newPath = null;
-        try {
-            let item = model.get(index);
-            if (item && item.fileUrl) newPath = item.fileUrl;
-        } catch (e) {}
-        if (!newPath) {
-            try {
-                newPath = model.get(index, "fileUrl");
-            } catch (e) {}
-        }
+        let newPath = model.get(index, "fileUrl");
 
         if (!newPath) {
             root.autoCyclePending = true;
@@ -765,18 +798,7 @@ Singleton {
 
         if (newPath.toString() === Config.options.appearance.background.wallpaperPath.toString() && count > 1) {
             index = (index + 1) % count;
-            
-            let secondPath = null;
-            try {
-                let secondItem = model.get(index);
-                if (secondItem && secondItem.fileUrl) secondPath = secondItem.fileUrl;
-            } catch (e) {}
-            if (!secondPath) {
-                try {
-                    secondPath = model.get(index, "fileUrl");
-                } catch (e) {}
-            }
-            if (secondPath) newPath = secondPath;
+            newPath = model.get(index, "fileUrl");
         }
 
         root.select(newPath);

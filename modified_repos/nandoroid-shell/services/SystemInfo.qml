@@ -5,10 +5,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-/**
- * Provides system info: distro name, ID, icon, username.
- * Reads from /etc/os-release on startup.
- */
 Singleton {
     id: root
     property string distroName: "Unknown"
@@ -19,6 +15,7 @@ Singleton {
     property string hostname: "localhost"
     property string kernel: "Unknown"
     property string userAvatarPath: `/var/lib/AccountsService/icons/${username}`
+    property bool userAvatarValid: false
     property string logo: ""
     
     // Hardware Info
@@ -28,9 +25,6 @@ Singleton {
     property string gpu: "Unknown"
     property string memory: "Unknown"
     property string storage: "Unknown"
-
-    // Cache file path
-    readonly property string hwCachePath: "/tmp/nandoroid-hw-cache.json"
 
     Timer {
         triggeredOnStart: true
@@ -66,24 +60,9 @@ Singleton {
             const logoFieldMatch = textOsRelease.match(/^LOGO="?(.+?)"?$/m)
             logo = logoFieldMatch ? logoFieldMatch[1] : distroIcon
 
-            getHostname.running = true
-            
-            // ── Optimized Hardware Info Fetching ──
-            fileHwCache.reload()
-            if (fileHwCache.exists) {
-                try {
-                    const cache = JSON.parse(fileHwCache.text())
-                    root.cpu = cache.cpu || "Unknown"
-                    root.gpu = cache.gpu || "Unknown"
-                    root.memory = cache.memory || "Unknown"
-                    root.storage = cache.storage || "Unknown"
-                } catch (e) {
-                    getHardwareInfo.running = true
-                }
-            } else {
-                getHardwareInfo.running = true
-            }
-            
+            hostnameFile.reload()
+            getHardwareInfo.running = true
+
             fileKernel.reload()
             const kernelText = fileKernel.text()
             const kernelMatch = kernelText.match(/^Linux version ([^ ]+)/)
@@ -91,45 +70,21 @@ Singleton {
         }
     }
 
+    // ── dgop (primary) ──
     Process {
         id: getHardwareInfo
-        command: [
-            "python3", "-c",
-            "import os, json, subprocess\n" +
-            "res = {'cpu': {'model': 'Unknown'}, 'gpu': {'gpus': []}, 'memory': {'total': 0}, 'diskmounts': []}\n" +
-            "try:\n" +
-            "    with open('/proc/cpuinfo') as f:\n" +
-            "        for line in f:\n" +
-            "            if line.startswith('model name'):\n" +
-            "                res['cpu']['model'] = line.split(':', 1)[1].strip()\n" +
-            "                break\n" +
-            "except: pass\n" +
-            "try:\n" +
-            "    with open('/proc/meminfo') as f:\n" +
-            "        for line in f:\n" +
-            "            if line.startswith('MemTotal:'):\n" +
-            "                res['memory']['total'] = int(line.split()[1])\n" +
-            "                break\n" +
-            "except: pass\n" +
-            "try:\n" +
-            "    st = os.statvfs('/')\n" +
-            "    total_space = st.f_blocks * st.f_frsize\n" +
-            "    if total_space >= 1024**4:\n" +
-            "        size_str = f'{total_space / (1024**4):.1f} TB'\n" +
-            "    else:\n" +
-            "        size_str = f'{total_space / (1024**3):.1f} GB'\n" +
-            "    res['diskmounts'].append({'mount': '/', 'size': size_str})\n" +
-            "except: pass\n" +
-            "try:\n" +
-            "    out = subprocess.check_output('lspci', shell=True).decode('utf-8')\n" +
-            "    gpu_lines = [line for line in out.splitlines() if any(x in line.lower() for x in ['vga', '3d', 'display'])]\n" +
-            "    if gpu_lines:\n" +
-            "        parts = gpu_lines[0].split(':', 2)\n" +
-            "        gpu_name = parts[2].strip() if len(parts) >= 3 else parts[-1].strip()\n" +
-            "        res['gpu']['gpus'].append({'fullName': gpu_name, 'vendor': ''})\n" +
-            "except: pass\n" +
-            "print(json.dumps(res))"
-        ]
+        command: ["sh", "-c", "test -x /usr/bin/dgop && /usr/bin/dgop meta --json --modules cpu,memory,diskmounts,gpu || exit 1"]
+        onExited: exitCode => {
+            if (exitCode !== 0) {
+                // dgop not available or failed — run fallback
+                getManufacturerFallback.running = true
+                getProductFallback.running = true
+                getCpuFallback.running = true
+                getGpuFallback.running = true
+                getMemoryFallback.running = true
+                getStorageFallback.running = true
+            }
+        }
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -142,18 +97,14 @@ Singleton {
                     
                     const data = JSON.parse(results.substring(start, end + 1));
                     
-                    let hwData = { cpu: "Unknown", gpu: "Unknown", memory: "Unknown", storage: "Unknown" }
-                    
+                    let hwData = { manufacturer: "", product: "", cpu: "Unknown", gpu: "Unknown", memory: "Unknown", storage: "Unknown" }
+
                     if (data.cpu) hwData.cpu = data.cpu.model || "Unknown";
                     if (data.gpu && data.gpu.gpus && data.gpu.gpus.length > 0) {
                         const gpu = data.gpu.gpus[0];
                         let name = gpu.displayName || gpu.fullName || "Unknown";
-                        // Remove PCI address (e.g., 0000:04:00.0)
                         name = name.replace(/^[0-9a-fA-F:.]+\s+/, "");
-                        // Remove generic labels
                         name = name.replace(/(Display controller|VGA compatible controller):\s+/i, "");
-                        
-                        // Prepend vendor if not already there
                         if (gpu.vendor && !name.includes(gpu.vendor)) {
                             hwData.gpu = gpu.vendor + " " + name;
                         } else {
@@ -169,15 +120,10 @@ Singleton {
                         if (rootDisk) hwData.storage = rootDisk.size || "Unknown";
                     }
 
-                    // Store to root
                     root.cpu = hwData.cpu
                     root.gpu = hwData.gpu
                     root.memory = hwData.memory
                     root.storage = hwData.storage
-
-                    // Save to persistent cache in /tmp
-                    saveCache.command = ["sh", "-c", `echo '${JSON.stringify(hwData)}' > ${root.hwCachePath}`]
-                    saveCache.running = true
                 } catch (e) {
 
                 }
@@ -185,13 +131,55 @@ Singleton {
         }
     }
 
-    Process { id: saveCache }
+    // ── Pure proc/sysfs fallback (when dgop is unavailable) ──
+    Process {
+        id: getManufacturerFallback
+        running: false
+        command: ["bash", "-c", "cat /sys/class/dmi/id/sys_vendor 2>/dev/null || echo Unknown"]
+        stdout: SplitParser { onRead: data => root.manufacturer = data.trim() }
+    }
 
     Process {
-        id: getHostname
-        command: ["hostname"]
-        stdout: SplitParser {
-            onRead: data => root.hostname = data.trim()
+        id: getProductFallback
+        running: false
+        command: ["bash", "-c", "cat /sys/class/dmi/id/product_name 2>/dev/null || echo Unknown"]
+        stdout: SplitParser { onRead: data => root.product = data.trim() }
+    }
+
+    Process {
+        id: getCpuFallback
+        running: false
+        command: ["bash", "-c", "grep -m1 'model name' /proc/cpuinfo | cut -d':' -f2- | sed 's/^ //;s/  */ /g;s/ @ */ @/' || echo Unknown"]
+        stdout: SplitParser { onRead: data => root.cpu = data.trim() || "Unknown" }
+    }
+
+    Process {
+        id: getGpuFallback
+        running: false
+        command: ["bash", "-c", "lspci 2>/dev/null | grep -iE 'vga|3d|display' | head -1 | sed -E 's/.*: //;s/\\(rev [0-9a-f]+\\)//;s/^ *//;s/ *$//' || echo Unknown"]
+        stdout: SplitParser { onRead: data => root.gpu = data.trim() || "Unknown" }
+    }
+
+    Process {
+        id: getMemoryFallback
+        running: false
+        command: ["bash", "-c", "LC_ALL=C free -h | awk '/^Mem:/ {print $2}' || echo Unknown"]
+        stdout: SplitParser { onRead: data => root.memory = data.trim() || "Unknown" }
+    }
+
+    Process {
+        id: getStorageFallback
+        running: false
+        command: ["bash", "-c", "LC_ALL=C df -h / | awk 'NR==2 {print $2}' || echo Unknown"]
+        stdout: SplitParser { onRead: data => root.storage = data.trim() || "Unknown" }
+    }
+
+    FileView {
+        id: hostnameFile
+        path: "/etc/hostname"
+        onLoaded: {
+            const text = hostnameFile.text().trim();
+            if (text) root.hostname = text;
         }
     }
 
@@ -215,6 +203,15 @@ Singleton {
                 if (name !== "") root.realName = name
             }
         }
+        onExited: checkAvatar.running = true
+    }
+
+    Process {
+        id: checkAvatar
+        command: ["bash", "-c", `[ -f "${root.userAvatarPath}" ] && echo 1 || echo 0`]
+        stdout: SplitParser {
+            onRead: data => root.userAvatarValid = data.trim() === "1"
+        }
     }
 
     FileView {
@@ -225,10 +222,5 @@ Singleton {
     FileView {
         id: fileKernel
         path: "/proc/version"
-    }
-
-    FileView {
-        id: fileHwCache
-        path: root.hwCachePath
     }
 }

@@ -22,6 +22,11 @@ Rectangle {
         NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
     }
 
+    onCurrentIndexChanged: {
+        tabHighlight.idx1 = currentIndex
+        Qt.callLater(() => { tabHighlight.idx2 = currentIndex })
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 12 * Appearance.effectiveScale
@@ -72,61 +77,105 @@ Rectangle {
         }
 
         // Navigation Items
-        ColumnLayout {
+        Item {
+            id: navItemsWrapper
             Layout.fillWidth: true
-            spacing: 8 * Appearance.effectiveScale
+            implicitHeight: navItemsColumn.implicitHeight
 
-            Repeater {
-                model: [
-                    { name: "Network", icon: "wifi" },
-                    { name: "Bluetooth", icon: "bluetooth" },
-                    { name: "Audio", icon: "volume_up" },
-                    { name: "Display", icon: "monitor" },
-                    { name: "Style", icon: "palette" },
-                    { name: "System", icon: "settings_applications" },
-                    { name: "Services", icon: "cloud" },
-                    { name: "About", icon: "info" }
-                ]
+            // Animated stretch-highlight pill (Ambxst style)
+            Rectangle {
+                id: tabHighlight
+                x: 0
+                width: parent.width
+                radius: 16 * Appearance.effectiveScale
+                color: Appearance.colors.colPrimaryContainer
 
-                delegate: RippleButton {
-                    Layout.fillWidth: true
-                    implicitHeight: 48 * Appearance.effectiveScale
-                    buttonRadius: 16 * Appearance.effectiveScale
-                    colBackground: root.currentIndex === index 
-                        ? Functions.ColorUtils.transparentize(Appearance.colors.colPrimary, 0.88)
-                        : "transparent"
-                    colBackgroundHover: root.currentIndex === index
-                        ? colBackground
-                        : Appearance.colors.colLayer0Hover
-                    
-                    onClicked: {
-                        root.pageSelected(index)
-                    }
+                property int idx1: root.currentIndex
+                property int idx2: root.currentIndex
 
+                function getYForIndex(i) {
+                    return i * (48 * Appearance.effectiveScale + 8 * Appearance.effectiveScale)
+                }
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: root.expanded ? 16 * Appearance.effectiveScale : 0
-                        spacing: 16 * Appearance.effectiveScale
+                property real targetY1: getYForIndex(idx1)
+                property real targetY2: getYForIndex(idx2)
+                property real animY1: targetY1
+                property real animY2: targetY2
 
-                        MaterialSymbol {
-                            Layout.alignment: Qt.AlignCenter
-                            text: modelData.icon
-                            iconSize: 24 * Appearance.effectiveScale
-                            color: root.currentIndex === index 
-                                ? Appearance.colors.colPrimary 
-                                : Appearance.colors.colSubtext
+                y: Math.min(animY1, animY2)
+                height: Math.abs(animY2 - animY1) + (48 * Appearance.effectiveScale)
+
+                Behavior on animY1 {
+                    NumberAnimation { duration: 120; easing.type: Easing.OutSine }
+                }
+                Behavior on animY2 {
+                    NumberAnimation { duration: 380; easing.type: Easing.OutCubic }
+                }
+
+                onTargetY1Changed: animY1 = targetY1
+                onTargetY2Changed: animY2 = targetY2
+
+                onIdx1Changed: { targetY1 = getYForIndex(idx1) }
+                onIdx2Changed: { targetY2 = getYForIndex(idx2) }
+            }
+
+            ColumnLayout {
+                id: navItemsColumn
+                anchors.fill: parent
+                spacing: 8 * Appearance.effectiveScale
+
+                Repeater {
+                    model: [
+                        { name: "Network", icon: "wifi" },
+                        { name: "Bluetooth", icon: "bluetooth" },
+                        { name: "Audio", icon: "volume_up" },
+                        { name: "Display", icon: "monitor" },
+                        { name: "Wallpaper & Style", icon: "palette" },
+                        { name: "Widgets", icon: "widgets" },
+                        { name: "System", icon: "settings_applications" },
+                        { name: "Services", icon: "cloud" },
+                        { name: "Profile", icon: "person" },
+                        { name: "About", icon: "info" }
+                    ]
+
+                    delegate: RippleButton {
+                        Layout.fillWidth: true
+                        implicitHeight: 48 * Appearance.effectiveScale
+                        buttonRadius: 16 * Appearance.effectiveScale
+                        colBackground: "transparent"
+                        colBackgroundHover: root.currentIndex === index 
+                            ? "transparent"
+                            : Appearance.colors.colLayer0Hover
+                        
+                        onClicked: {
+                            root.pageSelected(index)
                         }
 
-                        StyledText {
-                            visible: root.expanded
-                            Layout.fillWidth: true
-                            text: modelData.name
-                            font.pixelSize: Appearance.font.pixelSize.normal
-                            font.weight: root.currentIndex === index ? Font.Medium : Font.Normal
-                            color: root.currentIndex === index 
-                                ? Appearance.colors.colPrimary 
-                                : Appearance.colors.colOnLayer0
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: root.expanded ? 16 * Appearance.effectiveScale : 0
+                            spacing: 16 * Appearance.effectiveScale
+
+                            MaterialSymbol {
+                                Layout.alignment: Qt.AlignCenter
+                                text: modelData.icon
+                                iconSize: 24 * Appearance.effectiveScale
+                                color: root.currentIndex === index 
+                                    ? Appearance.colors.colOnPrimaryContainer 
+                                    : Appearance.colors.colSubtext
+                            }
+
+                            StyledText {
+                                visible: root.expanded
+                                Layout.fillWidth: true
+                                text: modelData.name
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                font.weight: root.currentIndex === index ? Font.Medium : Font.Normal
+                                color: root.currentIndex === index 
+                                    ? Appearance.colors.colOnPrimaryContainer 
+                                    : Appearance.colors.colOnLayer0
+                            }
                         }
                     }
                 }

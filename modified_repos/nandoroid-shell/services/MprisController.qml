@@ -66,10 +66,18 @@ Singleton {
     property color dynPrimaryHover: Functions.ColorUtils.mix(dynPrimary, Appearance.colors.colOnLayer0, 0.9)
     property color dynSecondaryContainerHover: Functions.ColorUtils.mix(dynSecondaryContainer, Appearance.colors.colOnLayer0, 0.9)
 
-    onActivePlayerChanged: updateArtFile()
-    
+    onActivePlayerChanged: {
+        updateArtFile();
+        _artTarget = activePlayer;
+    }
+
+    // Track activePlayer changes via indirection to avoid stale Connections
+    property var _artTarget: activePlayer
+    on_ArtTargetChanged: {
+        artConn.target = _artTarget;
+    }
     Connections {
-        target: activePlayer
+        id: artConn
         function onTrackArtUrlChanged() { root.updateArtFile() }
         function onPostTrackChanged() { root.updateArtFile() }
     }
@@ -146,7 +154,7 @@ Singleton {
 
     Timer {
         id: positionTimer
-        interval: 200
+        interval: 3000
         running: root.isPlaying
         repeat: true
         onTriggered: {

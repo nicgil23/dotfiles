@@ -19,16 +19,18 @@ ColumnLayout {
         return Config.options.appearance.clock.digital
     }
 
+    // Switch between lock and desktop color palettes
+    readonly property var m3: isLockscreen ? Appearance.lockM3colors : Appearance.m3colors
+
     // ── Color ──────────────────────────────────────────────────
     readonly property color color: {
-        if (isLockscreen) return Appearance.colors.colLockscreenClock
-        if (!Config.ready) return Appearance.m3colors.m3onSurface
+        if (!Config.ready) return m3.m3onSurface
         const s = cfg.colorStyle
-        if (s === "primary")   return Appearance.colors.colPrimary
-        if (s === "secondary") return Appearance.colors.colSecondary
-        if (s === "onSurface") return Appearance.m3colors.m3onSurface
-        if (s === "surface")   return Appearance.m3colors.m3surfaceContainerHighest
-        return Appearance.m3colors.m3onSurface
+        if (s === "primary")   return m3.m3primary
+        if (s === "secondary") return m3.m3secondary
+        if (s === "onSurface") return m3.m3onSurface
+        if (s === "surface")   return m3.m3surfaceContainerHighest
+        return m3.m3onSurface
     }
     readonly property color dateColor: isLockscreen ? Appearance.colors.colLockscreenDate : color
 
@@ -43,16 +45,29 @@ ColumnLayout {
         return Font.DemiBold
     }
 
+    function mapAlign(a) {
+        if (a === "right") return Qt.AlignRight
+        if (a === "center") return Qt.AlignHCenter
+        return Qt.AlignLeft
+    }
+
+    function mapTextAlign(a) {
+        if (a === "right") return Text.AlignRight
+        if (a === "center") return Text.AlignHCenter
+        return Text.AlignLeft
+    }
+
     // ── Config props ───────────────────────────────────────────
     readonly property real  cfgSize:       Config.ready ? cfg.fontSize     : 84 * Appearance.effectiveScale
     readonly property real  cfgDateSize:   Config.ready ? (cfg.dateFontSize || 24) * Appearance.effectiveScale : 24 * Appearance.effectiveScale
     readonly property int   cfgDateGap:    Config.ready ? (cfg.dateGap || 4) * Appearance.effectiveScale : 4 * Appearance.effectiveScale
     readonly property string cfgWeight:    "Bold"
     readonly property string cfgDateWeight:"Medium"
-    readonly property string cfgFamily:    Appearance.font.family.title
+    readonly property string cfgFamily:    root.isLockscreen ? Appearance.font.family.lockscreenTimeFont : Appearance.font.family.desktopTimeFont
+    readonly property string cfgDateFamily: root.isLockscreen ? Appearance.font.family.lockscreenDateFont : Appearance.font.family.desktopDateFont
 
     readonly property bool isVertical: Config.ready && cfg.isVertical
-    readonly property bool showDate:   Config.ready && Config.options.appearance.clock.showDate
+    readonly property bool showDate: Config.ready ? (root.isLockscreen ? Config.options.appearance.clock.showLockscreenDate : (Config.options.appearance.clock.useSameStyle ? Config.options.appearance.clock.showLockscreenDate : Config.options.appearance.clock.showDesktopDate)) : true
     readonly property bool hideAmPm:   Config.ready && cfg.hideAmPm
 
     // ── Time strings ───────────────────────────────────────────
@@ -66,7 +81,7 @@ ColumnLayout {
     readonly property string timeString: {
         let t = DateTime.currentTime
         if (hideAmPm) t = t.replace(/ [AP]M/i, "")
-        return t
+        return t.trim()
     }
 
     // ── Time (top / horizontal) ─────────────────────────────────
@@ -74,12 +89,13 @@ ColumnLayout {
         id: timeTextTop
         text:        root.isVertical ? root.displayHours : root.timeString
         color:       root.color
-        font.pixelSize: root.cfgSize
+        font.pixelSize: Math.round(root.cfgSize)
         font.weight:    root.fontW(root.cfgWeight)
         font.family:    root.cfgFamily
         font.hintingPreference: Font.PreferDefaultHinting
         renderType: Text.NativeRendering
-        Layout.alignment: Qt.AlignHCenter
+        Layout.alignment: root.mapAlign(root.cfg.alignment || "center")
+        horizontalAlignment: root.mapTextAlign(root.cfg.alignment || "center")
     }
 
     // ── Minutes (vertical only) ─────────────────────────────────
@@ -87,26 +103,28 @@ ColumnLayout {
         visible: root.isVertical
         text:    root.displayMinutes
         color:   root.color
-        font.pixelSize: root.cfgSize
+        font.pixelSize: Math.round(root.cfgSize)
         font.weight:    root.fontW(root.cfgWeight)
         font.family:    root.cfgFamily
         font.hintingPreference: Font.PreferDefaultHinting
         renderType: Text.NativeRendering
-        Layout.alignment: Qt.AlignHCenter
+        Layout.alignment: root.mapAlign(root.cfg.alignment || "center")
+        horizontalAlignment: root.mapTextAlign(root.cfg.alignment || "center")
         Layout.topMargin: -24 * Appearance.effectiveScale
     }
 
     // ── Date ────────────────────────────────────────────────────
     Text {
         visible: root.showDate
-        text:    DateTime.currentDate
+        text:    DateTime.currentDate.trim()
         color:   root.dateColor
-        font.pixelSize: root.cfgDateSize
+        font.pixelSize: Math.round(root.cfgDateSize)
         font.weight:    root.fontW(root.cfgDateWeight)
-        font.family:    Appearance.font.family.main
+        font.family:    root.cfgDateFamily
         font.hintingPreference: Font.PreferDefaultHinting
         renderType: Text.NativeRendering
-        Layout.alignment: Qt.AlignHCenter
+        Layout.alignment: root.mapAlign(root.cfg.alignment || "center")
+        horizontalAlignment: root.mapTextAlign(root.cfg.alignment || "center")
         Layout.topMargin: root.cfgDateGap
     }
 }

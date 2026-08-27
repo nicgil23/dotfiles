@@ -24,4 +24,24 @@ Singleton {
         parts.pop();
         return parts.join("/");
     }
+
+    function shortenHomePath(str) {
+        if (typeof str !== "string" || str === "") return str;
+        let s = str.startsWith("file://") ? str.slice(7) : str;
+        if (s.endsWith("/")) s = s.slice(0, -1);
+        const home = Quickshell.env("HOME");
+        if (home === "" || !home) return s;
+        if (s === home) return "~";
+        if (s.startsWith(home + "/")) return "~" + s.slice(home.length);
+        return s;
+    }
+
+    function expandHomePath(str) {
+        if (typeof str !== "string" || str === "") return str;
+        const home = Quickshell.env("HOME");
+        if (home === "" || !home) return str;
+        if (str === "~") return home;
+        if (str.startsWith("~/")) return home + str.slice(1);
+        return str;
+    }
 }

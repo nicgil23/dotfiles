@@ -1,4 +1,5 @@
 import "../../../../core"
+import "../../../../core/functions" as Functions
 import "../../../../services"
 import "../../../../widgets"
 import "."
@@ -13,15 +14,15 @@ ColumnLayout {
     spacing: 4 * Appearance.effectiveScale
 
     SearchHandler { 
-        searchString: "Wallpaper Auto-Cycle"
-        aliases: ["Auto Cycle", "Slideshow", "Wallpaper Timer"]
+        searchString: "Wallpaper Slideshow"
+        aliases: ["Auto Cycle", "Slideshow", "Wallpaper Timer", "Desktop Slideshow"]
     }
 
     // ── Helper for Folder Selection ──
 
     Process {
         id: folderPickerProc
-        command: ["zenity", "--file-selection", "--directory", "--title=Select Wallpapers Directory"]
+        command: ["zenity", "--file-selection", "--directory", "--title=Select Wallpapers Directory", "--modal"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const path = this.text.trim();
@@ -47,8 +48,24 @@ ColumnLayout {
             anchors.fill: parent
             anchors.margins: 16 * Appearance.effectiveScale
             spacing: 20 * Appearance.effectiveScale
-            MaterialSymbol { text: "auto_mode"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
-            StyledText { text: "Wallpaper Auto-Cycle"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+
+            RowLayout {
+                spacing: 16 * Appearance.effectiveScale
+                Layout.preferredWidth: 70 * Appearance.effectiveScale
+                MaterialSymbol {
+                    text: "auto_mode"
+                    iconSize: 24 * Appearance.effectiveScale
+                    color: Appearance.colors.colPrimary
+                }
+                StyledText {
+                    text: "Desktop wallpaper slideshow"
+                    color: Appearance.colors.colOnLayer1
+                    Layout.fillWidth: true
+                }
+            }
+
+            Item { Layout.fillWidth: true }
+
             AndroidToggle {
                 checked: Config.ready && Config.options.appearance.background.autoCycleEnabled
                 onToggled: Wallpapers.setAutoCycle(!checked)
@@ -74,7 +91,7 @@ ColumnLayout {
                 Layout.preferredWidth: 70 * Appearance.effectiveScale
                 MaterialSymbol { text: "schedule"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
                 StyledText { 
-                    text: "Cycle Interval"
+                    text: "Interval"
                     Layout.fillWidth: true
                     color: Appearance.colors.colOnLayer1 
                 }
@@ -106,19 +123,24 @@ ColumnLayout {
             id: directoryRow
             anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
             spacing: 20 * Appearance.effectiveScale
-            MaterialSymbol { text: "folder_open"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
-            ColumnLayout {
-                Layout.fillWidth: true; spacing: 0
-                StyledText { text: "Source folder"; color: Appearance.colors.colOnLayer1 }
-                StyledText {
-                    text: {
-                        const dir = Config.ready ? Config.options.appearance.background.autoCycleDirectory : "";
-                        return dir === "" || dir === undefined ? "Not selected" : dir;
+            RowLayout {
+                spacing: 16 * Appearance.effectiveScale
+                Layout.preferredWidth: 70 * Appearance.effectiveScale
+                MaterialSymbol { text: "folder_open"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                ColumnLayout {
+                    Layout.fillWidth: true; spacing: 0
+                    StyledText { text: "Source folder"; color: Appearance.colors.colOnLayer1 }
+                    StyledText {
+                        text: {
+                            const dir = Config.ready ? Config.options.appearance.background.autoCycleDirectory : "";
+                            if (dir === "" || dir === undefined) return "Not selected";
+                            return Functions.FileUtils.shortenHomePath(dir);
+                        }
+                        font.pixelSize: (Appearance.font && Appearance.font.pixelSize) ? Appearance.font.pixelSize.smallest : 10 * Appearance.effectiveScale
+                        color: Appearance.colors.colSubtext
+                        elide: Text.ElideMiddle
+                        Layout.fillWidth: true
                     }
-                    font.pixelSize: (Appearance.font && Appearance.font.pixelSize) ? Appearance.font.pixelSize.smallest : 10 * Appearance.effectiveScale
-                    color: Appearance.colors.colSubtext
-                    elide: Text.ElideMiddle
-                    Layout.fillWidth: true
                 }
             }
             M3IconButton {
@@ -126,8 +148,8 @@ ColumnLayout {
                 iconSize: 20 * Appearance.effectiveScale
                 implicitWidth: 36 * Appearance.effectiveScale; implicitHeight: 36 * Appearance.effectiveScale
                 buttonRadius: 18 * Appearance.effectiveScale
-                colBackground: Appearance.m3colors.m3surfaceContainerLow
-                color: Appearance.m3colors.m3primary
+                colBackground: Appearance.colors.colPrimary
+                color: Appearance.colors.colOnPrimary
                 onClicked: folderPickerProc.running = true
             }
         }

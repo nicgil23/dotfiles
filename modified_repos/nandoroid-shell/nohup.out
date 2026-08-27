@@ -1,0 +1,14 @@
+[32m  INFO[0m: Launching config: "/home/hypr/workspace/dotfiles/modified_repos/nandoroid-shell/shell.qml"
+[32m  INFO[0m: Shell ID: "1f3e30989b375689eb4f94dbe6daee87" Path ID "1f3e30989b375689eb4f94dbe6daee87"
+[32m  INFO[0m: Saving logs to "/run/user/1000/quickshell/by-id/vd78ibgkt/log.qslog"
+[33m  WARN[97m quickshell.service.notifications[0m: Could not register notification server at org.freedesktop.Notifications, presumably because one is already registered.
+[33m  WARN[97m quickshell.service.notifications[0m: Registration will be attempted again if the active service is unregistered.
+[32m  INFO[0m: Configuration Loaded
+[33m  WARN[97m scene[0m: QML FileView at @services/Wallpapers.qml[109:5]: Read of /home/hypr/.local/state/quickshell/user/generated/lockscreencolors.json failed: File does not exist.
+[33m  WARN[97m scene[0m: QML FileView at @services/LauncherSearch.qml[152:5]: Read of /home/hypr/workspace/dotfiles/modified_repos/nandoroid-shell/data/app_usage.json failed: File does not exist.
+[33m  WARN[97m quickshell.dbus[0m: Could not launch service org.freedesktop.UPower.PowerProfiles: QDBusError(org.freedesktop.DBus.Error.ServiceUnknown, Could not activate remote peer 'org.freedesktop.UPower.PowerProfiles': activation request failed: unit is masked)
+[33m  WARN[97m quickshell.service.powerprofiles[0m: Could not start PowerProfilesDaemon. The PowerProfiles service will not work.
+[33m  WARN[0m: Process failed to start, likely because the binary could not be found. Command: QList("trans", "-list-codes", "-no-bidi")
+[33m  WARN[97m quickshell.service.polkit.listener[0m: failed to register listener: GDBus.Error:org.freedesktop.PolicyKit1.Error.Failed: An authentication agent already exists for the given subject
+[33m  WARN[97m quickshell.service.polkit[0m: failed to register listener on path "/org/quickshell/PolkitAgent"
+[34m DEBUG[97m qml[0m: [WallpaperEngine] Cache loaded

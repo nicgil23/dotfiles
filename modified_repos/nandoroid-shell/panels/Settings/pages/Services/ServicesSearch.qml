@@ -64,25 +64,13 @@ ColumnLayout {
                 }
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: mathInput
                     width: 120 * Appearance.effectiveScale
                     height: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: mathInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: mathInput
-                        anchors.fill: parent
-                        horizontalAlignment: TextInput.AlignHCenter
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.search) ? Config.options.search.mathPrefix : "="
-                        onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.mathPrefix = text; }
-                    }
+                    horizontalAlignment: TextInput.AlignHCenter
+                    text: (Config.ready && Config.options.search) ? Config.options.search.mathPrefix : "="
+                    onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.mathPrefix = text; }
                 }
             }
         }
@@ -117,25 +105,13 @@ ColumnLayout {
                 }
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: webInput
                     width: 120 * Appearance.effectiveScale
                     height: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: webInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: webInput
-                        anchors.fill: parent
-                        horizontalAlignment: TextInput.AlignHCenter
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.search) ? Config.options.search.webPrefix : "!"
-                        onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.webPrefix = text; }
-                    }
+                    horizontalAlignment: TextInput.AlignHCenter
+                    text: (Config.ready && Config.options.search) ? Config.options.search.webPrefix : "!"
+                    onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.webPrefix = text; }
                 }
             }
         }
@@ -170,25 +146,13 @@ ColumnLayout {
                 }
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: emojiInput
                     width: 120 * Appearance.effectiveScale
                     height: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: emojiInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: emojiInput
-                        anchors.fill: parent
-                        horizontalAlignment: TextInput.AlignHCenter
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.search) ? Config.options.search.emojiPrefix : ":"
-                        onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.emojiPrefix = text; }
-                    }
+                    horizontalAlignment: TextInput.AlignHCenter
+                    text: (Config.ready && Config.options.search) ? Config.options.search.emojiPrefix : ":"
+                    onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.emojiPrefix = text; }
                 }
             }
         }
@@ -223,25 +187,13 @@ ColumnLayout {
                 }
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: clipInput
                     width: 120 * Appearance.effectiveScale
                     height: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: clipInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: clipInput
-                        anchors.fill: parent
-                        horizontalAlignment: TextInput.AlignHCenter
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.search) ? Config.options.search.clipboardPrefix : ";"
-                        onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.clipboardPrefix = text; }
-                    }
+                    horizontalAlignment: TextInput.AlignHCenter
+                    text: (Config.ready && Config.options.search) ? Config.options.search.clipboardPrefix : ";"
+                    onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.clipboardPrefix = text; }
                 }
             }
         }
@@ -276,25 +228,13 @@ ColumnLayout {
                 }
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: fileInput
                     width: 120 * Appearance.effectiveScale
                     height: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: fileInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: fileInput
-                        anchors.fill: parent
-                        horizontalAlignment: TextInput.AlignHCenter
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.search) ? Config.options.search.filePrefix : "?"
-                        onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.filePrefix = text; }
-                    }
+                    horizontalAlignment: TextInput.AlignHCenter
+                    text: (Config.ready && Config.options.search) ? Config.options.search.filePrefix : "?"
+                    onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.filePrefix = text; }
                 }
             }
         }
@@ -329,25 +269,13 @@ ColumnLayout {
                 }
                 Item { Layout.fillWidth: true }
                 
-                Rectangle {
+                StyledTextInput {
+                    id: cmdInput
                     width: 120 * Appearance.effectiveScale
                     height: 48 * Appearance.effectiveScale
-                    radius: 12 * Appearance.effectiveScale
-                    color: Appearance.m3colors.m3surfaceContainerLow
-                    border.width: cmdInput.activeFocus ? Math.max(1, 2 * Appearance.effectiveScale) : 0
-                    border.color: Appearance.colors.colPrimary
-
-                    TextInput {
-                        id: cmdInput
-                        anchors.fill: parent
-                        horizontalAlignment: TextInput.AlignHCenter
-                        verticalAlignment: TextInput.AlignVCenter
-                        font.family: Appearance.font.family.main
-                        font.pixelSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer1
-                        text: (Config.ready && Config.options.search) ? Config.options.search.commandPrefix : ">"
-                        onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.commandPrefix = text; }
-                    }
+                    horizontalAlignment: TextInput.AlignHCenter
+                    text: (Config.ready && Config.options.search) ? Config.options.search.commandPrefix : ">"
+                    onEditingFinished: { if (Config.ready && Config.options.search) Config.options.search.commandPrefix = text; }
                 }
             }
         }

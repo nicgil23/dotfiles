@@ -49,6 +49,8 @@ Item {
         // MD3 Outline Style
         border.width: Math.max(1, 1 * Appearance.effectiveScale)
         border.color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.12)
+        
+        // Prevent clicks inside the panel from falling through to the Overlay background closer
     }
 
     ColumnLayout {
@@ -66,12 +68,18 @@ Item {
         MediaCard {
             Layout.fillWidth: true
             visible: (Config.options.media?.showMediaCard ?? true) && MprisController.activePlayer !== null
+            // This panel is hosted in an always-active Loader and collapsed via
+            // opacity, so the card's `visible` stays true while closed. Bind the
+            // wavy Canvas lifecycle to the real open-state to avoid 60fps
+            // off-screen repaints.
+            wavyVisible: GlobalStates.notificationCenterOpen
         }
 
         // ── Weather Card ──
         WeatherCard {
             Layout.fillWidth: true
-            visible: Config.options.weather?.enable ?? true
+            visible: (Config.options.weather?.enable ?? true)
+                && (Config.options.weather?.showInNotificationCenter ?? true)
         }
 
         // ── Notification Island ──
@@ -80,7 +88,7 @@ Item {
             Layout.preferredHeight: Appearance.sizes.notificationIslandMaxHeight
             
             color: Appearance.colors.colLayer1
-            radius: Appearance.rounding.panel
+            radius: Appearance.rounding.large
             
             ColumnLayout {
                 id: islandColumn

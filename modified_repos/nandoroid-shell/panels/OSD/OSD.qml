@@ -35,6 +35,7 @@ Scope {
         { id: "powerMode",      sourceUrl: "indicators/PowerModeIndicator.qml" },
         { id: "conservation",   sourceUrl: "indicators/ConservationIndicator.qml" },
         { id: "layout",         sourceUrl: "indicators/LayoutIndicator.qml" },
+        { id: "microphone",     sourceUrl: "indicators/MicrophoneIndicator.qml" },
     ]
 
     function triggerOsd() {
@@ -64,6 +65,14 @@ Scope {
     }
 
     Connections {
+        target: Hyprsunset
+        function onGammaChangeAttempt() {
+            root.currentIndicator = "brightness";
+            root.triggerOsd();
+        }
+    }
+
+    Connections {
         target: Audio.sink && Audio.sink.audio ? Audio.sink.audio : null
         function onVolumeChanged() {
             root.currentIndicator = "volume";
@@ -71,6 +80,20 @@ Scope {
         }
         function onMutedChanged() {
             root.currentIndicator = "volume";
+            root.triggerOsd();
+        }
+    }
+
+    Connections {
+        target: Audio.source && Audio.source.audio ? Audio.source.audio : null
+        function onVolumeChanged() {
+            // Ignore background volume auto-adjustments from apps like Zoom/Discord/Meet
+            if (Privacy.microphoneActive) return;
+            root.currentIndicator = "microphone";
+            root.triggerOsd();
+        }
+        function onMutedChanged() {
+            root.currentIndicator = "microphone";
             root.triggerOsd();
         }
     }

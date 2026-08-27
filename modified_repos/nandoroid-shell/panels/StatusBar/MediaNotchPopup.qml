@@ -99,11 +99,11 @@ Variants {
                         text: "music_note"
                         iconSize: 18 * Appearance.effectiveScale
                         fill: 1
-                        visible: !MprisController.displayedArtFilePath || MprisController.displayedArtFilePath.toString() === ""
+                        visible: !MprisController.isPlaying && (MprisController.displayedArtFilePath?.toString() === "")
                         color: Appearance.colors.colNotchText
                     }
 
-                    // Play/Pause Overlay
+                    // Play/Pause (visible when playing or when art exists)
                     MaterialSymbol {
                         anchors.centerIn: parent
                         text: MprisController.isPlaying ? "pause" : "play_arrow"
@@ -111,6 +111,7 @@ Variants {
                         fill: 1
                         color: "white"
                         opacity: 0.9
+                        visible: MprisController.isPlaying || (MprisController.displayedArtFilePath?.toString() !== "")
                     }
 
                     MouseArea {
@@ -136,6 +137,11 @@ Variants {
                     Layout.fillWidth: true; Layout.preferredHeight: 14 * Appearance.effectiveScale
                     configuration: StyledSlider.Configuration.Wavy
                     wavy: MprisController.isPlaying
+                    // This popup's `visible` lingers true during the 250ms
+                    // opacity fade-out, and the window itself stays visible
+                    // while `contentRect.opacity > 0`. Bind the wavy Canvas
+                    // lifecycle to the real open-state instead.
+                    wavyVisible: GlobalStates.mediaNotchOpen
                     value: MprisController.length > 0 ? (MprisController.position / MprisController.length) : 0
                     highlightColor: MprisController.dynPrimary
                     trackColor: MprisController.dynSecondaryContainer
@@ -161,6 +167,18 @@ Variants {
                         onClicked: MprisController.next() 
                     }
                 }
+
+                // ── 5. Lyrics Toggle ──
+                MaterialSymbol {
+                    text: "lyrics"; iconSize: 22 * Appearance.effectiveScale; fill: Config.options.appearance.lyrics.showFloatingLyrics ? 1 : 0
+                    color: Config.options.appearance.lyrics.showFloatingLyrics ? MprisController.dynPrimary : Appearance.colors.colNotchText
+                    MouseArea { 
+                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor;
+                        onClicked: {
+                            Config.options.appearance.lyrics.showFloatingLyrics = !Config.options.appearance.lyrics.showFloatingLyrics
+                        }
+                    }
+                }
             }
 
             // --- Style 2: Full Media Card ---
@@ -172,6 +190,9 @@ Variants {
                 sourceComponent: MediaCard {
                     // Force a slightly different styling if needed
                     radius: Appearance.rounding.button
+                    // Gate wavy Canvas by real open-state; this Loader stays
+                    // active while the popup is in full mode, even when closed.
+                    wavyVisible: GlobalStates.mediaNotchOpen
                 }
             }
         }

@@ -20,8 +20,15 @@ ColumnLayout {
                 spacing: 4 * Appearance.effectiveScale
                 
                 SearchHandler { 
+                    visible: false
                     searchString: "Lockscreen"
                     aliases: ["Lock", "Lock Screen"]
+                }
+                
+                SearchHandler {
+                    visible: false
+                    searchString: "Lockscreen Clock"
+                    aliases: ["Clock", "Time", "Watch", "Clock Style"]
                 }
     
                 // Section Header
@@ -107,6 +114,26 @@ ColumnLayout {
                         }
                     }
 
+                    // ── Show Date ──────────────
+                    SegmentedWrapper {
+                        Layout.fillWidth: true
+                        implicitHeight: showLockscreenDateRow.implicitHeight + (32 * Appearance.effectiveScale)
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+                        RowLayout {
+                            id: showLockscreenDateRow
+                            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 16 * Appearance.effectiveScale
+                            MaterialSymbol { text: "event"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { text: "Show date on lockscreen"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            AndroidToggle {
+                                checked: Config.ready && Config.options.appearance.clock.showLockscreenDate
+                                onToggled: if(Config.ready) Config.options.appearance.clock.showLockscreenDate = !Config.options.appearance.clock.showLockscreenDate
+                            }
+                        }
+                    }
+
                     // ── Show Media Controls ──────────────
                     SegmentedWrapper {
                         Layout.fillWidth: true
@@ -126,28 +153,14 @@ ColumnLayout {
                             }
                         }
                     }
-
-                    // ── Foreground Isolation ──────────────
-                    SegmentedWrapper {
-                        Layout.fillWidth: true
-                        implicitHeight: showFgRow.implicitHeight + (32 * Appearance.effectiveScale)
-                        orientation: Qt.Vertical
-                        maxRadius: 20 * Appearance.effectiveScale
-                        color: Appearance.m3colors.m3surfaceContainerHigh
-                        RowLayout {
-                            id: showFgRow
-                            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
-                            spacing: 16 * Appearance.effectiveScale
-                            MaterialSymbol { text: "depth_anchor"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
-                            StyledText { text: "Mostrar botón de Efecto 3D en la pantalla de bloqueo"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
-                            AndroidToggle {
-                                checked: Config.ready && Config.options.lock.showForegroundIsolationButton
-                                onToggled: if(Config.ready) Config.options.lock.showForegroundIsolationButton = !Config.options.lock.showForegroundIsolationButton
-                            }
-                        }
                     }
                 }
-            }
     
-
+            // ── Lockscreen Clock Section ──
+            WsClock { 
+                Layout.fillWidth: true
+                isDedicatedContext: true
+                dedicatedIsLock: true 
+                isSubSection: true
+            }
 }

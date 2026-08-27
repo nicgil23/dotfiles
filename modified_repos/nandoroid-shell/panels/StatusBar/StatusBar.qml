@@ -22,10 +22,14 @@ Scope {
         delegate: PanelWindow {
             id: barWindow
             required property var modelData
-            property int monitorIndex: modelData.index ?? 0
+            property int monitorIndex: modelData.index !== undefined ? modelData.index : 0
+            readonly property bool isM3: Config.ready && Config.options.statusBar && Config.options.statusBar.moduleStyle === "m3"
 
             screen: modelData
             exclusionMode: ExclusionMode.Ignore
+
+            Component.onCompleted: GlobalFocusGrab.addPersistent(barWindow)
+            Component.onDestruction: GlobalFocusGrab.removePersistent(barWindow)
             
             readonly property bool autoHide: Config.ready && Config.options.statusBar ? Config.options.statusBar.autoHide : false
             property bool forceShowByHover: false
@@ -51,9 +55,19 @@ Scope {
                 }
             }
 
-            exclusiveZone: (autoHide && !mustShow) ? 0 : Appearance.sizes.statusBarHeight
+            readonly property real actualStatusBarHeight: isM3 ? 48 * Appearance.effectiveScale : Appearance.sizes.statusBarHeight
+
+            // Track special workspace to raise layer above it
+            readonly property bool specialWorkspaceActive: {
+                var mon = Hyprland.monitorFor(barWindow.modelData);
+                if (!mon) return false;
+                var swState = HyprlandData.monitorSpecialWorkspace;
+                return swState[mon.name] !== undefined && swState[mon.name] !== "";
+            }
+
+            exclusiveZone: (autoHide && !mustShow) ? 0 : actualStatusBarHeight
             WlrLayershell.namespace: "nandoroid:statusbar"
-            WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.layer: specialWorkspaceActive ? WlrLayer.Overlay : WlrLayer.Top
 
             anchors {
                 left: true
@@ -62,8 +76,7 @@ Scope {
             }
 
             color: "transparent"
-            implicitHeight: Appearance.sizes.statusBarHeight
-                + (showBackground ? cornerRadius : 0)
+            implicitHeight: actualStatusBarHeight + (showBackground ? cornerRadius : 0)
 
             // Define clickable area mask
             mask: Region {
@@ -100,12 +113,12 @@ Scope {
 
             // ── Background visibility ──────────────────────────────────
             readonly property int bgStyle: Config.ready && Config.options.statusBar
-                ? (Config.options.statusBar.backgroundStyle ?? 0) : 0
+                ? (Config.options.statusBar.backgroundStyle !== undefined ? Config.options.statusBar.backgroundStyle : 0) : 0
             readonly property int cornerRadius: Math.round((Config.ready && Config.options.statusBar
-                ? (Config.options.statusBar.backgroundCornerRadius ?? 20) : 20) * Appearance.effectiveScale)
+                ? (Config.options.statusBar.backgroundCornerRadius !== undefined ? Config.options.statusBar.backgroundCornerRadius : 20) : 20) * Appearance.effectiveScale)
 
             readonly property bool hasTiledWindows: {
-                if (bgStyle !== 2 || (Hyprland.monitorFor(modelData)?.activeWorkspace?.id ?? -1) === -1) return false;
+                if (bgStyle !== 2 || !Hyprland.monitorFor(modelData) || !Hyprland.monitorFor(modelData).activeWorkspace || Hyprland.monitorFor(modelData).activeWorkspace.id === -1) return false;
                 const wsId = Hyprland.monitorFor(modelData).activeWorkspace.id;
                 return HyprlandData.windowList.some(w => 
                     w.workspace.id === wsId && !w.floating && w.monitor === monitorIndex
@@ -113,19 +126,20 @@ Scope {
             }
 
             readonly property bool showBackground: {
+                if (isM3) return false;
                 if (bgStyle === 1) return true;
                 if (bgStyle === 2) return hasTiledWindows;
                 return false;
             }
 
-            readonly property bool isCentered: (Config.ready && Config.options.statusBar) ? Config.options.statusBar.layoutStyle === "centered" : false
+            readonly property bool isCentered: (!isM3 && Config.ready && Config.options.statusBar) ? Config.options.statusBar.layoutStyle === "centered" : false
             readonly property real centeredWidth: Math.round((Config.ready && Config.options.statusBar ? Config.options.statusBar.centeredWidth : 1200) * Appearance.effectiveScale)
 
             // ── Main Content Container (Animated) ──
             Item {
                 id: mainContainer
                 anchors.fill: parent
-                anchors.topMargin: (autoHide && !mustShow) ? -Appearance.sizes.statusBarHeight - (showBackground ? cornerRadius : 5 * Appearance.effectiveScale) : 0
+                anchors.topMargin: (autoHide && !mustShow) ? -actualStatusBarHeight - (showBackground ? cornerRadius : 5 * Appearance.effectiveScale) : 0
                 
                 Behavior on anchors.topMargin {
                     NumberAnimation {
@@ -154,7 +168,7 @@ Scope {
                     Rectangle {
                         id: barBg
                         
-                        readonly property real targetHeight: Appearance.sizes.statusBarHeight + (barWindow.isCentered ? barWindow.cornerRadius : 0)
+                        readonly property real targetHeight: actualStatusBarHeight + (barWindow.isCentered ? barWindow.cornerRadius : 0)
                         readonly property real targetY: barWindow.showBackground 
                             ? (barWindow.isCentered ? -barWindow.cornerRadius + Appearance.effectiveScale : -2 * Appearance.effectiveScale)
                             : -targetHeight - (10 * Appearance.effectiveScale)
@@ -170,6 +184,8 @@ Scope {
                         
                         height: targetHeight
                         color: Appearance.colors.colStatusBarSolid
+                        opacity: isM3 ? 0.0 : 1.0
+                        visible: opacity > 0
                         
                         radius: barWindow.isCentered ? barWindow.cornerRadius : 0
 
@@ -218,9 +234,10 @@ Scope {
                         right: parent.right
                         top: parent.top
                     }
-                    height: Appearance.sizes.statusBarHeight
+                    height: actualStatusBarHeight
                     color: "transparent"
-                    opacity: !barWindow.showBackground && (Config.ready && Config.options.statusBar ? Config.options.statusBar.useGradient : true) ? 1.0 : 0.0
+                    // User explicitly requested to disable gradient in M3 style
+                    opacity: !barWindow.showBackground && !isM3 && (Config.ready && Config.options.statusBar ? Config.options.statusBar.useGradient : true) ? 1.0 : 0.0
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: Appearance.colors.colStatusBarGradientStart }
                         GradientStop { position: 1.0; color: Appearance.colors.colStatusBarGradientEnd }
@@ -228,14 +245,32 @@ Scope {
                 }
 
                 // ── Content ──
-                StatusBarContent {
+                Loader {
+                    id: contentLoader
                     anchors {
                         left: parent.left
                         right: parent.right
                         top: parent.top
                     }
-                    height: Appearance.sizes.statusBarHeight
-                    monitorIndex: barWindow.monitorIndex
+                    width: parent.width
+                    height: actualStatusBarHeight
+                    sourceComponent: isM3 ? m3Content : baseContent
+                    
+                    Component {
+                        id: baseContent
+                        StatusBarContent {
+                            height: Appearance.sizes.statusBarHeight
+                            monitorIndex: barWindow.monitorIndex
+                        }
+                    }
+                    
+                    Component {
+                        id: m3Content
+                        StatusBarM3Style {
+                            height: 48 * Appearance.effectiveScale
+                            monitorIndex: barWindow.monitorIndex
+                        }
+                    }
                 }
             }
         }

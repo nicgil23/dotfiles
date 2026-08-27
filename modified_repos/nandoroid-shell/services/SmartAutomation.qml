@@ -16,11 +16,31 @@ Singleton {
     property bool pomodoroDndActive: PomodoroService.active && PomodoroService.mode === 0
     property string lastUpdateCheckDate: "" // Track daily update check
 
-    // Apply DND state to Notifications service
+    // Focus mode writes to Config (persistent source of truth) on event start/end
+    // _ready guard prevents startup from overriding user's saved preference
     readonly property bool shouldBeDnd: scheduleDndActive || pomodoroDndActive
     onShouldBeDndChanged: {
-        Notifications.silent = shouldBeDnd;
-        root.dndActive = shouldBeDnd;
+        if (!_ready && shouldBeDnd) return;
+        _setDnd(shouldBeDnd);
+    }
+
+    function _setDnd(value) {
+        Notifications.silent = value;
+        root.dndActive = value;
+        if (Config.ready && Config.options.system) {
+            Config.options.system.dndActive = value;
+        }
+    }
+
+    // Sync user's manual toggle back to Config
+    Connections {
+        target: Notifications
+        function onSilentChanged() {
+            root.dndActive = Notifications.silent;
+            if (Config.ready && Config.options.system) {
+                Config.options.system.dndActive = Notifications.silent;
+            }
+        }
     }
 
     // --- Notifications only for Schedule DND ---
@@ -32,13 +52,166 @@ Singleton {
         }
     }
 
-    // --- Main Automation Timer ---
+    // --- Dynamic One-Shot Automation Timer ---
     Timer {
         id: mainTimer
-        interval: 10000 // Check every 10 seconds for high accuracy
-        running: true
-        repeat: true
-        onTriggered: runAutomationCycle()
+        interval: 60000
+        repeat: false
+        onTriggered: runThenSchedule()
+    }
+
+    property bool _ready: false
+    property bool _cycleGuard: false
+    property var _notifiedDeadlines: ({}) // "taskId" -> true for 1h-before + overdue
+
+    Connections {
+        target: ScheduleService
+        function onEventsChanged() {
+            if (_ready && !_cycleGuard) {
+                _cycleGuard = true;
+                scheduleNext();
+                runAutomationCycle();
+                _cycleGuard = false;
+            }
+        }
+    }
+
+    Connections {
+        target: GlobalStates
+        function onTodoDeadlinesChanged() {
+            if (_ready && !_cycleGuard) {
+                _cycleGuard = true;
+                scheduleNext();
+                runAutomationCycle();
+                _cycleGuard = false;
+            }
+        }
+    }
+
+    function runThenSchedule() {
+        runAutomationCycle();
+        scheduleNext();
+    }
+
+    function scheduleNext() {
+        const now = new Date();
+        let nextMs = Infinity;
+
+        // Next midnight (for daily update check)
+        const midnight = new Date(now);
+        midnight.setDate(midnight.getDate() + 1);
+        midnight.setHours(0, 0, 0, 0);
+        nextMs = Math.min(nextMs, midnight.getTime() - now.getTime() + 1000);
+
+        ScheduleService.events.forEach(event => {
+            const nowDateStr = Qt.formatDate(now, "yyyy-MM-dd");
+
+            if (event.endDate && nowDateStr > event.endDate) return;
+
+            let isEventDay = false;
+            if (event.recurrence === "once") {
+                if (event.endDate) {
+                    isEventDay = nowDateStr >= event.date && nowDateStr <= event.endDate;
+                } else {
+                    isEventDay = event.date === nowDateStr;
+                }
+            } else {
+                if (event.date === nowDateStr) isEventDay = true;
+                else if (event.recurrence === "daily") isEventDay = true;
+                else if (event.recurrence === "weekly") {
+                    const d = new Date(event.date + "T00:00:00");
+                    isEventDay = d.getDay() === now.getDay();
+                } else if (event.recurrence === "monthly") {
+                    const d = new Date(event.date + "T00:00:00");
+                    isEventDay = d.getDate() === now.getDate();
+                }
+                if (isEventDay && event.date) isEventDay = nowDateStr >= event.date;
+            }
+            if (!isEventDay) return;
+
+            const eventStart = new Date(nowDateStr + "T" + event.time);
+            let eventEnd = event.endTime
+                ? new Date(nowDateStr + "T" + event.endTime)
+                : new Date(eventStart.getTime() + 3600000);
+
+            if (event.endTime) {
+                const [sh, sm] = event.time.split(":").map(Number);
+                const [eh, em] = event.endTime.split(":").map(Number);
+                if (eh < sh || (eh === sh && em <= sm)) eventEnd.setDate(eventEnd.getDate() + 1);
+            }
+
+            // Notification 1h before
+            const notif1h = new Date(eventStart.getTime() - 3600000);
+            if (notif1h > now) {
+                nextMs = Math.min(nextMs, notif1h.getTime() - now.getTime());
+            } else if (now < eventStart && !event.lastNotified1hDate) {
+                nextMs = Math.min(nextMs, 1000);
+            }
+
+            // Event start (for DND activation)
+            if (event.focus && eventStart > now) nextMs = Math.min(nextMs, eventStart.getTime() - now.getTime());
+
+            // Event end (for DND deactivation)
+            if (event.focus) {
+                let dndEnd = eventEnd;
+                if (event.endTime) {
+                    const [sh, sm] = event.time.split(":").map(Number);
+                    const [eh, em] = event.endTime.split(":").map(Number);
+                    if (eh < sh || (eh === sh && em <= sm)) {
+                        const tailEnd = new Date(nowDateStr + "T" + event.endTime);
+                        if (now < tailEnd) dndEnd = tailEnd;
+                    }
+                }
+                if (dndEnd > now) nextMs = Math.min(nextMs, dndEnd.getTime() - now.getTime());
+            }
+
+            // Expired once event cleanup (30s after end of last day)
+            if (event.recurrence === "once") {
+                const expiryDate = event.endDate || event.date;
+                const expiryTime = event.endTime || "23:59";
+                if (nowDateStr === expiryDate) {
+                    let expire = new Date(expiryDate + "T" + expiryTime);
+                    if (event.endTime) {
+                        const [sh, sm] = (event.time || "00:00").split(":").map(Number);
+                        const [eh, em] = event.endTime.split(":").map(Number);
+                        if (eh < sh || (eh === sh && em <= sm)) expire.setDate(expire.getDate() + 1);
+                    }
+                    expire.setTime(expire.getTime() + 30000);
+                    if (expire > now) nextMs = Math.min(nextMs, expire.getTime() - now.getTime());
+                    else nextMs = Math.min(nextMs, 1000);
+                }
+            }
+        });
+
+        // Todo deadline scheduling (1h before notification, exact deadline, overdue detection)
+        for (let dl of GlobalStates.todoDeadlines) {
+            if (dl.done) continue
+            const [y, m, d] = dl.date.split("-").map(Number)
+            const [hh, mm] = (dl.time || "23:59").split(":").map(Number)
+            const deadlineDate = new Date(y, m - 1, d, hh, mm)
+
+            // 1. Target: 1h before notification
+            const oneHourBefore = new Date(deadlineDate.getTime() - 3600000)
+            if (oneHourBefore > now) {
+                nextMs = Math.min(nextMs, oneHourBefore.getTime() - now.getTime())
+            }
+
+            // 2. Target: Exact deadline timestamp (for overdue notification)
+            if (deadlineDate > now) {
+                nextMs = Math.min(nextMs, deadlineDate.getTime() - now.getTime())
+            }
+
+            // 3. Target: End of overdue window (1h after deadline)
+            const overdueEnd = new Date(deadlineDate.getTime() + 3600000)
+            if (overdueEnd > now && deadlineDate <= now) {
+                nextMs = Math.min(nextMs, overdueEnd.getTime() - now.getTime())
+            }
+        }
+
+        if (nextMs < Infinity) {
+            mainTimer.interval = Math.max(1000, nextMs);
+            mainTimer.running = true;
+        }
     }
 
     function runAutomationCycle() {
@@ -49,7 +222,6 @@ Singleton {
         if (Config.ready && Config.options.system) {
             const lastCheck = Config.options.system.lastUpdateCheckDate || "";
             if (lastCheck !== nowDateStr) {
-
                 updateCheckProc.running = true;
                 Config.options.system.lastUpdateCheckDate = nowDateStr;
             }
@@ -60,54 +232,116 @@ Singleton {
 
         ScheduleService.events.forEach(event => {
             // 2. Recurrence / Day Check
-            let isEventDay = (event.date === nowDateStr);
-            if (event.recurrence === "daily") isEventDay = true;
-            else if (event.recurrence === "weekly") {
-                const eventDate = new Date(event.date + "T00:00:00");
-                isEventDay = (eventDate.getDay() === now.getDay());
-            } else if (event.recurrence === "monthly") {
-                const eventDate = new Date(event.date + "T00:00:00");
-                isEventDay = (eventDate.getDate() === now.getDate());
+            if (event.endDate && nowDateStr > event.endDate) return;
+
+            let isEventDay = false;
+            if (event.recurrence === "once") {
+                if (event.endDate) {
+                    isEventDay = nowDateStr >= event.date && nowDateStr <= event.endDate;
+                } else {
+                    isEventDay = event.date === nowDateStr;
+                }
+            } else {
+                if (event.date === nowDateStr) isEventDay = true;
+                else if (event.recurrence === "daily") isEventDay = true;
+                else if (event.recurrence === "weekly") {
+                    const eventDate = new Date(event.date + "T00:00:00");
+                    isEventDay = (eventDate.getDay() === now.getDay());
+                } else if (event.recurrence === "monthly") {
+                    const eventDate = new Date(event.date + "T00:00:00");
+                    isEventDay = (eventDate.getDate() === now.getDate());
+                }
+                if (isEventDay && event.date) isEventDay = nowDateStr >= event.date;
             }
 
             if (!isEventDay) return;
 
             // 3. Time Check
             const eventStart = new Date(nowDateStr + "T" + event.time);
-            const eventEnd = event.endTime 
+            let eventEnd = event.endTime 
                 ? new Date(nowDateStr + "T" + event.endTime) 
                 : new Date(eventStart.getTime() + 3600000);
+
+            if (event.endTime) {
+                const [sh, sm] = event.time.split(":").map(Number);
+                const [eh, em] = event.endTime.split(":").map(Number);
+                if (eh < sh || (eh === sh && em <= sm)) eventEnd.setDate(eventEnd.getDate() + 1);
+            }
             
             // 4. DND Active Check
-            if (event.focus && now >= eventStart && now < eventEnd) {
-                anyEventActive = true;
+            if (event.focus) {
+                let isActive = now >= eventStart && now < eventEnd;
+                if (!isActive && event.endTime) {
+                    const [sh, sm] = event.time.split(":").map(Number);
+                    const [eh, em] = event.endTime.split(":").map(Number);
+                    if (eh < sh || (eh === sh && em <= sm)) {
+                        const tailEnd = new Date(nowDateStr + "T" + event.endTime);
+                        if (now < tailEnd) isActive = true;
+                    }
+                }
+                if (isActive) anyEventActive = true;
             }
 
             // 5. Notification Logic
             const diffMs = eventStart.getTime() - now.getTime();
             const diffHours = diffMs / 3600000;
 
-            // 00:00 (Today) Notif
+            // 00:00 (Today) Notif — only on first day for multi-day once events
             const lastNotified00 = event.lastNotified00Date || "";
             if (lastNotified00 !== nowDateStr) {
-                sendNotification("Today's Schedule", `Upcoming event: ${event.title} at ${event.time}`);
-                ScheduleService.updateEvent(event.id, { lastNotified00Date: nowDateStr });
+                if (!event.endDate || event.recurrence !== "once" || nowDateStr === event.date) {
+                    sendNotification("Today's Schedule", `Upcoming event: ${event.title} at ${event.time}`);
+                    ScheduleService.updateEvent(event.id, { lastNotified00Date: nowDateStr });
+                }
             }
 
-            // 1h Before Notif
+            // 1h Before Notif (only on first day for multi-day events)
             const lastNotified1h = event.lastNotified1hDate || "";
             if (diffHours > 0 && diffHours <= 1.0 && lastNotified1h !== nowDateStr) {
-                sendNotification("Starting Soon", `${event.title} starts in 1 hour (${event.time})`);
-                ScheduleService.updateEvent(event.id, { lastNotified1hDate: nowDateStr });
+                if (!event.endDate || nowDateStr === event.date) {
+                    sendNotification("Starting Soon", `${event.title} starts in 1 hour (${event.time})`);
+                    ScheduleService.updateEvent(event.id, { lastNotified1hDate: nowDateStr });
+                }
             }
 
             // 6. Expiry Check (Auto-delete "once" events)
             if (event.recurrence === "once") {
-                if (now.getTime() > (eventEnd.getTime() + 30000)) {
-                    expiredEventIds.push(event.id);
+                const expiryDate = event.endDate || event.date;
+                const expiryTime = event.endTime || "23:59";
+                if (nowDateStr === expiryDate) {
+                    let expiryEnd = new Date(expiryDate + "T" + expiryTime);
+                    if (event.endTime) {
+                        const [sh, sm] = (event.time || "00:00").split(":").map(Number);
+                        const [eh, em] = event.endTime.split(":").map(Number);
+                        if (eh < sh || (eh === sh && em <= sm)) expiryEnd.setDate(expiryEnd.getDate() + 1);
+                    }
+                    expiryEnd.setTime(expiryEnd.getTime() + 30000);
+                    if (now.getTime() > expiryEnd.getTime()) {
+                        expiredEventIds.push(event.id);
+                    }
                 }
             }
         });
+
+        // 7. Todo Deadline Notifications
+        for (let dl of GlobalStates.todoDeadlines) {
+            if (dl.done) continue
+            const [y, m, d] = dl.date.split("-").map(Number)
+            const [hh, mm] = (dl.time || "23:59").split(":").map(Number)
+            const deadlineDate = new Date(y, m - 1, d, hh, mm)
+            const diffMs = deadlineDate.getTime() - now.getTime()
+            const diffHours = diffMs / 3600000
+
+            if (diffHours > 0 && diffHours <= 1.0 && !root._notifiedDeadlines["1h_" + dl.taskId]) {
+                root.sendNotification("Deadline Approaching", `${dl.taskContent} for "${dl.itemTitle}" is due in 1 hour`)
+                root._notifiedDeadlines["1h_" + dl.taskId] = true
+            }
+
+            if (diffMs < 0 && diffMs > -3600000 && !root._notifiedDeadlines["overdue_" + dl.taskId]) {
+                root.sendNotification("Deadline Passed", `${dl.taskContent} for "${dl.itemTitle}" is overdue`)
+                root._notifiedDeadlines["overdue_" + dl.taskId] = true
+            }
+        }
 
         // Apply DND State
         if (root.scheduleDndActive !== anyEventActive) {
@@ -116,7 +350,6 @@ Singleton {
 
         // Cleanup Expired Events
         expiredEventIds.forEach(id => {
-
             ScheduleService.deleteEvent(id);
         });
     }
@@ -127,6 +360,7 @@ Singleton {
             "notify-send",
             "-a", "NAnDoroid",
             "-i", iconPath,
+            "-t", "8000",
             title,
             body
         ];
@@ -173,6 +407,13 @@ Singleton {
     }
 
     Component.onCompleted: {
-        Qt.callLater(() => runAutomationCycle());
+        Qt.callLater(() => {
+            if (Config.ready && Config.options.system) {
+                Notifications.silent = Config.options.system.dndActive;
+            }
+            runAutomationCycle();
+            _ready = true;
+            scheduleNext();
+        });
     }
 }

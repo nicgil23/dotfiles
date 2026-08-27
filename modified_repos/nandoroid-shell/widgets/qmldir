@@ -48,7 +48,22 @@ SearchHandler SearchHandler.qml
 UserProfile UserProfile.qml
 WaveVisualizer WaveVisualizer.qml
 MediaCard MediaCard.qml
+AtAGlance AtAGlance.qml
 WeatherCard WeatherCard.qml
 ScreenshotOverlay ScreenshotOverlay.qml
 AccentPicker AccentPicker.qml
 AccentPickerOverlay AccentPickerOverlay.qml
+ClippedFilledCircularProgress ClippedFilledCircularProgress.qml
+ClippedOutlineCircularProgress ClippedOutlineCircularProgress.qml
+Carousel Carousel.qml
+StyledImage StyledImage.qml
+DesktopWidgetsSubmenu DesktopWidgetsSubmenu.qml
+ColorPickerButton ColorPickerButton.qml
+DesktopMediaWidget DesktopMediaWidget.qml
+DesktopSystemMonitorWidget DesktopSystemMonitorWidget.qml
+DesktopWeatherWidget DesktopWeatherWidget.qml
+DesktopCurrencyWidget DesktopCurrencyWidget.qml
+DatePicker DatePicker.qml
+TimePicker TimePicker.qml
+StyledTextInput StyledTextInput.qml
+

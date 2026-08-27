@@ -12,10 +12,12 @@ ColumnLayout {
     id: root
     spacing: 2 * Appearance.effectiveScale
     
-    // FIXED WIDTH - Essential for position stability when time changes (e.g. from ONE to TWELVE)
-    implicitWidth: 800 * Appearance.effectiveScale
+    // implicitWidth hack removed as DesktopWidgets now handles anchoring dynamically
     
     property bool isLockscreen: false
+    
+    readonly property string timeFontFamily: root.isLockscreen ? Appearance.font.family.lockscreenTimeFont : Appearance.font.family.desktopTimeFont
+    readonly property string dateFontFamily: root.isLockscreen ? Appearance.font.family.lockscreenDateFont : Appearance.font.family.desktopDateFont
     
     readonly property var cfg: {
         if (!Config.ready) return { fontSize: 42, dateFontSize: 18, alignment: "center", timeColorStyle: "onSurface", dateColorStyle: "primary" }
@@ -26,28 +28,31 @@ ColumnLayout {
 
     readonly property string alignment: root.cfg.alignment || "center"
     
+    // Switch between lock and desktop color palettes
+    readonly property var m3: isLockscreen ? Appearance.lockM3colors : Appearance.m3colors
+
     readonly property color timeColor: {
-        if (!Config.ready || !cfg) return Appearance.colors.colOnLayer0
+        if (!Config.ready || !cfg) return m3.m3onSurface
         const s = cfg.timeColorStyle
-        if (s === "primary") return Appearance.colors.colPrimary
-        if (s === "secondary") return Appearance.colors.colSecondary
-        if (s === "tertiary") return Appearance.colors.colTertiary
-        if (s === "error") return Appearance.m3colors.m3error
-        if (s === "onSurface") return Appearance.m3colors.m3onSurface
-        if (s === "surface") return Appearance.m3colors.m3surface
-        return isLockscreen ? Appearance.colors.colLockscreenClock : Appearance.colors.colOnLayer0
+        if (s === "primary") return m3.m3primary
+        if (s === "secondary") return m3.m3secondary
+        if (s === "tertiary") return m3.m3tertiary
+        if (s === "error") return m3.m3error
+        if (s === "onSurface") return m3.m3onSurface
+        if (s === "surface") return m3.m3surface
+        return m3.m3onSurface
     }
 
     readonly property color dateColor: {
-        if (!Config.ready || !cfg) return Appearance.colors.colPrimary
+        if (!Config.ready || !cfg) return m3.m3primary
         const s = cfg.dateColorStyle
-        if (s === "primary") return Appearance.colors.colPrimary
-        if (s === "secondary") return Appearance.colors.colSecondary
-        if (s === "tertiary") return Appearance.colors.colTertiary
-        if (s === "error") return Appearance.m3colors.m3error
-        if (s === "onSurface") return Appearance.m3colors.m3onSurface
-        if (s === "surface") return Appearance.m3colors.m3surface
-        return Appearance.colors.colPrimary
+        if (s === "primary") return m3.m3primary
+        if (s === "secondary") return m3.m3secondary
+        if (s === "tertiary") return m3.m3tertiary
+        if (s === "error") return m3.m3error
+        if (s === "onSurface") return m3.m3onSurface
+        if (s === "surface") return m3.m3surface
+        return m3.m3primary
     }
 
     readonly property real fontSize: (root.cfg.fontSize || 42) * Appearance.effectiveScale
@@ -83,23 +88,26 @@ ColumnLayout {
 
         StyledText {
             text: "IT'S"
-            font.pixelSize: root.fontSize
+            font.pixelSize: Math.round(root.fontSize)
             font.weight: Font.Light
+            font.family: root.timeFontFamily
             color: root.timeColor
             opacity: 0.7
         }
         StyledText {
             readonly property int m: DateTime.minutes
             text: m === 15 ? "QUARTER" : (m === 30 ? "HALF" : root.numberToWords(m))
-            font.pixelSize: root.fontSize
+            font.pixelSize: Math.round(root.fontSize)
             font.weight: Font.DemiBold
+            font.family: root.timeFontFamily
             color: root.timeColor
             visible: text !== "ZERO"
         }
         StyledText {
             text: "AFTER"
-            font.pixelSize: root.fontSize
+            font.pixelSize: Math.round(root.fontSize)
             font.weight: Font.Light
+            font.family: root.timeFontFamily
             color: root.timeColor
             opacity: 0.7
             visible: DateTime.minutes !== 0
@@ -118,14 +126,16 @@ ColumnLayout {
 
         StyledText {
             text: root.numberToWords(DateTime.hours % 12 || 12)
-            font.pixelSize: root.fontSize
+            font.pixelSize: Math.round(root.fontSize)
             font.weight: Font.DemiBold
+            font.family: root.timeFontFamily
             color: root.timeColor
         }
         StyledText {
             text: getPeriodWords()
-            font.pixelSize: root.fontSize
+            font.pixelSize: Math.round(root.fontSize)
             font.weight: Font.Light
+            font.family: root.timeFontFamily
             color: root.timeColor
             opacity: 0.7
         }
@@ -144,11 +154,11 @@ ColumnLayout {
         readonly property var months: ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
         readonly property var ordinals: ["", "FIRST", "SECOND", "THIRD", "FOURTH", "FIFTH", "SIXTH", "SEVENTH", "EIGHTH", "NINTH", "TENTH", "ELEVENTH", "TWELFTH", "THIRTEENTH", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN", "TWENTIETH", "TWENTY FIRST", "TWENTY SECOND", "TWENTY THIRD", "TWENTY FOURTH", "TWENTY FIFTH", "TWENTY SIXTH", "TWENTY SEVENTH", "TWENTY EIGHTH", "TWENTY NINTH", "THIRTIETH", "THIRTY FIRST"]
 
-        StyledText { text: "ON"; font.pixelSize: parent.dateSize; font.weight: Font.Light; color: root.dateColor; opacity: 0.7 }
-        StyledText { text: parent.days[parent.now.getDay()]; font.pixelSize: parent.dateSize; font.weight: Font.DemiBold; color: root.dateColor }
-        StyledText { text: "THE"; font.pixelSize: parent.dateSize; font.weight: Font.Light; color: root.dateColor; opacity: 0.7 }
-        StyledText { text: parent.ordinals[parent.now.getDate()]; font.pixelSize: parent.dateSize; font.weight: Font.DemiBold; color: root.dateColor }
-        StyledText { text: "OF"; font.pixelSize: parent.dateSize; font.weight: Font.Light; color: root.dateColor; opacity: 0.7 }
-        StyledText { text: parent.months[parent.now.getMonth()]; font.pixelSize: parent.dateSize; font.weight: Font.DemiBold; color: root.dateColor }
+        StyledText { text: "ON"; font.pixelSize: Math.round(parent.dateSize); font.weight: Font.Light; font.family: root.dateFontFamily; color: root.dateColor; opacity: 0.7 }
+        StyledText { text: parent.days[parent.now.getDay()]; font.pixelSize: Math.round(parent.dateSize); font.weight: Font.DemiBold; font.family: root.dateFontFamily; color: root.dateColor }
+        StyledText { text: "THE"; font.pixelSize: Math.round(parent.dateSize); font.weight: Font.Light; font.family: root.dateFontFamily; color: root.dateColor; opacity: 0.7 }
+        StyledText { text: parent.ordinals[parent.now.getDate()]; font.pixelSize: Math.round(parent.dateSize); font.weight: Font.DemiBold; font.family: root.dateFontFamily; color: root.dateColor }
+        StyledText { text: "OF"; font.pixelSize: Math.round(parent.dateSize); font.weight: Font.Light; font.family: root.dateFontFamily; color: root.dateColor; opacity: 0.7 }
+        StyledText { text: parent.months[parent.now.getMonth()]; font.pixelSize: Math.round(parent.dateSize); font.weight: Font.DemiBold; font.family: root.dateFontFamily; color: root.dateColor }
     }
 }

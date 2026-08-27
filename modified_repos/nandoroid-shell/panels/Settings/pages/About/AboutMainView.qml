@@ -13,12 +13,15 @@ ColumnLayout {
     property string version: ""
     signal pushView(string viewName)
 
+    property bool updateAvailable: VersionService.updateAvailable
+
+
             spacing: 32 * Appearance.effectiveScale
 
             // ── Top Branding & Distro Cards (50:50) ──
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 20 * Appearance.effectiveScale
+                spacing: 12 * Appearance.effectiveScale
 
                 BrandingCard {
                     Layout.fillWidth: true
@@ -28,8 +31,8 @@ ColumnLayout {
                     subText: "Version " + version
                     accentColor: Appearance.colors.colPrimary
                     icon: "verified_user"
-                    // Use local SVG but with better scaling
-                    logoSource: "../../../../assets/icons/NAnDoroid.svg"
+                    logoSource: "nandoroid-symbolic"
+                    shapeName: "SoftBurst"
                 }
 
                 BrandingCard {
@@ -40,9 +43,8 @@ ColumnLayout {
                     subText: "Kernel " + SystemInfo.kernel
                     accentColor: Appearance.m3colors.m3tertiary
                     icon: "terminal"
-                    // Use system logo name from os-release
-                    logoSource: SystemInfo.logo
-                    isSystemIcon: true
+                    logoSource: SystemInfo.distroIcon || SystemInfo.logo
+                    shapeName: "Puffy"
                 }
             }
 
@@ -73,6 +75,12 @@ ColumnLayout {
                             text: "Shell Update"
                             font.weight: Font.Medium
                             color: Appearance.colors.colOnLayer1
+                        }
+                        StyledText {
+                            text: "Update available"
+                            color: Appearance.colors.colError
+                            font.pixelSize: Appearance.font.pixelSize.small
+                            visible: updateAvailable
                         }
                         MaterialSymbol {
                             text: "chevron_right"
@@ -215,7 +223,7 @@ ColumnLayout {
                         color: Appearance.colors.colPrimary
                     }
                     StyledText {
-                        text: "Links"
+                        text: "Links & Resources"
                         font.pixelSize: Appearance.font.pixelSize.large
                         font.weight: Font.Medium
                         color: Appearance.colors.colOnLayer1
@@ -225,6 +233,103 @@ ColumnLayout {
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 4 * Appearance.effectiveScale
+
+                    SegmentedWrapper {
+                        id: onboardingLinkWrapper
+                        Layout.fillWidth: true
+                        implicitHeight: 52 * Appearance.effectiveScale
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+
+                        RippleButton {
+                            anchors.fill: parent
+                            colBackground: "transparent"
+                            onClicked: {
+                                GlobalStates.settingsOpen = false;
+                                GlobalStates.onboardingOpen = true;
+                            }
+                            
+                            // Explicitly inherit radii from SegmentedWrapper for hover alignment
+                            topLeftRadius: onboardingLinkWrapper.rTopLeft
+                            topRightRadius: onboardingLinkWrapper.rTopRight
+                            bottomLeftRadius: onboardingLinkWrapper.rBottomLeft
+                            bottomRightRadius: onboardingLinkWrapper.rBottomRight
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 20 * Appearance.effectiveScale
+                                anchors.rightMargin: 12 * Appearance.effectiveScale
+                                spacing: 12 * Appearance.effectiveScale
+                                
+                                MaterialSymbol {
+                                    text: "explore"
+                                    iconSize: 20 * Appearance.effectiveScale
+                                    color: Appearance.colors.colPrimary
+                                }
+                                StyledText {
+                                    Layout.fillWidth: true
+                                    text: "Start Onboarding Tour"
+                                    font.pixelSize: Appearance.font.pixelSize.normal
+                                    color: Appearance.colors.colOnLayer0
+                                }
+                                MaterialSymbol {
+                                    text: "chevron_right"
+                                    iconSize: 20 * Appearance.effectiveScale
+                                    color: Appearance.colors.colSubtext
+                                }
+                            }
+                        }
+                    }
+
+                    SegmentedWrapper {
+                        id: ipcLinkWrapper
+                        Layout.fillWidth: true
+                        implicitHeight: 52 * Appearance.effectiveScale
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+
+                        RippleButton {
+                            anchors.fill: parent
+                            colBackground: "transparent"
+                            onClicked: {
+                                GlobalStates.settingsOpen = false;
+                                GlobalStates.onboardingStep = 5; // Jump to IPC step
+                                GlobalStates.onboardingOpen = true;
+                            }
+                            
+                            // Explicitly inherit radii from SegmentedWrapper for hover alignment
+                            topLeftRadius: ipcLinkWrapper.rTopLeft
+                            topRightRadius: ipcLinkWrapper.rTopRight
+                            bottomLeftRadius: ipcLinkWrapper.rBottomLeft
+                            bottomRightRadius: ipcLinkWrapper.rBottomRight
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 20 * Appearance.effectiveScale
+                                anchors.rightMargin: 12 * Appearance.effectiveScale
+                                spacing: 12 * Appearance.effectiveScale
+                                
+                                MaterialSymbol {
+                                    text: "terminal"
+                                    iconSize: 20 * Appearance.effectiveScale
+                                    color: Appearance.colors.colPrimary
+                                }
+                                StyledText {
+                                    Layout.fillWidth: true
+                                    text: "IPC Integration Guide"
+                                    font.pixelSize: Appearance.font.pixelSize.normal
+                                    color: Appearance.colors.colOnLayer0
+                                }
+                                MaterialSymbol {
+                                    text: "chevron_right"
+                                    iconSize: 20 * Appearance.effectiveScale
+                                    color: Appearance.colors.colSubtext
+                                }
+                            }
+                        }
+                    }
 
                     SegmentedWrapper {
                         id: sourceLinkWrapper

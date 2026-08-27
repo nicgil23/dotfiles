@@ -12,7 +12,7 @@ singleton Network Network.qml
 singleton Notifications Notifications.qml
 singleton SystemInfo SystemInfo.qml
 singleton Wallpapers Wallpapers.qml
-
+singleton Caffeine Caffeine.qml
 singleton Session Session.qml
 singleton Weather 1.0 Weather.qml
 singleton LauncherSearch LauncherSearch.qml
@@ -44,3 +44,9 @@ singleton VpnUcmService VpnUcmService.qml
 singleton AutoRotation AutoRotation.qml
 singleton TimerService TimerService.qml
 singleton StopwatchService StopwatchService.qml
+singleton I18nService 1.0 I18nService.qml
+singleton SystemFonts 1.0 SystemFonts.qml
+singleton LyricsService 1.0 LyricsService.qml
+singleton CurrencyService 1.0 CurrencyService.qml
+singleton GlobalFocusGrab GlobalFocusGrab.qml
+singleton VersionService VersionService.qml

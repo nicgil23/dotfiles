@@ -264,19 +264,22 @@ Item {
                             MaterialSymbol {
                                 text: "search"; iconSize: 22 * Appearance.effectiveScale; color: Appearance.colors.colSubtext
                             }
-                            TextInput {
+                            StyledTextInput {
                                 id: headerSearch
                                 Layout.fillWidth: true
                                 Layout.rightMargin: 16 * Appearance.effectiveScale
-                                color: Appearance.colors.colOnLayer1
+                                inputRadius: 0
+                                backgroundColor: "transparent"
+                                borderInactiveWidth: 0
+                                showActiveBorder: false
+                                placeholder: mainSelector.wallhavenMode ? "Search Wallhaven..." : (mainSelector.naiveMode ? "Search NA-ive Walls..." : "Search wallpapers...")
+                                leftMargin: 0
+                                rightMargin: 0
                                 font.pixelSize: Appearance.font.pixelSize.normal
-                                verticalAlignment: TextInput.AlignVCenter
-                                clip: true
                                 
                                 onTextChanged: {
                                     if (mainSelector._switchingMode) return;
                                     
-                                    // Save state immediately on change
                                     if (mainSelector.wallhavenMode) mainSelector.wallhavenSearch = text;
                                     else if (mainSelector.naiveMode) mainSelector.naiveSearch = text;
                                     else if (mainSelector.liveMode) mainSelector.liveSearch = text;
@@ -300,16 +303,6 @@ Item {
                                             WallhavenService.search(text);
                                         }
                                     }
-                                }
-
-                                StyledText {
-                                    visible: !headerSearch.text && !headerSearch.activeFocus
-                                    text: mainSelector.wallhavenMode ? "Search Wallhaven..." : (mainSelector.naiveMode ? "Search NA-ive Walls..." : "Search wallpapers...")
-                                    font.pixelSize: headerSearch.font.pixelSize
-                                    color: Appearance.colors.colSubtext
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    anchors.verticalCenterOffset: 1 * Appearance.effectiveScale
-                                    verticalAlignment: Text.AlignVCenter
                                 }
                             }
                         }
@@ -342,6 +335,59 @@ Item {
                                 rotation: sortPopup.visible ? 45 : 0
                             }
                             StyledToolTip { text: "Sort Options" }
+                        }
+                    }
+
+                    // Random Wallpaper Button
+                    Item {
+                        id: randBtnContainer
+                        Layout.preferredWidth: 44 * Appearance.effectiveScale
+                        Layout.preferredHeight: 44 * Appearance.effectiveScale
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.leftMargin: -12 * Appearance.effectiveScale
+                        visible: !mainSelector.wallhavenMode && !mainSelector.naiveMode && !mainSelector.liveMode
+
+                        RippleButton {
+                            id: randBtn
+                            anchors.fill: parent
+                            buttonRadius: 8 * Appearance.effectiveScale
+                            colBackground: "transparent"
+                            onClicked: {
+                                if (mainSelector.favMode) {
+                                    if (Wallpapers.selectRandomFavorite())
+                                        mainSelector.close();
+                                } else if (Wallpapers.directory) {
+                                    var d = Wallpapers.directory.toString();
+                                    if (d.startsWith("file://")) d = d.substring(7);
+                                    randProc.command = ["bash", "-c", `find "${d}" -maxdepth 1 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.avif" \\) | shuf -n 1`];
+                                    randProc.running = true;
+                                }
+                            }
+
+                            Process {
+                                id: randProc
+                                command: ["true"]
+                                running: false
+                                stdout: StdioCollector { id: randOut }
+                                onExited: {
+                                    var result = randOut.text.trim();
+                                    if (result) {
+                                        Wallpapers.select(result);
+                                        mainSelector.close();
+                                    }
+                                }
+                            }
+
+                            MaterialShapeWrappedMaterialSymbol {
+                                anchors.centerIn: parent
+                                implicitSize: 42 * Appearance.effectiveScale
+                                shapeString: "Pentagon"
+                                color: Appearance.colors.colTertiary
+                                colSymbol: Appearance.colors.colOnTertiary
+                                text: "shuffle"
+                                iconSize: 20 * Appearance.effectiveScale
+                            }
+                            StyledToolTip { text: "Random Wallpaper" }
                         }
                     }
 
@@ -623,7 +669,7 @@ Item {
                                                 MaterialSymbol { anchors.centerIn: parent; text: "delete"; iconSize: 18 * Appearance.effectiveScale; color: Appearance.m3colors.m3error }
                                             }
                                         }
-                                        StyledToolTip { text: model.path }
+                                        StyledToolTip { text: Functions.FileUtils.shortenHomePath(model.path) }
                                     }
                                 }
 
@@ -787,6 +833,19 @@ Item {
                             readonly property string previewPath: (delegateRoot.inWallhavenMode || delegateRoot.inNaiveMode || delegateRoot.inLiveMode) ? (model.preview || "") : ("file://" + currentFilePath)
                             
                             readonly property bool isSelected: delegateRoot.selector.selectedWallpaper !== null && (delegateRoot.inLiveMode ? delegateRoot.selector.selectedWallpaper.id === model.id : delegateRoot.selector.selectedWallpaper.filePath === currentFilePath)
+                            readonly property bool isCurrentWallpaper: {
+                                if (delegateRoot.inWallhavenMode || delegateRoot.inNaiveMode) return false;
+                                if (delegateRoot.inLiveMode) {
+                                    let livePath = Config.ready ? Config.options.appearance.background.liveWallpaperPath : "";
+                                    return GlobalStates.wallpaperSelectorTarget === "desktop" && livePath !== "" && mainSelector.normalizePath(livePath) === mainSelector.normalizePath(model.folder);
+                                }
+                                if (!Config.ready || currentFilePath === "") return false;
+                                if (GlobalStates.wallpaperSelectorTarget === "lock") {
+                                    if (!Config.options.lock.useSeparateWallpaper) return false;
+                                    return mainSelector.normalizePath(Config.options.lock.wallpaperPath) === mainSelector.normalizePath("file://" + currentFilePath);
+                                }
+                                return mainSelector.normalizePath(Config.options.appearance.background.wallpaperPath) === mainSelector.normalizePath("file://" + currentFilePath);
+                            }
                             
                             readonly property string wallhavenId: {
                                 if (delegateRoot.inWallhavenMode) return model.id || "";
@@ -808,13 +867,13 @@ Item {
                                 
                                 Item {
                                     Layout.fillWidth: true; Layout.fillHeight: true
-                                    Rectangle {
-                                        id: imgPlate
-                                        anchors.fill: parent; radius: 18 * Appearance.effectiveScale; color: delegateRoot.inNaiveMode ? (model.color || Appearance.colors.colLayer2) : Appearance.colors.colLayer2
-                                        layer.enabled: true
-                                        layer.effect: OpacityMask {
-                                            maskSource: Rectangle { width: imgPlate.width; height: imgPlate.height; radius: 18 * Appearance.effectiveScale }
-                                        }
+                                        Rectangle {
+                                            id: imgPlate
+                                            anchors.fill: parent; radius: 10 * Appearance.effectiveScale; color: delegateRoot.inNaiveMode ? (model.color || Appearance.colors.colLayer2) : Appearance.colors.colLayer2
+                                            layer.enabled: true
+                                            layer.effect: OpacityMask {
+                                                maskSource: Rectangle { width: imgPlate.width; height: imgPlate.height; radius: 10 * Appearance.effectiveScale }
+                                            }
 
                                         HoverHandler { id: imgHover }
 
@@ -831,13 +890,35 @@ Item {
                                             asynchronous: true; cache: true; playing: true
                                         }
 
+                                        // Highlight border: selected (live preview) or currently applied wallpaper
                                         Rectangle {
                                             anchors.fill: parent
-                                            border.width: 3 * Appearance.effectiveScale
+                                            border.width: (delegateRoot.isSelected ? 3 : 4) * Appearance.effectiveScale
                                             border.color: Appearance.colors.colPrimary
-                                            radius: 18 * Appearance.effectiveScale
+                                            radius: 10 * Appearance.effectiveScale
                                             color: "transparent"
-                                            visible: delegateRoot.isSelected
+                                            visible: delegateRoot.isSelected || delegateRoot.isCurrentWallpaper
+                                        }
+                                        
+                                        // Active wallpaper checkmark badge
+                                        Rectangle {
+                                            visible: delegateRoot.isCurrentWallpaper && !delegateRoot.isSelected
+                                            anchors.top: parent.top; anchors.left: parent.left
+                                            anchors.margins: 8 * Appearance.effectiveScale
+                                            width: 28 * Appearance.effectiveScale; height: 28 * Appearance.effectiveScale
+                                            radius: 14 * Appearance.effectiveScale
+                                            color: Appearance.colors.colPrimary
+
+                                            MaterialSymbol {
+                                                anchors.centerIn: parent
+                                                text: "check"
+                                                iconSize: 18 * Appearance.effectiveScale
+                                                color: Appearance.colors.colOnPrimary
+                                                fill: 1
+                                            }
+
+                                            Behavior on opacity { NumberAnimation { duration: 200 } }
+                                            opacity: visible ? 1 : 0
                                         }
                                         
                                         Rectangle {
@@ -971,14 +1052,14 @@ Item {
                                             width: resText.implicitWidth + (12 * Appearance.effectiveScale); height: 20 * Appearance.effectiveScale; radius: 10 * Appearance.effectiveScale; color: Qt.rgba(0,0,0, 0.5)
                                             StyledText {
                                                 id: resText; anchors.centerIn: parent; text: model.resolution || ""
-                                                font.pixelSize: 10 * Appearance.effectiveScale; font.weight: Font.DemiBold; color: "white"
+                                                font.pixelSize: Math.round(10 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: "white"
                                             }
                                         }
                                     }
                                 }
                                 StyledText {
                                     Layout.fillWidth: true; text: currentFileName; horizontalAlignment: Text.AlignHCenter
-                                    font.pixelSize: Appearance.font.pixelSize.smallest; elide: Text.ElideRight; color: Appearance.colors.colOnLayer1; opacity: 0.7
+                                    font.pixelSize: Appearance.font.pixelSize.smallest; elide: Text.ElideRight; color: delegateRoot.isCurrentWallpaper ? Appearance.m3colors.m3primary : Appearance.colors.colOnLayer1; opacity: delegateRoot.isCurrentWallpaper ? 1 : 0.7
                                 }
                             }
                         }
@@ -1317,7 +1398,7 @@ Item {
                             }
                             StyledText { 
                                 text: modelData.name; Layout.fillWidth: true; 
-                                font.pixelSize: 12 * Appearance.effectiveScale
+                                font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                                 font.weight: parent.parent.toggled ? Font.DemiBold : Font.Normal
                                 color: parent.parent.toggled ? Appearance.m3colors.m3onPrimaryContainer : Appearance.colors.colOnLayer0
                             }
@@ -1365,7 +1446,7 @@ Item {
                 
                 StyledText {
                     text: "Global Engine Settings"
-                    font.pixelSize: 14 * Appearance.effectiveScale
+                    font.pixelSize: Math.round(14 * Appearance.effectiveScale)
                     font.weight: Font.DemiBold
                     color: Appearance.colors.colOnLayer1
                 }
@@ -1375,7 +1456,7 @@ Item {
                     Layout.fillWidth: true; spacing: 4 * Appearance.effectiveScale
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Target FPS"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Target FPS"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         StyledText { text: Math.round(fpsSlider.value); font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colPrimary; font.weight: Font.Bold }
                     }
                     StyledSlider {
@@ -1392,7 +1473,7 @@ Item {
                     Layout.fillWidth: true; spacing: 4 * Appearance.effectiveScale
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Global Volume"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Global Volume"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         StyledText { text: Math.round(volSlider.value) + "%"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colPrimary; font.weight: Font.Bold }
                     }
                     StyledSlider {
@@ -1407,7 +1488,7 @@ Item {
                 // Scaling Mode
                 ColumnLayout {
                     Layout.fillWidth: true; spacing: 4 * Appearance.effectiveScale
-                    StyledText { text: "Scaling Mode"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1 }
+                    StyledText { text: "Scaling Mode"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1 }
                     StyledComboBox {
                         id: scalingCombo
                         Layout.fillWidth: true
@@ -1426,7 +1507,7 @@ Item {
                     
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Mute Audio"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Mute Audio"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         AndroidToggle {
                             checked: Config.ready ? Config.options.wallpaperEngine.silent : false
                             onToggled: if (Config.ready) Config.options.wallpaperEngine.silent = !checked
@@ -1435,7 +1516,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Disable Audio Processing"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Disable Audio Processing"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         AndroidToggle {
                             checked: Config.ready ? Config.options.wallpaperEngine.disableAudioProcessing : false
                             onToggled: if (Config.ready) Config.options.wallpaperEngine.disableAudioProcessing = !checked
@@ -1444,7 +1525,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Auto-Pause (Windows)"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Auto-Pause (Windows)"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         AndroidToggle {
                             checked: Config.ready ? Config.options.wallpaperEngine.autoPause : true
                             onToggled: if (Config.ready) Config.options.wallpaperEngine.autoPause = !checked
@@ -1453,7 +1534,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Disable Particles"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Disable Particles"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         AndroidToggle {
                             checked: Config.ready ? Config.options.wallpaperEngine.disableParticles : true
                             onToggled: if (Config.ready) Config.options.wallpaperEngine.disableParticles = !checked
@@ -1462,7 +1543,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Disable Parallax"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Disable Parallax"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         AndroidToggle {
                             checked: Config.ready ? Config.options.wallpaperEngine.disableParallax : false
                             onToggled: if (Config.ready) Config.options.wallpaperEngine.disableParallax = !checked
@@ -1471,7 +1552,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Disable Mouse Interaction"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Disable Mouse Interaction"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         AndroidToggle {
                             checked: Config.ready ? Config.options.wallpaperEngine.disableMouse : false
                             onToggled: if (Config.ready) Config.options.wallpaperEngine.disableMouse = !checked
@@ -1480,7 +1561,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        StyledText { text: "Disable PBO (Texture Fix)"; font.pixelSize: 12 * Appearance.effectiveScale; color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
+                        StyledText { text: "Disable PBO (Texture Fix)"; font.pixelSize: Math.round(12 * Appearance.effectiveScale); color: Appearance.colors.colOnLayer1; Layout.fillWidth: true }
                         AndroidToggle {
                             checked: Config.ready ? Config.options.wallpaperEngine.noPbo : true
                             onToggled: if (Config.ready) Config.options.wallpaperEngine.noPbo = !checked
@@ -1492,7 +1573,7 @@ Item {
                 
                 StyledText {
                     text: "* Requires Apply to take full effect"
-                    font.pixelSize: 10 * Appearance.effectiveScale
+                    font.pixelSize: Math.round(10 * Appearance.effectiveScale)
                     color: Appearance.colors.colSubtext
                     horizontalAlignment: Text.AlignRight; Layout.fillWidth: true
                 }

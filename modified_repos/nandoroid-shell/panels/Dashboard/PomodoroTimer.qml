@@ -39,13 +39,13 @@ ColumnLayout {
                     visible: PomodoroService.rotations > 0
                     height: 18 * Appearance.effectiveScale
                     width: rotationText.implicitWidth + 12 * Appearance.effectiveScale
-                    radius: 9 * Appearance.effectiveScale
+                    radius: Appearance.rounding.verysmall
                     color: Appearance.m3colors.m3secondaryContainer
                     StyledText {
                         id: rotationText
                         anchors.centerIn: parent
                         text: PomodoroService.rotations
-                        font.pixelSize: 10 * Appearance.effectiveScale
+                        font.pixelSize: Math.round(10 * Appearance.effectiveScale)
                         font.weight: Font.DemiBold
                         color: Appearance.m3colors.m3onSecondaryContainer
                     }
@@ -57,7 +57,7 @@ ColumnLayout {
 
         StyledText {
             text: PomodoroService.timeString
-            font.pixelSize: 28 * Appearance.effectiveScale
+            font.pixelSize: Math.round(28 * Appearance.effectiveScale)
             font.weight: Font.DemiBold
             color: Appearance.colors.colOnLayer1
         }
@@ -78,50 +78,28 @@ ColumnLayout {
         }
     }
 
-    // --- Pomodoro Type Selector ---
+    // --- Mode Selector (Universal Segmented Wrapper) ---
     RowLayout {
         Layout.alignment: Qt.AlignHCenter
         spacing: 4 * Appearance.effectiveScale
         
         Repeater {
             model: [
-                { icon: "schedule", name: "Clásico", type: 0, tooltip: "Pomodoro Clásico (25/5 min)" },
-                { icon: "hourglass_empty", name: "Extendido", type: 1, tooltip: "Pomodoro Extendido (50/10 min)" }
-            ]
-            delegate: SegmentedButton {
-                isHighlighted: PomodoroService.pomodoroType === modelData.type
-                implicitWidth: (root.width - 16 * Appearance.effectiveScale) / 2
-                implicitHeight: 36 * Appearance.effectiveScale
-                iconName: modelData.icon
-                buttonText: modelData.name
-                colInactive: Appearance.m3colors.m3surfaceContainerHigh
-                onClicked: PomodoroService.setPomodoroType(modelData.type)
-                StyledToolTip { text: modelData.tooltip }
-            }
-        }
-    }
-
-    // --- Session State Selector ---
-    RowLayout {
-        Layout.alignment: Qt.AlignHCenter
-        spacing: 4 * Appearance.effectiveScale
-        
-        Repeater {
-            model: [
-                { icon: "work", name: "Trabajo", mode: 0, tooltip: "Sesión de Trabajo" },
-                { icon: "coffee", name: "Descanso", mode: 1, tooltip: "Sesión de Descanso" }
+                { icon: "alarm", name: "Focus", mode: 0 },
+                { icon: "coffee", name: "Short", mode: 1 },
+                { icon: "self_improvement", name: "Long", mode: 2 }
             ]
             delegate: SegmentedButton {
                 isHighlighted: PomodoroService.mode === modelData.mode
-                implicitWidth: (root.width - 16 * Appearance.effectiveScale) / 2
-                implicitHeight: 32 * Appearance.effectiveScale
+                implicitWidth: (root.width - 24 * Appearance.effectiveScale) / 3
+                implicitHeight: 36 * Appearance.effectiveScale
                 iconName: modelData.icon
                 buttonText: modelData.name
+                
                 colInactive: Appearance.m3colors.m3surfaceContainerHigh
-                colActive: Appearance.m3colors.m3secondary
-                colActiveText: Appearance.m3colors.m3onSecondary
                 onClicked: PomodoroService.setMode(modelData.mode)
-                StyledToolTip { text: modelData.tooltip }
+                
+                StyledToolTip { text: modelData.name }
             }
         }
     }
@@ -164,7 +142,7 @@ ColumnLayout {
                 }
                 StyledText {
                     text: PomodoroService.active ? "Pause" : "Start"
-                    font.pixelSize: 14 * Appearance.effectiveScale
+                    font.pixelSize: Math.round(14 * Appearance.effectiveScale)
                     font.weight: Font.DemiBold
                     color: startPill.colText
                 }
@@ -181,7 +159,7 @@ ColumnLayout {
         }
     }
 
-    // --- Auto-Continue Settings ---
+    // --- Auto-Continue & Next Break Settings ---
     ColumnLayout {
         Layout.fillWidth: true
         Layout.topMargin: 4 * Appearance.effectiveScale
@@ -191,7 +169,7 @@ ColumnLayout {
             Layout.fillWidth: true
             StyledText {
                 text: "Auto-continue Sessions"
-                font.pixelSize: 12 * Appearance.effectiveScale
+                font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                 color: Appearance.colors.colOnLayer1
                 opacity: 0.7
                 Layout.fillWidth: true
@@ -212,9 +190,61 @@ ColumnLayout {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 16 * Appearance.effectiveScale
                     height: 16 * Appearance.effectiveScale
-                    radius: 8 * Appearance.effectiveScale
+                    radius: Appearance.rounding.verysmall
                     color: PomodoroService.autoContinue ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer1
                     Behavior on x { NumberAnimation { duration: 200 } }
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            visible: PomodoroService.autoContinue
+            implicitHeight: 32 * Appearance.effectiveScale
+            spacing: 8 * Appearance.effectiveScale
+            
+            StyledText {
+                text: "Next Break"
+                font.pixelSize: Math.round(12 * Appearance.effectiveScale)
+                color: Appearance.colors.colOnLayer1
+                opacity: 0.7
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            RowLayout {
+                spacing: 4 * Appearance.effectiveScale
+                Layout.alignment: Qt.AlignVCenter
+                
+                SegmentedButton {
+                    isHighlighted: PomodoroService.nextBreakMode === 1
+                    implicitWidth: 60 * Appearance.effectiveScale
+                    implicitHeight: 24 * Appearance.effectiveScale
+                    iconName: "coffee"
+                    buttonText: "Short"
+                    iconSize: 11 * Appearance.effectiveScale
+                    
+                    colInactive: Appearance.m3colors.m3surfaceContainerHigh
+                    colActive: Appearance.m3colors.m3secondary
+                    colActiveText: Appearance.m3colors.m3onSecondary
+                    onClicked: PomodoroService.nextBreakMode = 1
+                    StyledToolTip { text: "Short break after focus" }
+                }
+                
+                SegmentedButton {
+                    isHighlighted: PomodoroService.nextBreakMode === 2
+                    implicitWidth: 64 * Appearance.effectiveScale
+                    implicitHeight: 24 * Appearance.effectiveScale
+                    iconName: "self_improvement"
+                    buttonText: "Long"
+                    iconSize: 11 * Appearance.effectiveScale
+                    
+                    colInactive: Appearance.m3colors.m3surfaceContainerHigh
+                    colActive: Appearance.m3colors.m3secondary
+                    colActiveText: Appearance.m3colors.m3onSecondary
+                    onClicked: PomodoroService.nextBreakMode = 2
+                    StyledToolTip { text: "Long break after focus" }
                 }
             }
         }

@@ -10,6 +10,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import QtQuick
+import "."
 
 /**
  * For managing brightness of monitors. Supports both brightnessctl and ddcutil.
@@ -34,6 +35,11 @@ Singleton {
     function increaseBrightness(): void {
         const focusedName = Hyprland.focusedMonitor.name;
         const monitor = monitors.find(m => focusedName === m.screen.name);
+        // If gamma is not yet 100, first increase gamma
+        if (Hyprsunset.gamma !== 100) {
+            Hyprsunset.setGamma(Hyprsunset.gamma + 0.05 * (100 - Hyprsunset.gammaLowerLimit));
+            return;
+        }
         if (monitor)
             monitor.setBrightness(monitor.brightness + 0.05);
     }
@@ -41,8 +47,12 @@ Singleton {
     function decreaseBrightness(): void {
         const focusedName = Hyprland.focusedMonitor.name;
         const monitor = monitors.find(m => focusedName === m.screen.name);
-        if (monitor)
+        if (monitor && monitor.brightness > 0)
             monitor.setBrightness(monitor.brightness - 0.05);
+        // If brightness is 0, then decrease gamma (dims further)
+        else {
+            Hyprsunset.setGamma(Hyprsunset.gamma - 0.05 * (100 - Hyprsunset.gammaLowerLimit));
+        }
     }
 
     reloadableId: "brightness"

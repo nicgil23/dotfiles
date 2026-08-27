@@ -9,7 +9,7 @@ import "../services"
  */
 ColumnLayout {
     id: root
-    spacing: -6 * Appearance.effectiveScale
+    spacing: -2 * Appearance.effectiveScale
     visible: Config.ready && Config.options.bar ? Config.options.bar.show_network_speed : false
 
     property color color: Appearance.colors.colStatusBarText
@@ -42,40 +42,36 @@ ColumnLayout {
 
     // TX (Upload) - Top Row
     RowLayout {
-        spacing: 4 * Appearance.effectiveScale
+        spacing: 2 * Appearance.effectiveScale
         Layout.alignment: Qt.AlignRight
-        Layout.preferredHeight: 10 * Appearance.effectiveScale
         StyledText {
             text: root.formatSpeed(SystemData.networkTxRate)
-            font.pixelSize: Appearance.font.pixelSize.smallest
+            font.pixelSize: Math.round(9 * Appearance.effectiveScale)
             font.weight: Font.Medium
             color: root.color
             horizontalAlignment: Text.AlignRight
-            verticalAlignment: Text.AlignBottom
         }
         MaterialSymbol {
             text: "arrow_drop_up"
-            iconSize: 14 * Appearance.effectiveScale
+            iconSize: 12 * Appearance.effectiveScale
             color: root.isHighSpeed(SystemData.networkTxRate) ? root.color : root.subtextColor
         }
     }
 
     // RX (Download) - Bottom Row
     RowLayout {
-        spacing: 4 * Appearance.effectiveScale
+        spacing: 2 * Appearance.effectiveScale
         Layout.alignment: Qt.AlignRight
-        Layout.preferredHeight: 10 * Appearance.effectiveScale
         StyledText {
             text: root.formatSpeed(SystemData.networkRxRate)
-            font.pixelSize: Appearance.font.pixelSize.smallest
+            font.pixelSize: Math.round(9 * Appearance.effectiveScale)
             font.weight: Font.Medium
             color: root.color
             horizontalAlignment: Text.AlignRight
-            verticalAlignment: Text.AlignTop
         }
         MaterialSymbol {
             text: "arrow_drop_down"
-            iconSize: 14 * Appearance.effectiveScale
+            iconSize: 12 * Appearance.effectiveScale
             color: root.isHighSpeed(SystemData.networkRxRate) ? root.color : root.subtextColor
         }
     }

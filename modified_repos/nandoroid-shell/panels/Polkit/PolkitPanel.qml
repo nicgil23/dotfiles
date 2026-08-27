@@ -104,7 +104,7 @@ Scope {
                                 radius: 8 * Appearance.effectiveScale // Reduced rounding as requested
                                 color: "transparent" // Same as background
                                 border.width: passwordInput.activeFocus || PolkitService.failed ? Math.max(1, 2 * Appearance.effectiveScale) : Math.max(1, 1 * Appearance.effectiveScale)
-                                border.color: PolkitService.failed ? Appearance.m3colors.m3error : (passwordInput.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline)
+                                border.color: PolkitService.failed ? Appearance.m3colors.m3error : (passwordInput.input.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline)
 
                                 // Floating Label (Simulated)
                                 Rectangle {
@@ -120,33 +120,29 @@ Scope {
                                         text: qsTr("Password")
                                         font.pixelSize: Appearance.font.pixelSize.smaller
                                         font.weight: Font.Medium
-                                        color: PolkitService.failed ? Appearance.m3colors.m3error : (passwordInput.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline)
+                                        color: PolkitService.failed ? Appearance.m3colors.m3error : (passwordInput.input.activeFocus ? Appearance.m3colors.m3primary : Appearance.m3colors.m3outline)
                                     }
                                 }
 
-                                TextInput {
+                                StyledTextInput {
                                     id: passwordInput
                                     anchors.fill: parent
                                     anchors.leftMargin: 16 * Appearance.effectiveScale
                                     anchors.rightMargin: 16 * Appearance.effectiveScale
-                                    verticalAlignment: TextInput.AlignVCenter
+                                    inputRadius: 0
+                                    backgroundColor: "transparent"
+                                    borderInactiveWidth: 0
+                                    showActiveBorder: false
+                                    leftMargin: 0
+                                    rightMargin: 0
                                     font.pixelSize: Appearance.font.pixelSize.normal
-                                    color: Appearance.colors.colOnLayer1
                                     echoMode: PolkitService.flow?.responseVisible ? TextInput.Normal : TextInput.Password
-                                    selectionColor: Appearance.colors.colPrimary
                                     enabled: PolkitService.interactionAvailable
                                     
                                     focus: true
+                                    placeholder: PolkitService.cleanPrompt
                                     onAccepted: PolkitService.submit(text)
                                     onTextChanged: if (PolkitService.failed) PolkitService.failed = false
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        visible: !passwordInput.text && !passwordInput.activeFocus
-                                        text: PolkitService.cleanPrompt
-                                        color: Appearance.colors.colSubtext
-                                        font.pixelSize: Appearance.font.pixelSize.normal
-                                    }
                                 }
                             }
 

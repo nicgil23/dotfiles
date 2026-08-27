@@ -66,7 +66,6 @@ ColumnLayout {
             Layout.topMargin: 12 * Appearance.effectiveScale
             spacing: 24 * Appearance.effectiveScale
             
-            property bool showAllMatugen: false
             property bool showAllBasic: false
 
             // Custom Segmented Style Switcher
@@ -119,95 +118,42 @@ ColumnLayout {
                         id: matugenColorGrid
                         anchors.fill: parent
                         columns: 5
-                        rowSpacing: 16 * Appearance.effectiveScale
-                        columnSpacing: 16 * Appearance.effectiveScale
+                        rowSpacing: 4 * Appearance.effectiveScale
+                        columnSpacing: 4 * Appearance.effectiveScale
 
                         opacity: (previewIterateTimer.running || previewMatugen.running) ? 0.3 : 1.0
                         Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
                         enabled: !(previewIterateTimer.running || previewMatugen.running)
 
-                    // Desktop Schemes (Show 8 when collapsed + 1 Picker + 1 Lockscreen = 10)
                     Repeater {
-                        model: colorSettingsCol.showAllMatugen ? root.matugenSchemes : root.matugenSchemes.slice(0, 8)
+                        model: root.matugenSchemes
                         delegate: ColorCard {
                             Layout.fillWidth: true
-                            label: (Config.ready && Config.options.lock && Config.options.lock.useSeparateWallpaper) ? "Desktop\n" + modelData.name : modelData.name
+                            label: modelData.name
                             cardColors: {
                                 const key = "desktop_" + modelData.id;
                                 if (root.matugenPreviews[key]) return root.matugenPreviews[key];
                                 const def = Appearance.m3colors.m3surfaceContainerHigh;
                                 return [def, def, def];
                             }
-                            isSelected: {
-                                if (!Config.ready || !Config.options.appearance.background.matugen) return false;
-                                if (Config.options.appearance.background.matugenScheme !== modelData.id) return false;
-                                if (!Config.options.lock.useSeparateWallpaper) return true;
-                                return Config.options.appearance.background.matugenSource === "desktop";
-                            }
+                            isSelected: Config.ready && Config.options.appearance.background.matugen && Config.options.appearance.background.matugenScheme === modelData.id
                             onClicked: {
                                 Config.options.appearance.background.matugen = true
                                 Config.options.appearance.background.matugenCustomColor = ""
                                 Config.options.appearance.background.matugenThemeFile = ""
-                                Wallpapers.applyScheme(modelData.id, "desktop")
+                                Wallpapers.applyScheme(modelData.id)
                             }
                         }
                     }
 
-                    // Desktop Accent Picker (Always visible) - Card 9
                     ColorCard {
                         Layout.fillWidth: true
-                        label: (Config.ready && Config.options.lock && Config.options.lock.useSeparateWallpaper) ? "Desktop\nAccent Picker" : "Accent Picker"
+                        label: "Accent Picker"
                         iconName: "colorize"
                         cardColors: [Appearance.m3colors.m3primary, Appearance.m3colors.m3secondary, Appearance.m3colors.m3tertiary]
-                        isSelected: {
-                            if (!Config.ready || Config.options.appearance.background.matugen) return false;
-                            const bg = Config.options.appearance.background;
-                            if (bg.matugenCustomColor === "" || bg.matugenThemeFile !== "") return false;
-                            if (!Config.options.lock.useSeparateWallpaper) return true;
-                            return bg.matugenSource === "desktop";
-                        }
+                        isSelected: Config.ready && !Config.options.appearance.background.matugen && Config.options.appearance.background.matugenCustomColor !== "" && Config.options.appearance.background.matugenThemeFile === ""
                         onClicked: {
                             GlobalStates.accentPickerTarget = "desktop"
-                            GlobalStates.accentPickerOpen = true
-                        }
-                    }
-
-                    // Lockscreen Schemes (Card 10 if collapsed)
-                    Repeater {
-                        model: {
-                            if (!(Config.ready && Config.options.lock && Config.options.lock.useSeparateWallpaper)) return 0;
-                            if (colorSettingsCol.showAllMatugen) return root.matugenSchemes;
-                            return root.matugenSchemes.slice(0, 1); // Show exactly 1 to complete the 10 cards grid
-                        }
-                        delegate: ColorCard {
-                            Layout.fillWidth: true
-                            label: "Lockscreen\n" + modelData.name
-                            cardColors: {
-                                const key = "lockscreen_" + modelData.id;
-                                if (root.matugenPreviews[key]) return root.matugenPreviews[key];
-                                const def = Appearance.m3colors.m3surfaceContainerHigh;
-                                return [def, def, def];
-                            }
-                            isSelected: Config.ready && (Config.options.appearance && Config.options.appearance.background) && Config.options.appearance.background.matugen && Config.options.appearance.background.matugenScheme === modelData.id && Config.options.appearance.background.matugenSource === "lockscreen"
-                            onClicked: {
-                                Config.options.appearance.background.matugen = true
-                                Config.options.appearance.background.matugenCustomColor = ""
-                                Config.options.appearance.background.matugenThemeFile = ""
-                                Wallpapers.applyScheme(modelData.id, "lockscreen")
-                            }
-                        }
-                    }
-
-                    // Lockscreen Accent Picker (Only visible if expanded)
-                    ColorCard {
-                        visible: Config.ready && Config.options.lock && Config.options.lock.useSeparateWallpaper && colorSettingsCol.showAllMatugen
-                        Layout.fillWidth: true
-                        label: "Lockscreen\nAccent Picker"
-                        iconName: "colorize"
-                        cardColors: [Appearance.m3colors.m3primary, Appearance.m3colors.m3secondary, Appearance.m3colors.m3tertiary]
-                        isSelected: Config.ready && !Config.options.appearance.background.matugen && Config.options.appearance.background.matugenCustomColor !== "" && Config.options.appearance.background.matugenThemeFile === "" && Config.options.appearance.background.matugenSource === "lockscreen"
-                        onClicked: {
-                            GlobalStates.accentPickerTarget = "lock"
                             GlobalStates.accentPickerOpen = true
                         }
                     }
@@ -229,30 +175,7 @@ ColumnLayout {
                     }
                 }
 
-                // Show More Toggle for Matugen
-                RippleButton {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 48 * Appearance.effectiveScale
-                    buttonRadius: 16 * Appearance.effectiveScale
-                    colBackground: Appearance.m3colors.m3surfaceContainerHigh
-                    visible: Config.ready && Config.options.lock && Config.options.lock.useSeparateWallpaper
-                    onClicked: colorSettingsCol.showAllMatugen = !colorSettingsCol.showAllMatugen
-                    
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 8 * Appearance.effectiveScale
-                        MaterialSymbol {
-                            text: colorSettingsCol.showAllMatugen ? "expand_less" : "expand_more"
-                            iconSize: 20 * Appearance.effectiveScale
-                            color: Appearance.colors.colPrimary
-                        }
-                        StyledText {
-                            text: colorSettingsCol.showAllMatugen ? "Show less" : "Show more colors"
-                            font.weight: Font.Medium
-                            color: Appearance.colors.colOnLayer1
-                        }
-                    }
-                }
+
             }
 
             // --- Basic Colors Grid ---
@@ -264,11 +187,22 @@ ColumnLayout {
                 GridLayout {
                     Layout.fillWidth: true
                     columns: 5
-                    rowSpacing: 16 * Appearance.effectiveScale
-                    columnSpacing: 16 * Appearance.effectiveScale
+                    rowSpacing: 4 * Appearance.effectiveScale
+                    columnSpacing: 4 * Appearance.effectiveScale
 
                     Repeater {
-                        model: colorSettingsCol.showAllBasic ? root.basicColors : root.basicColors.slice(0, 10)
+                        model: {
+                            if (colorSettingsCol.showAllBasic)
+                                return root.basicColors
+                            const top10 = root.basicColors.slice(0, 10)
+                            const selectedFile = Config.ready && Config.options.appearance && Config.options.appearance.background ? Config.options.appearance.background.matugenThemeFile : null
+                            if (selectedFile) {
+                                const idx = root.basicColors.findIndex(c => c.file === selectedFile)
+                                if (idx >= 10)
+                                    return root.basicColors.slice(0, 9).concat([root.basicColors[idx]])
+                            }
+                            return top10
+                        }
                         delegate: ColorCard {
                             Layout.fillWidth: true
                             label: modelData.name

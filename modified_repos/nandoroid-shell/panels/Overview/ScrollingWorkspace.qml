@@ -153,28 +153,39 @@ Item {
         id: workspaceContainer
         anchors.fill: parent
 
-        // Background layer (clipped)
-        Item {
+        // Background layer (clean M3 surface container + watermark number)
+        Rectangle {
             id: backgroundLayer
             anchors.fill: parent
-            clip: true
+            radius: Appearance.rounding.small
+            color: root.isActive ? Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3primaryContainer, 0.35) : Appearance.m3colors.m3surfaceContainerLow
+            border.width: Math.max(1, (root.isActive || root.hoveredWhileDragging ? 2 : 1) * Appearance.effectiveScale)
+            border.color: root.hoveredWhileDragging ? Appearance.m3colors.m3outline : (root.isActive ? Appearance.colors.colPrimary : Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.08))
 
-            // Wallpaper background
-            Image {
-                id: workspaceWallpaper
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectCrop
-                source: Config.options?.appearance?.background?.wallpaperPath || ""
+            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on border.color { ColorAnimation { duration: 150 } }
+
+            // end4-pC style watermark workspace number
+            StyledText {
+                anchors.centerIn: parent
+                text: root.workspaceId.toString()
+                font.pixelSize: Math.round(56 * Appearance.effectiveScale)
+                font.weight: Font.Black
+                color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.07)
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
             }
-            
-            // Mask the background to match rounding
-            layer.enabled: true
-            layer.effect: OpacityMask {
-                maskSource: Rectangle {
-                    width: backgroundLayer.width
-                    height: backgroundLayer.height
-                    radius: Appearance.rounding.verysmall
-                }
+
+            StyledText {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.margins: 8 * Appearance.effectiveScale
+                text: root.workspaceId.toString()
+                font.pixelSize: Math.round(11 * Appearance.effectiveScale)
+                font.weight: root.isActive ? Font.DemiBold : Font.Medium
+                color: root.isActive ? Appearance.colors.colPrimary : Appearance.m3colors.m3onSurfaceVariant
+                opacity: root.isActive ? 1.0 : 0.6
+                z: 2
             }
         }
 

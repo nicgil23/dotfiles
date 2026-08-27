@@ -111,9 +111,9 @@ Rectangle {
 
     width: implicitWidth
     height: implicitHeight
-    implicitWidth: mainLayout.implicitWidth + 48 * Appearance.effectiveScale
-    implicitHeight: mainLayout.implicitHeight + 48 * Appearance.effectiveScale
-    color: Appearance.colors.colLayer1
+    implicitWidth: mainLayout.implicitWidth + 28 * Appearance.effectiveScale
+    implicitHeight: mainLayout.implicitHeight + 28 * Appearance.effectiveScale
+    color: Appearance.colors.colLayer0
     radius: Appearance.rounding.panel
     border.width: Math.max(1, 1 * Appearance.effectiveScale)
     border.color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.12)
@@ -131,26 +131,26 @@ Rectangle {
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.margins: 24 * Appearance.effectiveScale
-        spacing: 24 * Appearance.effectiveScale
+        anchors.margins: 14 * Appearance.effectiveScale
+        spacing: 12 * Appearance.effectiveScale
 
         // ── Search Bar Section ──
         Rectangle {
             // Match the width of the workspaces list + scrollbar area
             Layout.preferredWidth: mainContentRow.implicitWidth
-            Layout.preferredHeight: 48 * Appearance.effectiveScale
+            Layout.preferredHeight: 36 * Appearance.effectiveScale
             Layout.alignment: Qt.AlignHCenter
-            radius: 12 * Appearance.effectiveScale
+            radius: 18 * Appearance.effectiveScale
             color: Appearance.m3colors.m3surfaceContainerHigh
             border.width: Math.max(1, 1 * Appearance.effectiveScale)
             border.color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.12)
 
             RowLayout {
-                anchors.fill: parent; anchors.leftMargin: 16 * Appearance.effectiveScale; anchors.rightMargin: 16 * Appearance.effectiveScale; spacing: 12 * Appearance.effectiveScale
-                MaterialSymbol { Layout.alignment: Qt.AlignVCenter; text: "search"; iconSize: 20 * Appearance.effectiveScale; color: Appearance.m3colors.m3onSurfaceVariant }
+                anchors.fill: parent; anchors.leftMargin: 14 * Appearance.effectiveScale; anchors.rightMargin: 14 * Appearance.effectiveScale; spacing: 8 * Appearance.effectiveScale
+                MaterialSymbol { Layout.alignment: Qt.AlignVCenter; text: "search"; iconSize: 16 * Appearance.effectiveScale; color: Appearance.m3colors.m3onSurfaceVariant }
                 TextInput {
-                    id: searchInput; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter; font.pixelSize: 16 * Appearance.effectiveScale; color: Appearance.m3colors.m3onSurface; focus: GlobalStates.overviewOpen
-                    Text { text: "Search windows..."; visible: !searchInput.text; color: Appearance.m3colors.m3onSurfaceVariant; opacity: 0.6; font: searchInput.font }
+                    id: searchInput; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter; font.pixelSize: Math.round(13 * Appearance.effectiveScale); color: Appearance.m3colors.m3onSurface; focus: GlobalStates.overviewOpen
+                    Text { text: "Search active windows..."; visible: !searchInput.text; color: Appearance.m3colors.m3onSurfaceVariant; opacity: 0.6; font: searchInput.font }
                     onTextChanged: scrollingOverviewRoot.searchQuery = text
                     onAccepted: scrollingOverviewRoot.navigateToSelectedWindow()
                     Text {
@@ -170,7 +170,9 @@ Rectangle {
                             event.accepted = true;
                         }
                     }
-                    Connections { target: GlobalStates; function onOverviewOpenChanged() { if (GlobalStates.overviewOpen) { searchInput.text = ""; searchInput.forceActiveFocus(); } } }
+                    Timer { id: searchFocusTimer; interval: 50; repeat: false; onTriggered: searchInput.forceActiveFocus() }
+                    Component.onCompleted: { if (GlobalStates.overviewOpen) searchFocusTimer.start(); }
+                    Connections { target: GlobalStates; function onOverviewOpenChanged() { if (GlobalStates.overviewOpen) { HyprlandData.updateAll(); searchInput.text = ""; searchInput.focus = true; searchFocusTimer.start(); Qt.callLater(() => searchInput.forceActiveFocus()); } } }
                 }
             }
         }

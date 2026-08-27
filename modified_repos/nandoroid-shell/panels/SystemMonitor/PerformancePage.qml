@@ -10,11 +10,11 @@ import "pages"
 
 /**
  * PerformancePage manages sub-navigation for system metrics.
+ * Designed with clean, compact 1-row card buttons in native NANDoroid style.
  */
 Item {
     id: root
     property int subIndex: 0
-
 
     // Reset to Overview (0) when System Monitor closes
     Connections {
@@ -29,67 +29,64 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 0
+        anchors.margins: 20 * Appearance.effectiveScale
+        spacing: 16 * Appearance.effectiveScale
         
-        // Horizontal Tab Bar
-        Rectangle {
+        // Horizontal Tab Bar (Compact 1-row Card Buttons)
+        RowLayout {
             Layout.fillWidth: true
-            implicitHeight: 60 * Appearance.effectiveScale
-            color: "transparent"
-            
-            RowLayout {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 8 * Appearance.effectiveScale
-                
-                Repeater {
-                    model: [
-                        { name: "Overview", icon: "dashboard" },
-                        { name: "CPU", icon: "monitoring" },
-                        { name: "GPU", icon: "videogame_asset" },
-                        { name: "Memory", icon: "memory" },
-                        { name: "Network", icon: "public" },
-                        { name: "Disk", icon: "storage" }
-                    ]
+            spacing: 4 * Appearance.effectiveScale
+
+            Repeater {
+                model: [
+                    { name: "Overview", icon: "dashboard" },
+                    { name: "CPU", icon: "monitoring" },
+                    { name: "GPU", icon: "videogame_asset" },
+                    { name: "Memory", icon: "memory" },
+                    { name: "Network", icon: "public" },
+                    { name: "Disk", icon: "storage" }
+                ]
+
+                delegate: RippleButton {
+                    id: tabBtn
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 38 * Appearance.effectiveScale
                     
-                    delegate: RippleButton {
-                        implicitWidth: 120 * Appearance.effectiveScale
-                        implicitHeight: 40 * Appearance.effectiveScale
-                        buttonRadius: 20 * Appearance.effectiveScale
-                        colBackground: GlobalStates.performanceSubIndex === index 
-                            ? Functions.ColorUtils.transparentize(Appearance.colors.colPrimary, 0.8) 
-                            : "transparent"
-                        colBackgroundHover: GlobalStates.performanceSubIndex === index 
-                            ? colBackground 
-                            : Appearance.colors.colLayer2
-                        
-                        onClicked: GlobalStates.performanceSubIndex = index
-                        
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 8 * Appearance.effectiveScale
-                            MaterialSymbol {
-                                text: modelData.icon
-                                iconSize: 18 * Appearance.effectiveScale
-                                color: GlobalStates.performanceSubIndex === index ? Appearance.colors.colPrimary : Appearance.colors.colSubtext
-                            }
-                            StyledText {
-                                text: modelData.name
-                                font.pixelSize: 13 * Appearance.effectiveScale
-                                font.weight: GlobalStates.performanceSubIndex === index ? Font.DemiBold : Font.Medium
-                                color: GlobalStates.performanceSubIndex === index ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0
-                            }
+                    readonly property bool isSelected: GlobalStates.performanceSubIndex === index
+                    buttonRadius: isSelected ? 19 * Appearance.effectiveScale : 12 * Appearance.effectiveScale
+                    Behavior on buttonRadius { NumberAnimation { duration: 150 } }
+
+                    colBackground: isSelected 
+                        ? Appearance.colors.colPrimary 
+                        : Appearance.m3colors.m3surfaceContainerHigh
+                    colRipple: Appearance.colors.colPrimary
+
+                    onClicked: GlobalStates.performanceSubIndex = index
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 8 * Appearance.effectiveScale
+
+                        MaterialSymbol {
+                            text: modelData.icon
+                            iconSize: 18 * Appearance.effectiveScale
+                            color: tabBtn.isSelected 
+                                ? Appearance.colors.colOnPrimary 
+                                : Appearance.colors.colOnLayer1
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+
+                        StyledText {
+                            text: modelData.name
+                            font.pixelSize: Appearance.font.pixelSize.small
+                            font.weight: Font.Medium
+                            color: tabBtn.isSelected 
+                                ? Appearance.colors.colOnPrimary 
+                                : Appearance.colors.colOnLayer1
+                            Layout.alignment: Qt.AlignVCenter
                         }
                     }
                 }
-            }
-            
-            // Underline for the whole tab bar or active tab
-            Rectangle {
-                anchors.bottom: parent.bottom
-                width: parent.width
-                height: 1 * Appearance.effectiveScale
-                color: Appearance.colors.colLayer2
             }
         }
         

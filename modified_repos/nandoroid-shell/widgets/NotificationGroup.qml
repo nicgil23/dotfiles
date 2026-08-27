@@ -188,8 +188,9 @@ MouseArea { // Notification group area
             NotificationAppIcon { // Icons
                 Layout.alignment: Qt.AlignTop
                 Layout.fillWidth: false
-                image: root?.multipleNotifications ? "" : notificationGroup?.notifications[0]?.image ?? ""
+                image: root?.multipleNotifications && root.notificationGroup?.appIcon ? "" : notificationGroup?.notifications[0]?.image ?? ""
                 appIcon: root.notificationGroup?.appIcon
+                appName: root.notificationGroup?.appName
                 summary: root.notificationGroup?.notifications[root.notificationCount - 1]?.summary
                 isRestart: root.anyRestartRequired
                 urgency: root.notifications.some(n => n.urgency == NotificationUrgency.Critical) ? 
@@ -240,7 +241,7 @@ MouseArea { // Notification group area
                             Layout.rightMargin: 10 * Appearance.effectiveScale
                             horizontalAlignment: Text.AlignLeft
                             text: NotificationUtils.getFriendlyNotifTimeString(notificationGroup?.time)
-                            font.pixelSize: topRow.fontSize
+                            font.pixelSize: Math.round(topRow.fontSize)
                             color: root.anyRestartRequired ? 
                                 Appearance.colors.colOnWarningContainer : 
                                 Appearance.colors.colSubtext

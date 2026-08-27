@@ -20,13 +20,17 @@ Item {
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
     readonly property bool focusingThisMonitor: HyprlandData.activeWorkspace?.monitor == monitor?.name
 
+    property int textAlignment: Text.AlignLeft
+
     property string appClassText: root.focusingThisMonitor && root.activeWindow?.activated ?
                 (root.activeWindow?.appId ?? "Desktop") : (HyprlandData.activeWindow?.class ?? "Desktop")
 
     property string appTitleText: root.focusingThisMonitor && root.activeWindow?.activated ?
                 (root.activeWindow?.title ?? "Overview") : (HyprlandData.activeWindow?.title ?? `Workspace ${monitor?.activeWorkspace?.id ?? 1}`)
 
-    implicitWidth: titleColumn.implicitWidth
+    property real maxWidth: 400 * Appearance.effectiveScale
+
+    implicitWidth: Math.min(Math.max(classText.implicitWidth, titleText.implicitWidth), root.maxWidth)
     implicitHeight: titleColumn.implicitHeight
     clip: true
 
@@ -37,13 +41,11 @@ Item {
         }
     }
 
-    readonly property real maxWidth: root.parent && root.parent.Layout ? root.parent.Layout.maximumWidth : 400 * Appearance.effectiveScale
-
     ColumnLayout {
         id: titleColumn
         anchors.verticalCenter: parent.verticalCenter
         spacing: -2 * Appearance.effectiveScale
-        width: Math.min(implicitWidth, root.maxWidth)
+        width: root.width
 
         StyledText {
             id: classText
@@ -52,6 +54,7 @@ Item {
             font.pixelSize: Appearance.font.pixelSize.smallest
             color: root.subtextColor
             elide: Text.ElideRight
+            horizontalAlignment: root.textAlignment
             text: root.appClassText
         }
 
@@ -62,6 +65,7 @@ Item {
             font.pixelSize: Appearance.font.pixelSize.smaller
             color: root.color
             elide: Text.ElideRight
+            horizontalAlignment: root.textAlignment
             text: root.appTitleText
         }
     }

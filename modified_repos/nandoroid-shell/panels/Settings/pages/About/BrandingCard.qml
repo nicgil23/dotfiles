@@ -18,7 +18,7 @@ Rectangle {
     property bool isSystemIcon: false
 
     implicitHeight: 180 * Appearance.effectiveScale
-    radius: 24 * Appearance.effectiveScale
+    radius: 20 * Appearance.effectiveScale
     color: Appearance.m3colors.m3surfaceContainerHigh
     
     layer.enabled: true
@@ -30,17 +30,25 @@ Rectangle {
         }
     }
 
-    // Decorative background (Android style)
-    Rectangle {
-        width: parent.width * 0.8
-        height: width
-        radius: width / 2
-        color: accentColor
-        opacity: 0.1
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.rightMargin: -parent.width * 0.2
-        anchors.topMargin: -parent.width * 0.2
+    property string shapeName: ""
+
+    // Decorative background (Material 3 Expressive Shape)
+    Item {
+        anchors.fill: parent
+        clip: true
+
+        MaterialShape {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.rightMargin: -cardRoot.width * 0.28
+            anchors.topMargin: -cardRoot.width * 0.22
+            width: cardRoot.width * 0.85
+            height: width
+            shapeString: cardRoot.shapeName !== "" ? cardRoot.shapeName : "SoftBurst"
+            color: cardRoot.accentColor
+            opacity: 0.12
+            rotation: -12
+        }
     }
 
     ColumnLayout {
@@ -92,30 +100,13 @@ Rectangle {
             }
 
             // Distribution / Shell Logo
-            Loader {
+            CustomIcon {
+                visible: logoSource !== ""
                 Layout.preferredWidth: 64 * Appearance.effectiveScale
                 Layout.preferredHeight: 64 * Appearance.effectiveScale
-                active: logoSource !== ""
-                sourceComponent: isSystemIcon ? sysIconComp : localIconComp
-                
-                Component {
-                    id: sysIconComp
-                    IconImage {
-                        source: Quickshell.iconPath(logoSource)
-                        width: 64 * Appearance.effectiveScale; height: 64 * Appearance.effectiveScale
-                    }
-                }
-                
-                Component {
-                    id: localIconComp
-                    Image {
-                        source: logoSource
-                        width: 64 * Appearance.effectiveScale; height: 64 * Appearance.effectiveScale
-                        sourceSize: Qt.size(128 * Appearance.effectiveScale, 128 * Appearance.effectiveScale) // Higher res for scaling
-                        fillMode: Image.PreserveAspectFit
-                        opacity: 0.8
-                    }
-                }
+                source: logoSource
+                colorize: true
+                color: cardRoot.accentColor
             }
         }
     }

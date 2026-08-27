@@ -28,7 +28,7 @@ ColumnLayout {
     // --- 1. Channel Selector ---
     SegmentedWrapper {
         Layout.fillWidth: true
-        implicitHeight: channelRow.implicitHeight + (40 * Appearance.effectiveScale)
+        implicitHeight: channelRow.implicitHeight + (32 * Appearance.effectiveScale)
         orientation: Qt.Vertical
         maxRadius: 20 * Appearance.effectiveScale
         color: Appearance.m3colors.m3surfaceContainerHigh
@@ -36,8 +36,8 @@ ColumnLayout {
         RowLayout {
             id: channelRow
             anchors.fill: parent
-            anchors.margins: 20 * Appearance.effectiveScale
-            spacing: 20 * Appearance.effectiveScale
+            anchors.margins: 16 * Appearance.effectiveScale
+            spacing: 16 * Appearance.effectiveScale
 
             ColumnLayout {
                 spacing: 2 * Appearance.effectiveScale
@@ -48,7 +48,7 @@ ColumnLayout {
                     color: Appearance.colors.colOnLayer1
                 }
                 StyledText {
-                    text: "Choose between Stable (Tags) and Canary (Commits)."
+                    text: "Choose between Release (Tags) and Latest (Commits).\nLatest is highly recommended for the fastest bug fixes."
                     font.pixelSize: Appearance.font.pixelSize.small
                     color: Appearance.colors.colSubtext
                 }
@@ -58,21 +58,19 @@ ColumnLayout {
             
             RowLayout {
                 spacing: 4 * Appearance.effectiveScale
-                Layout.preferredHeight: 52 * Appearance.effectiveScale
-                Layout.alignment: Qt.AlignRight
+                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                 
                 Repeater {
                     model: [
-                        { label: "Stable", value: "stable" },
-                        { label: "Canary", value: "canary" }
+                        { label: "Release", value: "stable" },
+                        { label: "Latest", value: "canary" }
                     ]
                     delegate: SegmentedButton {
                         isHighlighted: installState.channel === modelData.value
-                        Layout.fillHeight: true
                         
                         buttonText: modelData.label
-                        leftPadding: 32 * Appearance.effectiveScale
-                        rightPadding: 32 * Appearance.effectiveScale
+                        leftPadding: 24 * Appearance.effectiveScale
+                        rightPadding: 24 * Appearance.effectiveScale
                         
                         colActive: Appearance.m3colors.m3primary
                         colActiveText: Appearance.m3colors.m3onPrimary
@@ -96,7 +94,7 @@ ColumnLayout {
     // --- 2. Check for Updates Status Row ---
     Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: 80 * Appearance.effectiveScale
+        Layout.preferredHeight: 64 * Appearance.effectiveScale
         radius: 20 * Appearance.effectiveScale
         color: Appearance.m3colors.m3surfaceContainerHigh
         visible: installState.install_dir !== ""
@@ -139,7 +137,7 @@ ColumnLayout {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 20 * Appearance.effectiveScale
+            anchors.leftMargin: 16 * Appearance.effectiveScale
             anchors.rightMargin: 16 * Appearance.effectiveScale
             spacing: 16 * Appearance.effectiveScale
             
@@ -350,7 +348,7 @@ ColumnLayout {
             }
         }
 
-        // Tags Log (Stable)
+        // Tags Log (Release)
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
@@ -378,7 +376,7 @@ ColumnLayout {
                         color: Appearance.colors.colPrimary
                     }
                     StyledText {
-                        text: "Recent Tags"
+                        text: "Recent Releases"
                         font.pixelSize: Appearance.font.pixelSize.large
                         font.weight: Font.Medium
                         color: Appearance.colors.colOnLayer1
@@ -393,7 +391,7 @@ ColumnLayout {
                     
                     StyledText {
                         id: tagText
-                        text: gitTagCollector.text || "Fetching stable releases..."
+                        text: gitTagCollector.text || "Fetching recent releases..."
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: Appearance.colors.colSubtext
                         wrapMode: Text.WrapAnywhere

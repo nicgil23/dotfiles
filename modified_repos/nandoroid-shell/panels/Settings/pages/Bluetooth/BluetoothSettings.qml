@@ -47,7 +47,10 @@ Item {
     
     ColumnLayout {
         id: mainLayout
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        width: parent.width - (24 * Appearance.effectiveScale)
         spacing: 24 * Appearance.effectiveScale
         visible: stackLevel === 0
 
@@ -66,34 +69,10 @@ Item {
                 
 
                 // Bluetooth Global Toggle
-                Rectangle {
-                    implicitWidth: 52 * Appearance.effectiveScale
-                    implicitHeight: 28 * Appearance.effectiveScale
-                    radius: 14 * Appearance.effectiveScale
-                    color: BluetoothStatus.enabled
-                        ? Appearance.colors.colPrimary
-                        : Appearance.colors.colLayer2
-
-                    Rectangle {
-                        width: 20 * Appearance.effectiveScale
-                        height: 20 * Appearance.effectiveScale
-                        radius: 10 * Appearance.effectiveScale
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: BluetoothStatus.enabled ? parent.width - width - (4 * Appearance.effectiveScale) : 4 * Appearance.effectiveScale
-                        color: BluetoothStatus.enabled
-                            ? Appearance.colors.colOnPrimary
-                            : Appearance.colors.colSubtext
-                        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (Bluetooth.defaultAdapter) {
-                                Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled;
-                            }
-                        }
+                AndroidToggle {
+                        checked: BluetoothStatus.enabled
+                        onToggled: {
+                            BluetoothStatus.toggle();
                     }
                 }
             }
@@ -342,21 +321,21 @@ Item {
                                             colText: Appearance.colors.colOnPrimary
                                             onClicked: {
                                                 if (modelData.connected) modelData.disconnect()
-                                                else modelData.connect()
+                                                else BluetoothStatus.pairAndTrust(modelData)
                                                 deviceItem.expanded = false
                                             }
                                         }
 
                                         RippleButton {
                                             visible: !modelData.paired
-                                            buttonText: "Connect"
-                                            implicitWidth: 90 * Appearance.effectiveScale
+                                            buttonText: "Pair & Connect"
+                                            implicitWidth: 110 * Appearance.effectiveScale
                                             implicitHeight: 36 * Appearance.effectiveScale
                                             buttonRadius: 18 * Appearance.effectiveScale
                                             colBackground: Appearance.colors.colPrimary
                                             colText: Appearance.colors.colOnPrimary
                                             onClicked: {
-                                                modelData.pair()
+                                                BluetoothStatus.pairAndTrust(modelData)
                                                 deviceItem.expanded = false
                                             }
                                         }
@@ -404,7 +383,10 @@ Item {
 
     // ── Pair New Device Sub-page ──
     Loader {
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        width: parent.width - (24 * Appearance.effectiveScale)
         visible: stackLevel === 1
         sourceComponent: Component { BluetoothPairDialog {} }
         onVisibleChanged: {

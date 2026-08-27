@@ -101,13 +101,19 @@ ColumnLayout {
                 GridLayout {
                     Layout.fillWidth: true
                     columns: 4
-                    rowSpacing: 12 * Appearance.effectiveScale
-                    columnSpacing: 12 * Appearance.effectiveScale
-                    Layout.leftMargin: 4 * Appearance.effectiveScale
-                    Layout.rightMargin: 4 * Appearance.effectiveScale
+                    rowSpacing: 4 * Appearance.effectiveScale
+                    columnSpacing: 4 * Appearance.effectiveScale
     
                     Repeater {
-                        model: launcherIconsSection.showAllShapes ? launcherIconsSection.allShapes : launcherIconsSection.allShapes.slice(0, 8)
+                        model: {
+                            if (launcherIconsSection.showAllShapes)
+                                return launcherIconsSection.allShapes
+                            const top8 = launcherIconsSection.allShapes.slice(0, 8)
+                            const selected = Config.ready && Config.options.search ? Config.options.search.iconShape : null
+                            if (selected && !top8.includes(selected))
+                                return launcherIconsSection.allShapes.slice(0, 7).concat([selected])
+                            return top8
+                        }
                         delegate: RippleButton {
                             id: shapeBtn
                             Layout.fillWidth: true
@@ -115,7 +121,7 @@ ColumnLayout {
                             
                             readonly property bool isSelected: Config.ready && Config.options.search && Config.options.search.iconShape === modelData
                             
-                            buttonRadius: isSelected ? 14 * Appearance.effectiveScale : 28 * Appearance.effectiveScale
+                            buttonRadius: 20 * Appearance.effectiveScale
                             colBackground: isSelected ? Appearance.colors.colPrimary : Appearance.m3colors.m3surfaceContainerHigh
                             colRipple: Appearance.m3colors.m3primary
                             
@@ -134,7 +140,7 @@ ColumnLayout {
                                 StyledText {
                                     Layout.alignment: Qt.AlignHCenter
                                     text: modelData
-                                    font.pixelSize: 10 * Appearance.effectiveScale
+                                    font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                                     font.weight: shapeBtn.isSelected ? Font.DemiBold : Font.Normal
                                     color: shapeBtn.isSelected ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer1
                                 }

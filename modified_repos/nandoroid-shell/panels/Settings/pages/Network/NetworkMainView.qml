@@ -222,7 +222,7 @@ import Quickshell
                                                     Layout.preferredHeight: 48 * Appearance.effectiveScale
                                                     radius: 12 * Appearance.effectiveScale
                                                     color: Appearance.colors.colLayer1
-                                                    border.color: passInput.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutline
+                                                    border.color: passInput.input.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutline
                                                     border.width: Math.max(1, 1 * Appearance.effectiveScale)
 
                                                     RowLayout {
@@ -230,22 +230,15 @@ import Quickshell
                                                         anchors.leftMargin: 12 * Appearance.effectiveScale
                                                         anchors.rightMargin: 8 * Appearance.effectiveScale
                                                         
-                                                        TextInput {
+                                                        StyledTextInput {
                                                             id: passInput
                                                             Layout.fillWidth: true
-                                                            verticalAlignment: TextInput.AlignVCenter
                                                             echoMode: networkItem.showPassword ? TextInput.Normal : TextInput.Password
-                                                            color: Appearance.colors.colOnLayer1
-                                                            font.pixelSize: Appearance.font.pixelSize.normal
-                                                            
-                                                            Text {
-                                                                anchors.fill: parent
-                                                                visible: !passInput.text && !passInput.activeFocus
-                                                                text: "Enter Password..."
-                                                                color: Appearance.colors.colSubtext
-                                                                verticalAlignment: Text.AlignVCenter
-                                                                font: passInput.font
-                                                            }
+                                                            placeholder: "Enter Password..."
+                                                            backgroundColor: "transparent"
+                                                            inputRadius: 0
+                                                            showActiveBorder: false
+                                                            borderInactiveWidth: 0
                                                         }
 
                                                         RippleButton {

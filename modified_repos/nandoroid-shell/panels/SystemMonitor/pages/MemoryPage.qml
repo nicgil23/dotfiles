@@ -36,15 +36,16 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     ColumnLayout {
-                        StyledText { text: "Total RAM: " + (SystemData.totalMemoryMB / 1024).toFixed(1) + " GB"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.Medium }
+                        spacing: 2 * Appearance.effectiveScale
+                        StyledText { text: "Total RAM: " + (SystemData.totalMemoryMB / 1024).toFixed(1) + " GB"; font.pixelSize: Appearance.font.pixelSize.normal; font.weight: Font.Medium; color: Appearance.m3colors.m3onSurface }
                         StyledText { text: "Used: " + (SystemData.usedMemoryMB / 1024).toFixed(1) + " GB"; color: Appearance.colors.colSubtext; font.pixelSize: Appearance.font.pixelSize.smaller }
                     }
                     Item { Layout.fillWidth: true }
                     StyledText { 
                         text: Math.round(SystemData.memUsage * 100) + "%"
-                        font.pixelSize: 32 * Appearance.effectiveScale
-                        font.weight: Font.Black
-                        color: "#8AB4F8"
+                        font.pixelSize: Math.round(32 * Appearance.effectiveScale)
+                        font.weight: Font.DemiBold
+                        color: Appearance.colors.colSecondary
                     }
                 }
                 
@@ -52,14 +53,14 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     history: SystemData.memHistory
-                    lineColor: "#8AB4F8"
-                    fillColor: "#8AB4F8"
+                    lineColor: Appearance.colors.colSecondary
+                    fillColor: Appearance.colors.colSecondary
                     maxValue: 100
                 }
                 
                 RowLayout {
                     Layout.fillWidth: true
-                    StyledText { text: "Swap Usage: " + Math.round(SystemData.swapUsage * 100) + "%"; font.weight: Font.DemiBold; font.pixelSize: Appearance.font.pixelSize.small }
+                    StyledText { text: "Swap Usage: " + Math.round(SystemData.swapUsage * 100) + "%"; font.weight: Font.Medium; font.pixelSize: Appearance.font.pixelSize.small; color: Appearance.colors.colSubtext }
                     Item { Layout.fillWidth: true }
                 }
             }

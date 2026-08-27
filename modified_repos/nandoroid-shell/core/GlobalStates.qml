@@ -15,6 +15,7 @@ Singleton {
 
     signal screenshotTaken(string path)
     signal closePopups()
+    signal closeSubPopups()
 
     property bool statusBarVisible: true
     property bool notificationCenterOpen: false
@@ -27,6 +28,8 @@ Singleton {
     property bool spotlightOpen: false
     property string initialSpotlightQuery: ""
     property bool settingsOpen: false
+    property bool onboardingOpen: false
+    property int onboardingStep: 0
     property bool accentPickerOpen: false
     onAccentPickerOpenChanged: {
         if (accentPickerOpen) {
@@ -47,6 +50,23 @@ Singleton {
     property bool systemMonitorOpen: false
     property bool regionSelectorOpen: false
     property bool overviewOpen: false
+    property bool datePickerOpen: false
+    property string datePickerCurrentDate: ""
+    property var datePickerOnSelected: null
+    property var datePickerOnCancelled: null
+    property bool timePickerOpen: false
+    property string timePickerCurrentTime: ""
+    property bool timePickerIs24Hour: false
+    property var timePickerOnSelected: null
+    property var timePickerOnCancelled: null
+
+    function openTimePicker(currentTime, onSelected, onCancelled, is24Hour) {
+        timePickerCurrentTime = currentTime || ""
+        timePickerIs24Hour = !!is24Hour
+        timePickerOnSelected = onSelected || null
+        timePickerOnCancelled = onCancelled || null
+        timePickerOpen = true
+    }
     property bool dockMenuOpen: false
     property bool desktopContextMenuOpen: false
     property bool mediaNotchOpen: false
@@ -56,6 +76,52 @@ Singleton {
     property var activeTrayItem: null
     property var activeScreen: Quickshell.screens[0]
     property string wallpaperSelectorTarget: "desktop" // "desktop" or "lock"
+
+    // ── Todo Deadline Data (populated by DashNotepad) ──
+    property var todoDeadlines: [] // [{date, time, itemId, itemTitle, taskId, taskContent, done}]
+
+    // Normalize any date string (YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY, YYYY/MM/DD) to canonical YYYY-MM-DD.
+    // Storage and consumers (calendar marks, automation, "at a glance") all expect canonical dates.
+    function toCanonicalDateStr(str) {
+        if (!str) return ""
+        const parts = String(str).trim().split(/[-/]/).map(Number)
+        if (parts.length < 3 || parts.some(isNaN)) return ""
+        let y, m, d
+        if (parts[0] > 1000) {
+            y = parts[0]; m = parts[1]; d = parts[2]
+        } else if (parts[2] > 1000) {
+            const style = Config.ready && Config.options.time ? (Config.options.time.dateStyle ?? "DMY") : "DMY"
+            if (style === "MDY") { m = parts[0]; d = parts[1]; y = parts[2] }
+            else { d = parts[0]; m = parts[1]; y = parts[2] }
+        } else {
+            return ""
+        }
+        if (y < 1000 || y > 9999 || m < 1 || m > 12 || d < 1 || d > 31) return ""
+        return String(y).padStart(4, '0') + "-" + String(m).padStart(2, '0') + "-" + String(d).padStart(2, '0')
+    }
+
+    function updateTodoDeadlines(items) {
+        const deadlines = []
+        for (const item of items) {
+            if (item.type !== "todo" || !item.tasks) continue
+            for (const task of item.tasks) {
+                if (task.deadline) {
+                    const canon = root.toCanonicalDateStr(task.deadline)
+                    if (!canon) continue
+                    deadlines.push({
+                        date: canon,
+                        time: task.deadlineTime || "",
+                        itemId: item.id,
+                        itemTitle: item.title || "Untitled",
+                        taskId: task.id,
+                        taskContent: task.content || "",
+                        done: task.done || false
+                    })
+                }
+            }
+        }
+        root.todoDeadlines = deadlines
+    }
     
     // --- Media Notch Timing Logic ---
     property alias mediaNotchTimer: mediaNotchTimer
@@ -100,38 +166,41 @@ Singleton {
     property bool screenUnlockFailed: false
     property bool screenLockContainsCharacters: false
 
+    readonly property bool isCenteredStatusbar: (Config.ready && Config.options.statusBar) ? (Config.options.statusBar.moduleStyle !== "m3" && Config.options.statusBar.layoutStyle === "centered") : false
+
     onNotificationCenterOpenChanged: {
         if (notificationCenterOpen) {
             accentPickerOpen = false
-            quickSettingsOpen = false
-            quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            dashboardOpen = false
             sessionOpen = false
+            
+            // HUD/Centered statusbar mode: Close dashboard when sidebar opens
+            if (isCenteredStatusbar) {
+                dashboardOpen = false
+            }
         }
     }
 
     onQuickSettingsOpenChanged: {
         if (quickSettingsOpen) {
             accentPickerOpen = false
-            notificationCenterOpen = false
-            quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            dashboardOpen = false
             sessionOpen = false
+            
+            // HUD/Centered statusbar mode: Close dashboard when sidebar opens
+            if (isCenteredStatusbar) {
+                dashboardOpen = false
+            }
         }
     }
 
     onQuickActionsOpenChanged: {
         if (quickActionsOpen) {
             accentPickerOpen = false
-            notificationCenterOpen = false
-            quickSettingsOpen = false
             launcherOpen = false
             spotlightOpen = false
-            dashboardOpen = false
             sessionOpen = false
         }
     }
@@ -141,6 +210,7 @@ Singleton {
             accentPickerOpen = false
             notificationCenterOpen = false
             quickSettingsOpen = false
+            quickActionsOpen = false
             spotlightOpen = false
             dashboardOpen = false
             sessionOpen = false
@@ -149,11 +219,10 @@ Singleton {
 
     onSettingsOpenChanged: {
         if (settingsOpen) {
+            settingsAboutView = "main"
             notificationCenterOpen = false
             quickSettingsOpen = false
             quickActionsOpen = false
-            launcherOpen = false
-            spotlightOpen = false
             dashboardOpen = false
             sessionOpen = false
         }
@@ -162,12 +231,15 @@ Singleton {
     onDashboardOpenChanged: {
         if (dashboardOpen) {
             accentPickerOpen = false
-            notificationCenterOpen = false
-            quickSettingsOpen = false
-            quickActionsOpen = false
             launcherOpen = false
             spotlightOpen = false
             sessionOpen = false
+            
+            // HUD/Centered statusbar mode: Close all sidebars when dashboard opens
+            if (isCenteredStatusbar) {
+                notificationCenterOpen = false
+                quickSettingsOpen = false
+            }
         }
     }
 

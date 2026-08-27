@@ -13,6 +13,16 @@ Singleton {
     property var events: []
     readonly property string storagePath: Directories.home.replace("file://", "") + "/.cache/nandoroid/schedule.json"
 
+    // Normalize date/endDate to canonical YYYY-MM-DD (consumers compare/split ISO dates)
+    // Only touches keys that exist, so partial updates (e.g. lastNotified* fields) don't wipe dates
+    function _normalizeEvent(ev) {
+        if (!ev) return ev
+        const out = Object.assign({}, ev)
+        if (ev.date !== undefined && ev.date !== null) out.date = GlobalStates.toCanonicalDateStr(ev.date) || ev.date
+        if (ev.endDate !== undefined && ev.endDate !== null) out.endDate = GlobalStates.toCanonicalDateStr(ev.endDate) || ev.endDate
+        return out
+    }
+
     function save() {
         scheduleFile.setText(JSON.stringify(root.events, null, 2))
     }
@@ -23,12 +33,12 @@ Singleton {
     }
 
     function addEvent(event) {
-        root.events = [...root.events, event]
+        root.events = [...root.events, root._normalizeEvent(event)]
         save()
     }
 
     function updateEvent(id, updatedFields) {
-        root.events = root.events.map(e => e.id === id ? Object.assign({}, e, updatedFields) : e)
+        root.events = root.events.map(e => e.id === id ? Object.assign({}, e, root._normalizeEvent(updatedFields)) : e)
         save()
     }
 
@@ -40,7 +50,7 @@ Singleton {
                 let content = scheduleFile.text()
                 if (content && content.trim() !== "") {
                     let parsed = JSON.parse(content)
-                    if (Array.isArray(parsed)) root.events = parsed
+                    if (Array.isArray(parsed)) root.events = parsed.map(e => root._normalizeEvent(e))
                 }
             } catch(e) {
 

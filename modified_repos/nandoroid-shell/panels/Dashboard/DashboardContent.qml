@@ -34,6 +34,7 @@ Item {
         GlobalStates.dashboardActiveTab = currentTab
         tabHighlight.idx1 = currentTab
         Qt.callLater(() => { tabHighlight.idx2 = currentTab })
+        GlobalStates.closeSubPopups()
     }
     readonly property int tabCount: 6
     readonly property int tabButtonSize: 44 * Appearance.effectiveScale
@@ -175,6 +176,9 @@ Item {
     }
 
     readonly property bool showShoulders: {
+        if (!Config.ready || !Config.options.statusBar) return false;
+        let style = Config.options.statusBar.moduleStyle ?? "";
+        if (style === "m3") return false;
         if (bgStyle === 1) return true;
         if (bgStyle === 2) return hasActiveWindows;
         return false;
@@ -219,21 +223,18 @@ Item {
                 y: -root.panelHeight
                 opacity: 0
                 color: Appearance.m3colors.m3surfaceContainerLow
-                topLeftRadius: root.showShoulders ? 0 : Appearance.rounding.large
-                topRightRadius: root.showShoulders ? 0 : Appearance.rounding.large
-                bottomLeftRadius: Appearance.rounding.large
-                bottomRightRadius: Appearance.rounding.large
+                topLeftRadius: root.showShoulders ? 0 : Appearance.rounding.panel
+                topRightRadius: root.showShoulders ? 0 : Appearance.rounding.panel
+                bottomLeftRadius: Appearance.rounding.panel
+                bottomRightRadius: Appearance.rounding.panel
 
                 // MD3 Outline Style (Active when not fused with status bar)
                 border.width: root.showShoulders ? 0 : Math.max(1, 1 * Appearance.effectiveScale)
                 border.color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.12)
 
-                // Prevent clicks inside the panel from falling through to the background closer
-
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: GlobalStates.closePopups()
+                // Close internal tooltips/popups when clicking anywhere inside the panel or its padding
+                TapHandler {
+                    onTapped: GlobalStates.closeSubPopups()
                 }
 
                 Row {
@@ -255,8 +256,8 @@ Item {
                 // Scroll to change tab - restricted to tabStrip area
                 MouseArea {
                     anchors.fill: parent
+                    onClicked: GlobalStates.closeSubPopups()
                     onWheel: (wheel) => {
-                        GlobalStates.closePopups()
                         if (wheel.angleDelta.y > 0) {
                             root.currentTab = (root.currentTab - 1 + root.tabCount) % root.tabCount
                         } else if (wheel.angleDelta.y < 0) {
@@ -376,7 +377,7 @@ Item {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    GlobalStates.closePopups()
+                                    GlobalStates.closeSubPopups()
                                     root.currentTab = index
                                 }
                             }

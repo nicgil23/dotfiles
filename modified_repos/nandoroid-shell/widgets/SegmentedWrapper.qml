@@ -28,32 +28,33 @@ Item {
     // ── Style Properties ──
     property color color: "transparent"
     property var maxRadius: undefined
-    property real fullRadius: {
-        let h = (implicitHeight > 0 ? implicitHeight : 40 * Appearance.effectiveScale)
-        let r = h / 2
-        if (maxRadius !== undefined) return Math.min(r, maxRadius);
-        return r
-    }
-    property real smallRadius: (Appearance.rounding.unsharpenmore || 6) * Appearance.effectiveScale
+    property real fullRadius: maxRadius !== undefined ? maxRadius : (implicitHeight > 0 ? implicitHeight / 2 : 20 * Appearance.effectiveScale)
+    property real smallRadius: Appearance.rounding.unsharpenmore || (6 * Appearance.effectiveScale)
     
     implicitWidth: 40 * Appearance.effectiveScale
     implicitHeight: 40 * Appearance.effectiveScale
     
     // ── Auto-Detection Logic ──
-    readonly property var visibleSiblings: {
-        // Trigger re-evaluation when children are added/removed
-        let trigger = parent ? parent.children.length : 0; 
-        
-        if (!parent) return [root];
+    property bool isFirst: forceFirst !== undefined ? forceFirst : _autoIsFirst
+    property bool isLast: forceLast !== undefined ? forceLast : _autoIsLast
+
+    property bool _autoIsFirst: true
+    property bool _autoIsLast: true
+
+    function updatePosition() {
+        if (!parent) {
+            _autoIsFirst = true;
+            _autoIsLast = true;
+            return;
+        }
         let siblings = [];
         let pChildren = parent.children;
-        if (!pChildren) return [root];
+        if (!pChildren) return;
         
         for (let i = 0; i < pChildren.length; i++) {
             let child = pChildren[i];
             if (!child || !child.visible) continue;
             
-            // Robust check for segmented candidates
             let isCandidate = (child === root);
             if (!isCandidate) {
                 try {
@@ -73,12 +74,32 @@ Item {
             }
             if (isCandidate) siblings.push(child);
         }
-        return siblings;
+
+        if (siblings.length > 0) {
+            _autoIsFirst = (siblings[0] === root);
+            _autoIsLast = (siblings[siblings.length - 1] === root);
+        } else {
+            _autoIsFirst = true;
+            _autoIsLast = true;
+        }
     }
-    
-    // Resolved Position
-    readonly property bool isFirst: forceFirst !== undefined ? forceFirst : (visibleSiblings.length > 0 && visibleSiblings[0] === root)
-    readonly property bool isLast: forceLast !== undefined ? forceLast : (visibleSiblings.length > 0 && visibleSiblings[visibleSiblings.length - 1] === root)
+
+    function notifySiblings() {
+        updatePosition();
+        if (!parent) return;
+        let pChildren = parent.children;
+        if (!pChildren) return;
+        for (let i = 0; i < pChildren.length; i++) {
+            let child = pChildren[i];
+            if (child && typeof child.updatePosition === "function") {
+                child.updatePosition();
+            }
+        }
+    }
+
+    Component.onCompleted: Qt.callLater(notifySiblings)
+    onParentChanged: Qt.callLater(notifySiblings)
+    onVisibleChanged: Qt.callLater(notifySiblings)
     
     // Standalone logic: only true if both first and last, AND not explicitly managed to be otherwise.
     readonly property bool isStandalone: {
@@ -93,7 +114,11 @@ Item {
     }
     
     // ── Radius Logic ──
-    readonly property real rTopLeft: (isFirst || isStandalone || (active && pillOnActive) || forcePill) ? fullRadius : smallRadius
+    readonly property real rTopLeft: {
+        if ((active && pillOnActive) || isStandalone || forcePill) return fullRadius;
+        if (orientation === Qt.Horizontal) return isFirst ? fullRadius : smallRadius;
+        return isFirst ? fullRadius : smallRadius;
+    }
     readonly property real rTopRight: {
         if ((active && pillOnActive) || isStandalone || forcePill) return fullRadius;
         if (orientation === Qt.Horizontal) return isLast ? fullRadius : smallRadius;
@@ -104,27 +129,39 @@ Item {
         if (orientation === Qt.Horizontal) return isFirst ? fullRadius : smallRadius;
         return isLast ? fullRadius : smallRadius;
     }
-    readonly property real rBottomRight: (isLast || isStandalone || (active && pillOnActive) || forcePill) ? fullRadius : smallRadius
+    readonly property real rBottomRight: {
+        if ((active && pillOnActive) || isStandalone || forcePill) return fullRadius;
+        if (orientation === Qt.Horizontal) return isLast ? fullRadius : smallRadius;
+        return isLast ? fullRadius : smallRadius;
+    }
+
+    // Mask Source declared as a sibling to ensure stable rendering and antialiasing
+    Rectangle {
+        id: maskRect
+        visible: false
+        width: root.width
+        height: root.height
+        antialiasing: true
+        topLeftRadius: root.rTopLeft
+        topRightRadius: root.rTopRight
+        bottomLeftRadius: root.rBottomLeft
+        bottomRightRadius: root.rBottomRight
+        
+        Behavior on topLeftRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
+        Behavior on topRightRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
+        Behavior on bottomLeftRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
+        Behavior on bottomRightRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
+    }
 
     // ── Main Layout Container (With Clipping) ──
     Item {
         id: container
         anchors.fill: parent
         
-        layer.enabled: true
+        layer.enabled: false
+        layer.smooth: true
         layer.effect: OpacityMask {
-            maskSource: Rectangle {
-                width: container.width; height: container.height
-                topLeftRadius: root.rTopLeft
-                topRightRadius: root.rTopRight
-                bottomLeftRadius: root.rBottomLeft
-                bottomRightRadius: root.rBottomRight
-                
-                Behavior on topLeftRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
-                Behavior on topRightRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
-                Behavior on bottomLeftRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
-                Behavior on bottomRightRadius { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(null) }
-            }
+            maskSource: maskRect
         }
 
         // ── Background ──
@@ -133,6 +170,7 @@ Item {
             anchors.fill: parent
             color: root.color
             visible: root.color !== "transparent"
+            antialiasing: true
             
             topLeftRadius: root.rTopLeft
             topRightRadius: root.rTopRight

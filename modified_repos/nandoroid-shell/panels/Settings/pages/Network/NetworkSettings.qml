@@ -36,6 +36,7 @@ Item {
         ColumnLayout {
             spacing: 4 * Appearance.effectiveScale
             Layout.fillWidth: true
+            Layout.rightMargin: 24 * Appearance.effectiveScale
             
             RowLayout {
                 Layout.fillWidth: true
@@ -115,31 +116,9 @@ Item {
                     }
 
                     // Global WiFi Toggle
-                    Rectangle {
-                        implicitWidth: 52 * Appearance.effectiveScale
-                        implicitHeight: 28 * Appearance.effectiveScale
-                        radius: 14 * Appearance.effectiveScale
-                        color: Network.wifiEnabled
-                            ? Appearance.colors.colPrimary
-                            : Appearance.colors.colLayer2
-
-                        Rectangle {
-                            width: 20 * Appearance.effectiveScale
-                            height: 20 * Appearance.effectiveScale
-                            radius: 10 * Appearance.effectiveScale
-                            anchors.verticalCenter: parent.verticalCenter
-                            x: Network.wifiEnabled ? parent.width - width - 4 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
-                            color: Network.wifiEnabled
-                                ? Appearance.colors.colOnPrimary
-                                : Appearance.colors.colSubtext
-                            Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: Network.toggleWifi()
-                        }
+                    AndroidToggle {
+                        checked: Network.wifiEnabled
+                        onToggled: Network.toggleWifi()
                     }
                 }
             }
@@ -168,7 +147,7 @@ Item {
 
             ColumnLayout {
                 id: contentCol
-                width: parent.width
+                width: parent.width - (24 * Appearance.effectiveScale)
                 spacing: 24 * Appearance.effectiveScale
 
                 NetworkMainView {
@@ -194,6 +173,7 @@ Item {
             id: bottomManagementRow
             Layout.fillWidth: true
             Layout.margins: 16 * Appearance.effectiveScale
+            Layout.rightMargin: 40 * Appearance.effectiveScale
             Layout.topMargin: 0
             spacing: 12 * Appearance.effectiveScale
             visible: root.currentView === "main"

@@ -128,9 +128,9 @@ Rectangle {
     // --- Panel Styling ---
     width: implicitWidth
     height: implicitHeight
-    implicitWidth: mainLayout.implicitWidth + 48 * Appearance.effectiveScale
-    implicitHeight: mainLayout.implicitHeight + 48 * Appearance.effectiveScale
-    color: Appearance.colors.colLayer1
+    implicitWidth: mainLayout.implicitWidth + 28 * Appearance.effectiveScale
+    implicitHeight: mainLayout.implicitHeight + 28 * Appearance.effectiveScale
+    color: Appearance.colors.colLayer0
     radius: Appearance.rounding.panel
     border.width: Math.max(1, 1 * Appearance.effectiveScale)
     border.color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.12)
@@ -138,40 +138,40 @@ Rectangle {
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.margins: 24 * Appearance.effectiveScale
-        spacing: 24 * Appearance.effectiveScale
+        anchors.margins: 14 * Appearance.effectiveScale
+        spacing: 12 * Appearance.effectiveScale
 
         // ── Search Bar Section ──
         Rectangle {
             id: searchContainer
-            Layout.preferredWidth: 480 * Appearance.effectiveScale // Fixed sensible width for standard overview
-            Layout.preferredHeight: 48 * Appearance.effectiveScale
+            Layout.preferredWidth: 420 * Appearance.effectiveScale
+            Layout.preferredHeight: 36 * Appearance.effectiveScale
             Layout.alignment: Qt.AlignHCenter
-            radius: 12 * Appearance.effectiveScale
+            radius: 18 * Appearance.effectiveScale
             color: Appearance.m3colors.m3surfaceContainerHigh
             border.width: Math.max(1, 1 * Appearance.effectiveScale)
             border.color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.12)
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 16 * Appearance.effectiveScale; anchors.rightMargin: 16 * Appearance.effectiveScale
-                spacing: 12 * Appearance.effectiveScale
+                anchors.leftMargin: 14 * Appearance.effectiveScale; anchors.rightMargin: 14 * Appearance.effectiveScale
+                spacing: 8 * Appearance.effectiveScale
 
                 MaterialSymbol {
                     Layout.alignment: Qt.AlignVCenter
-                    text: "search"; iconSize: 20 * Appearance.effectiveScale; color: Appearance.m3colors.m3onSurfaceVariant
+                    text: "search"; iconSize: 16 * Appearance.effectiveScale; color: Appearance.m3colors.m3onSurfaceVariant
                 }
 
                 TextInput {
                     id: searchInput
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
-                    font.pixelSize: 16 * Appearance.effectiveScale
+                    font.pixelSize: Math.round(13 * Appearance.effectiveScale)
                     color: Appearance.m3colors.m3onSurface
                     focus: GlobalStates.overviewOpen
 
                     Text {
-                        text: "Search windows..."
+                        text: "Search active windows..."
                         visible: !searchInput.text
                         color: Appearance.m3colors.m3onSurfaceVariant
                         opacity: 0.6; font: searchInput.font
@@ -210,10 +210,27 @@ Rectangle {
                         }
                     }
 
+                    Timer {
+                        id: searchFocusTimer
+                        interval: 50
+                        repeat: false
+                        onTriggered: searchInput.forceActiveFocus()
+                    }
+
+                    Component.onCompleted: {
+                        if (GlobalStates.overviewOpen) searchFocusTimer.start();
+                    }
+
                     Connections {
                         target: GlobalStates
                         function onOverviewOpenChanged() {
-                            if (GlobalStates.overviewOpen) { searchInput.text = ""; searchInput.forceActiveFocus(); }
+                            if (GlobalStates.overviewOpen) { 
+                                HyprlandData.updateAll();
+                                searchInput.text = ""; 
+                                searchInput.focus = true;
+                                searchFocusTimer.start();
+                                Qt.callLater(() => searchInput.forceActiveFocus());
+                            }
                         }
                     }
                 }
@@ -248,19 +265,36 @@ Rectangle {
                                 
                                 implicitWidth: standardOverviewRoot.workspaceImplicitWidth + workspacePadding
                                 implicitHeight: standardOverviewRoot.workspaceImplicitHeight + workspacePadding
-                                color: isActiveWorkspace ? Functions.ColorUtils.applyAlpha(Appearance.colors.colPrimaryContainer, 0.4) : Appearance.colors.colLayer0
-                                radius: Appearance.rounding.verysmall
+                                color: isActiveWorkspace ? Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3primaryContainer, 0.35) : Appearance.m3colors.m3surfaceContainerLow
+                                radius: Appearance.rounding.small
                                 border.width: Math.max(1, (isActiveWorkspace || hoveredWhileDragging ? 2 : 1) * Appearance.effectiveScale)
-                                border.color: hoveredWhileDragging ? Appearance.m3colors.m3outline : (isActiveWorkspace ? Appearance.colors.colPrimary : Appearance.colors.colOutlineVariant)
+                                border.color: hoveredWhileDragging ? Appearance.m3colors.m3outline : (isActiveWorkspace ? Appearance.colors.colPrimary : Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.08))
                                 property bool hoveredWhileDragging: false
 
-                                ClippingRectangle {
-                                    anchors.fill: parent
-                                    radius: parent.radius
-                                    Image {
-                                        id: workspaceWallpaper; anchors.fill: parent; fillMode: Image.PreserveAspectCrop
-                                        source: Config.options?.appearance?.background?.wallpaperPath || ""
-                                    }
+                                Behavior on color { ColorAnimation { duration: 150 } }
+                                Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                                // end4-pC style watermark workspace number
+                                StyledText {
+                                    anchors.centerIn: parent
+                                    text: workspaceValue.toString()
+                                    font.pixelSize: Math.round(48 * Appearance.effectiveScale)
+                                    font.weight: Font.Black
+                                    color: Functions.ColorUtils.applyAlpha(Appearance.m3colors.m3onSurface, 0.07)
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                StyledText {
+                                    anchors.top: parent.top
+                                    anchors.left: parent.left
+                                    anchors.margins: 6 * Appearance.effectiveScale
+                                    text: workspaceValue.toString()
+                                    font.pixelSize: Math.round(11 * Appearance.effectiveScale)
+                                    font.weight: isActiveWorkspace ? Font.DemiBold : Font.Medium
+                                    color: isActiveWorkspace ? Appearance.colors.colPrimary : Appearance.m3colors.m3onSurfaceVariant
+                                    opacity: isActiveWorkspace ? 1.0 : 0.6
+                                    z: 2
                                 }
 
                                 MouseArea {

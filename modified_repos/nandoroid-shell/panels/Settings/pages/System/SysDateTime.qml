@@ -67,7 +67,7 @@ ColumnLayout {
     
                             RowLayout {
                                 spacing: 4 * Appearance.effectiveScale
-                                Layout.preferredHeight: 48 * Appearance.effectiveScale
+                                Layout.preferredHeight: 40 * Appearance.effectiveScale
                                 
                                 Repeater {
                                     model: [
@@ -118,7 +118,7 @@ ColumnLayout {
     
                             RowLayout {
                                 spacing: 4 * Appearance.effectiveScale
-                                Layout.preferredHeight: 48 * Appearance.effectiveScale
+                                Layout.preferredHeight: 40 * Appearance.effectiveScale
                                 
                                 Repeater {
                                     model: [
