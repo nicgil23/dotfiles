@@ -21,11 +21,17 @@ getdate() {
 }
 
 getaudiooutput() {
-    pactl list sources | grep 'Name' | grep 'monitor' | cut -d ' ' -f2
+    local default_sink
+    default_sink=$(pactl get-default-sink 2>/dev/null)
+    if [[ -n "$default_sink" ]]; then
+        echo "${default_sink}.monitor"
+    else
+        pactl list sources 2>/dev/null | grep 'Name' | grep 'monitor' | cut -d ' ' -f2 | head -n 1
+    fi
 }
 
 getactivemonitor() {
-    hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name'
+    hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused == true) | .name' 2>/dev/null | head -n 1
 }
 
 updatestate() {
@@ -81,14 +87,26 @@ if pgrep wf-recorder > /dev/null; then
     pkill wf-recorder &
 else
     filename="Recording_$(date '+%Y-%m-%d-%H-%M-%S').mp4"
+    MON=$(getactivemonitor)
+    MON_OPT=()
+    if [[ -n "$MON" ]]; then
+        MON_OPT=("-o" "$MON")
+    fi
+
+    AUDIO_OPT=()
+    if [[ $SOUND_FLAG -eq 1 ]]; then
+        AUDIO_SRC=$(getaudiooutput)
+        if [[ -n "$AUDIO_SRC" ]]; then
+            AUDIO_OPT=("--audio=${AUDIO_SRC}")
+        else
+            AUDIO_OPT=("--audio")
+        fi
+    fi
+
     if [[ $FULLSCREEN_FLAG -eq 1 ]]; then
         notify-send "Starting recording" "$filename" -a 'Recorder' -i media-record -t 3000 & disown
         updatestate true "fullscreen"
-        if [[ $SOUND_FLAG -eq 1 ]]; then
-            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f "$filename" --audio="$(getaudiooutput)"
-        else
-            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f "$filename"
-        fi
+        wf-recorder "${MON_OPT[@]}" --pixel-format yuv420p -f "$filename" "${AUDIO_OPT[@]}"
     else
         if [[ -n "$MANUAL_REGION" ]]; then
             region="$MANUAL_REGION"
@@ -108,11 +126,7 @@ else
 
         notify-send "Starting recording" "$filename" -a 'Recorder' -i media-record -t 3000 & disown
         updatestate true "$geometry"
-        if [[ $SOUND_FLAG -eq 1 ]]; then
-            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f "$filename" --geometry "$geometry" --audio="$(getaudiooutput)"
-        else
-            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f "$filename" --geometry "$geometry"
-        fi
+        wf-recorder --pixel-format yuv420p -f "$filename" --geometry "$geometry" "${AUDIO_OPT[@]}"
     fi
     updatestate false
 fi

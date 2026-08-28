@@ -248,7 +248,7 @@ PanelWindow {
             ScreenRecord.active = true;
             ScreenRecord.geometry = root.action === actionRecordFullscreenWithSound ? "fullscreen" : `${rx},${ry} ${rw}x${rh}`;
         }
-        cropProcess.command = command;
+        cropProcess.command = command.command;
         cropProcess.running = true;
     }
 

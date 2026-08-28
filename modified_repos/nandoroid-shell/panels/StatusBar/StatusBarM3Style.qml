@@ -308,7 +308,14 @@ Item {
         }
 
         MaterialSymbol {
-            visible: Config.ready && Config.options.statusBar ? (Config.options.statusBar.showVolumeIndicator ?? true) : true
+            visible: {
+                if (!Config.ready || !Config.options.statusBar) return true;
+                let show = Config.options.statusBar.showVolumeIndicator ?? true;
+                if (!show) return false;
+                let mode = Config.options.statusBar.volumeIndicatorMode ?? "mutedOnly";
+                if (mode === "mutedOnly") return Audio.muted || Audio.volume === 0;
+                return true;
+            }
             text: Audio.muted || Audio.volume === 0 ? "volume_off" : (Audio.volume > 0.3 ? "volume_up" : "volume_down")
             iconSize: 16 * Appearance.effectiveScale
             fill: 1

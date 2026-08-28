@@ -4,6 +4,7 @@ import "widgets"
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
+import Quickshell
 
 /**
  * Navigation sidebar for the Settings panel.
@@ -43,9 +44,7 @@ Rectangle {
             
             onClicked: {
                 let path = Directories.shellConfigPath;
-                if (!Qt.openUrlExternally("file://" + path)) {
-                    Quickshell.execDetached(["xdg-open", path]);
-                }
+                Quickshell.execDetached(["sh", "-c", "${TERMINAL:-kitty} -e nvim '" + path + "'"]);
             }
 
             RowLayout {

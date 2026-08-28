@@ -273,6 +273,51 @@ Item {
             statusText: ConservationMode.active ? "On" : "Off",
             action: () => ConservationMode.toggle(),
             tooltipText: "Lenovo Battery Conservation Mode"
+        },
+        "obsidianSync": {
+            name: "Sync Obsidian",
+            icon: "cloud_sync",
+            iconOff: "cloud_sync",
+            statusText: "Sync",
+            action: () => {
+                root.close();
+                Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/obsidian-sync.sh"]);
+            }
+        },
+        "restartShell": {
+            name: "Restart Shell",
+            icon: "refresh",
+            iconOff: "refresh",
+            toggled: false,
+            statusText: "Restart",
+            action: () => {
+                root.close();
+                Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/restartshell.sh")]);
+            }
+        },
+        "vpnUcm": {
+            name: "VPN UCM",
+            icon: "vpn_lock",
+            iconOff: "vpn_lock",
+            toggled: VpnUcmService.active,
+            statusText: VpnUcmService.active ? "Connected" : "Disconnected",
+            action: () => VpnUcmService.toggle()
+        },
+        "autoRotation": {
+            name: "Auto Rotation",
+            icon: "screen_rotation",
+            iconOff: "screen_lock_rotation",
+            toggled: AutoRotation.active,
+            statusText: AutoRotation.active ? "On" : "Off",
+            action: () => AutoRotation.toggle()
+        },
+        "autoHideBar": {
+            name: "Auto-Hide Bar",
+            icon: "vertical_align_top",
+            iconOff: "vertical_align_top",
+            toggled: Config.options.statusBar.autoHide,
+            statusText: Config.options.statusBar.autoHide ? "On" : "Off",
+            action: () => { Config.options.statusBar.autoHide = !Config.options.statusBar.autoHide }
         }
     })
 
@@ -286,7 +331,8 @@ Item {
         "wifi", "bluetooth", "dnd", "darkMode", "caffeine", "nightLight",
         "warp", "audioOutput", "audioInput", "powerProfile",
         "gameMode", "colorPicker", "screenSnip", "screenRecord",
-        "musicRecognition", "easyEffects", "conservationMode"
+        "musicRecognition", "easyEffects", "conservationMode", "obsidianSync", "restartShell", "vpnUcm", "autoRotation",
+        "autoHideBar"
     ]
     readonly property list<var> toggles: Config.options.quickSettings.toggles
     readonly property list<var> toggleRows: toggleRowsForList(toggles)
@@ -335,15 +381,19 @@ Item {
 
 
     // ── CONTENT UI ──
-    ColumnLayout {
-        id: contentColumn
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            margins: 10 * Appearance.effectiveScale
-        }
-        spacing: 12 * Appearance.effectiveScale
+    StyledFlickable {
+        id: mainFlickable
+        anchors.fill: parent
+        contentWidth: width
+        contentHeight: contentColumn.implicitHeight + (20 * Appearance.effectiveScale)
+        clip: true
+
+        ColumnLayout {
+            id: contentColumn
+            x: 10 * Appearance.effectiveScale
+            y: 10 * Appearance.effectiveScale
+            width: mainFlickable.width - (20 * Appearance.effectiveScale)
+            spacing: 12 * Appearance.effectiveScale
 
         // Main QS Header / Banner
         Loader {
@@ -1144,8 +1194,8 @@ Item {
             }
 
         }
-
     }
+}
 
     // ════════════════════════════════════════
     //            DETAIL PANELS

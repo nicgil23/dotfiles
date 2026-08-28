@@ -37,7 +37,7 @@ Variants {
 
     margins.right: panelWindow.sidePadding
     implicitWidth: Appearance.sizes.quickSettingsWidth
-    implicitHeight: Math.round(modelData.height * 0.85)
+    implicitHeight: Math.min(qsContent.implicitHeight, Math.round(modelData.height * 0.85))
 
     Timer { id: closeTimer; interval: 300 }
 
@@ -69,7 +69,8 @@ Variants {
 
     QuickSettingsContent {
       id: qsContent
-      height: implicitHeight
+      width: panelWindow.width
+      height: panelWindow.height
 
       transform: Translate {
         id: qsSlide

@@ -397,6 +397,7 @@ Singleton {
                 property bool autoHide: false
                 property string trayStyle: "adaptive"
                 property bool showVolumeIndicator: true
+                property string volumeIndicatorMode: "mutedOnly"
             }
 
             // --- Quick Settings ---
@@ -417,8 +418,8 @@ Singleton {
                     { "type": "nightLight", "size": 1 },
                     { "type": "screenRecord", "size": 1 },
                     { "type": "screenSnip", "size": 1 },
-                    { "type": "qrcode", "size": 1 },
-                    { "type": "ocr", "size": 1 },
+                    { "type": "obsidianSync", "size": 1 },
+                    { "type": "restartShell", "size": 1 },
                     { "type": "autoRotation", "size": 1 },
                     { "type": "colorPicker", "size": 1 },
                     { "type": "vpnUcm", "size": 1 },

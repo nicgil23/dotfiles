@@ -1315,20 +1315,57 @@ ColumnLayout {
                     // ── Volume Indicator ──
                     SegmentedWrapper {
                         Layout.fillWidth: true
-                        implicitHeight: volumeIndicatorRow.implicitHeight + (32 * Appearance.effectiveScale)
+                        implicitHeight: volumeIndicatorCol.implicitHeight + (32 * Appearance.effectiveScale)
                         orientation: Qt.Vertical
                         maxRadius: 20 * Appearance.effectiveScale
                         color: Appearance.m3colors.m3surfaceContainerHigh
-                        RowLayout {
-                            id: volumeIndicatorRow
+                        ColumnLayout {
+                            id: volumeIndicatorCol
                             anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
-                            spacing: 16 * Appearance.effectiveScale
-                            MaterialSymbol { text: "volume_up"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
-                            StyledText { text: "Volume Indicator"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
-                            AndroidToggle {
-                                checked: Config.ready && Config.options.statusBar ? (Config.options.statusBar.showVolumeIndicator ?? true) : true
-                                onToggled: if (Config.ready && Config.options.statusBar)
-                                    Config.options.statusBar.showVolumeIndicator = !Config.options.statusBar.showVolumeIndicator
+                            spacing: 12 * Appearance.effectiveScale
+
+                            RowLayout {
+                                id: volumeIndicatorRow
+                                Layout.fillWidth: true
+                                spacing: 16 * Appearance.effectiveScale
+                                MaterialSymbol { text: "volume_up"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                                StyledText { text: "Volume Indicator"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                                AndroidToggle {
+                                    checked: Config.ready && Config.options.statusBar ? (Config.options.statusBar.showVolumeIndicator ?? true) : true
+                                    onToggled: if (Config.ready && Config.options.statusBar)
+                                        Config.options.statusBar.showVolumeIndicator = !Config.options.statusBar.showVolumeIndicator
+                                }
+                            }
+
+                            RowLayout {
+                                visible: Config.ready && Config.options.statusBar ? (Config.options.statusBar.showVolumeIndicator ?? true) : true
+                                Layout.fillWidth: true
+                                spacing: 16 * Appearance.effectiveScale
+
+                                MaterialSymbol { text: "tune"; iconSize: 20 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                                StyledText { text: "Display Mode"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1; font.pixelSize: Appearance.font.pixelSize.smaller }
+
+                                RowLayout {
+                                    spacing: 2 * Appearance.effectiveScale
+                                    Repeater {
+                                        model: [
+                                            { id: "always", label: "Always" },
+                                            { id: "mutedOnly", label: "Only Muted" }
+                                        ]
+                                        delegate: SegmentedButton {
+                                            required property var modelData
+                                            buttonText: modelData.label
+                                            isHighlighted: Config.ready && Config.options.statusBar
+                                                ? (Config.options.statusBar.volumeIndicatorMode ?? "mutedOnly") === modelData.id
+                                                : modelData.id === "mutedOnly"
+                                            colActive: Appearance.m3colors.m3primary
+                                            colActiveText: Appearance.m3colors.m3onPrimary
+                                            colInactive: Appearance.m3colors.m3surfaceContainerLow
+                                            onClicked: if (Config.ready && Config.options.statusBar)
+                                                Config.options.statusBar.volumeIndicatorMode = modelData.id
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
