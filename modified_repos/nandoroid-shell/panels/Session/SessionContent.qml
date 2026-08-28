@@ -33,16 +33,16 @@ Item {
         }
     }
 
-    readonly property real itemH: 160 * root.baseScale
-    readonly property real baseItemW: (itemH - 24 - 15) * root.baseScale
-    readonly property real activeBonusW: 15 * root.baseScale
-    readonly property real itemSp: 6 * root.baseScale
+    readonly property real itemH: 185 * root.baseScale
+    readonly property real baseItemW: 135 * root.baseScale
+    readonly property real activeBonusW: 18 * root.baseScale
+    readonly property real itemSp: 8 * root.baseScale
     readonly property real contentW: actions.length * baseItemW + activeBonusW + (actions.length - 1) * itemSp
 
     Rectangle {
         anchors.centerIn: parent
-        width: contentW + 2 * 12 * root.baseScale
-        height: itemH
+        width: contentW + 2 * 14 * root.baseScale
+        height: itemH + 2 * 14 * root.baseScale
         radius: Appearance.rounding.panel
         color: Appearance.colors.colLayer0
 
@@ -52,7 +52,7 @@ Item {
         Carousel {
             id: sessionCarousel
             anchors.fill: parent
-            anchors.margins: 12 * root.baseScale
+            anchors.margins: 14 * root.baseScale
             model: root.actions
             fitMode: true
             baseItemWidth: root.baseItemW
@@ -80,21 +80,21 @@ Item {
 
                         ColumnLayout {
                             anchors.centerIn: parent
-                            spacing: 6 * root.baseScale
+                            spacing: 8 * root.baseScale
 
                             MaterialSymbol {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: modelData ? modelData.icon : ""
-                                iconSize: 24 * root.baseScale
+                                iconSize: 32 * root.baseScale
                                 fill: 1
                                 color: isFocused ? Appearance.m3colors.m3onPrimary : Appearance.m3colors.m3onSurface
                             }
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: delegateRoot.width - 4 * root.baseScale
+                                Layout.maximumWidth: delegateRoot.width - 6 * root.baseScale
                                 text: modelData ? modelData.text : ""
-                                font.pixelSize: Math.max(9, Math.round(10 * root.baseScale))
+                                font.pixelSize: Math.max(11, Math.round(13 * root.baseScale))
                                 font.weight: Font.Medium
                                 color: isFocused ? Appearance.m3colors.m3onPrimary : Appearance.m3colors.m3onSurface
                                 horizontalAlignment: Text.AlignHCenter

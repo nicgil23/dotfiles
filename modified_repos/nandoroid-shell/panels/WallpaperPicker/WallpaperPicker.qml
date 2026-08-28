@@ -598,7 +598,9 @@ Variants {
                     spacing: 0
                     orientation: ListView.Horizontal
                     clip: false
-                    cacheBuffer: 2000
+                    cacheBuffer: Math.round((pickerContent.itemWidth * 0.5 + pickerContent.spacing) * 1.5)
+                    displayMarginBeginning: 0
+                    displayMarginEnd: Math.round(pickerContent.itemWidth * 0.5 + pickerContent.spacing)
                     flickDeceleration: 5000
                     maximumFlickVelocity: 2500
 
@@ -684,6 +686,7 @@ Variants {
                                     fillMode: Image.PreserveAspectCrop
                                     source: fileUrl !== undefined ? fileUrl : ""
                                     asynchronous: true
+                                    cache: true
 
                                     transform: Matrix4x4 {
                                         property real s: -pickerContent.skewFactor

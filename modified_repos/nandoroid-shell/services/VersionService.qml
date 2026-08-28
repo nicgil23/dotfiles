@@ -7,23 +7,25 @@ import "../core"
 Singleton {
     id: root
 
-    property string version: "..."
+    property string version: "1.5.X"
     property bool updateAvailable: false
 
     Process {
         id: verProc
         command: ["bash", "-c", `
             f="$HOME/.config/nandoroid/install_state.json"
-            [ ! -f "$f" ] && { echo "unknown"; exit; }
+            [ ! -f "$f" ] && { echo "1.5.X"; exit; }
             d=$(python3 -c "import json,sys; print(json.load(open('$f')).get('install_dir',''))" 2>/dev/null)
-            [ -z "$d" ] && { echo "unknown"; exit; }
-            git -C "$d" describe --tags --always 2>/dev/null || echo "unknown"
+            [ -z "$d" ] && { echo "1.5.X"; exit; }
+            v=$(git -C "$d" describe --tags --always 2>/dev/null)
+            [ -n "$v" ] && [ "$v" != "unknown" ] && echo "$v" || echo "1.5.X"
         `]
         stdout: StdioCollector { id: verOut }
         running: true
         onExited: {
             const v = verOut.text.trim()
-            if (v) root.version = v
+            if (v && v !== "unknown") root.version = v
+            else root.version = "1.5.X"
         }
     }
 
