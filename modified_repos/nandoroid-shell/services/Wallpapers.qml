@@ -9,12 +9,45 @@ Singleton {
     id: root
     
     // Directory to scan for wallpapers
-    property url directory: Qt.resolvedUrl(Directories.home + "/Pictures/Wallpapers")
+    property url directory: Qt.resolvedUrl(Directories.home + "/Pictures/wallpapers")
     property string searchQuery: ""
     
     readonly property list<string> imagePatterns: ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.avif"]
 
     property list<string> favorites: []
+    property var recursiveWallpapers: []
+
+    Process {
+        id: recursiveScanProc
+        running: true
+        command: ["bash", "-c", "WP_DIR=\"\"; if [ -d \"$HOME/Pictures/wallpapers\" ]; then WP_DIR=\"$HOME/Pictures/wallpapers\"; elif [ -d \"$HOME/Pictures/Wallpapers\" ]; then WP_DIR=\"$HOME/Pictures/Wallpapers\"; fi; if [ -n \"$WP_DIR\" ]; then find -L \"$WP_DIR\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.avif' -o -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.mov' -o -iname '*.webm' \\) 2>/dev/null | sort -u; fi"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let text = this.text.trim();
+                let lines = text.length > 0 ? text.split("\n") : [];
+                let items = [];
+                for (let i = 0; i < lines.length; i++) {
+                    let fullPath = lines[i].trim();
+                    if (fullPath === "") continue;
+                    let fn = fullPath.split("/").pop();
+                    let lowerFn = fn.toLowerCase();
+                    let isVid = fn.startsWith("000_") || lowerFn.endsWith(".mp4") || lowerFn.endsWith(".webm") || lowerFn.endsWith(".mkv") || lowerFn.endsWith(".mov") || lowerFn.endsWith(".gif");
+                    items.push({
+                        fileName: fn,
+                        fileUrl: "file://" + fullPath,
+                        fullPath: fullPath,
+                        isVideo: isVid
+                    });
+                }
+                root.recursiveWallpapers = items;
+            }
+        }
+    }
+
+    function refreshRecursiveWallpapers() {
+        recursiveScanProc.running = false;
+        recursiveScanProc.running = true;
+    }
 
     function isFavorite(path) {
         const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString();
@@ -748,6 +781,7 @@ Singleton {
     }
 
     Component.onCompleted: {
+        root.refreshRecursiveWallpapers();
         if (Config.ready) {
             root.syncSettings();
         }

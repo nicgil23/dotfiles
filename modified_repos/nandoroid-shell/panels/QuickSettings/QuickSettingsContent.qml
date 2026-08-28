@@ -512,6 +512,26 @@ Item {
                             colRipple: Appearance.colors.colLayer2Active
                             onClicked: {
                                 root.close()
+                                GlobalStates.carouselWallpaperPickerOpen = true
+                            }
+                            MaterialSymbol {
+                                anchors.centerIn: parent
+                                text: "view_carousel"
+                                iconSize: 18 * Appearance.effectiveScale
+                                color: Appearance.m3colors.m3onSurface
+                            }
+                            StyledToolTip { text: "Wallpaper Carousel" }
+                        }
+
+                        RippleButton {
+                            implicitWidth: 36 * Appearance.effectiveScale
+                            implicitHeight: 36 * Appearance.effectiveScale
+                            buttonRadius: 18 * Appearance.effectiveScale
+                            colBackground: "transparent"
+                            colBackgroundHover: Appearance.colors.colLayer2
+                            colRipple: Appearance.colors.colLayer2Active
+                            onClicked: {
+                                root.close()
                                 GlobalStates.wallpaperSelectorTarget = "desktop"
                                 GlobalStates.wallpaperSelectorOpen = true
                             }
@@ -731,6 +751,26 @@ Item {
                             rightMargin: 12 * Appearance.effectiveScale
                         }
                         spacing: 4 * Appearance.effectiveScale
+
+                        RippleButton {
+                            implicitWidth: 36 * Appearance.effectiveScale
+                            implicitHeight: 36 * Appearance.effectiveScale
+                            buttonRadius: 18 * Appearance.effectiveScale
+                            colBackground: "transparent"
+                            colBackgroundHover: Appearance.colors.colLayer2
+                            colRipple: Appearance.colors.colLayer2Active
+                            onClicked: {
+                                root.close()
+                                GlobalStates.carouselWallpaperPickerOpen = true
+                            }
+                            MaterialSymbol {
+                                anchors.centerIn: parent
+                                text: "view_carousel"
+                                iconSize: 18 * Appearance.effectiveScale
+                                color: Appearance.m3colors.m3onSurface
+                            }
+                            StyledToolTip { text: "Wallpaper Carousel" }
+                        }
 
                         RippleButton {
                             implicitWidth: 36 * Appearance.effectiveScale

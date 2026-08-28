@@ -75,7 +75,8 @@ ColumnLayout {
         { name: "Stop Pomodoro", category: "Media & System", cmd: "quickshell -c nandoroid ipc call pomodoro stop", target: "pomodoro", method: "stop" },
         { name: "Reset Pomodoro", category: "Media & System", cmd: "quickshell -c nandoroid ipc call pomodoro reset", target: "pomodoro", method: "reset" },
         { name: "Open Desktop Wallpaper", category: "Media & System", cmd: "quickshell -c nandoroid ipc call wallpaper openDesktop", target: "wallpaper", method: "openDesktop" },
-        { name: "Open Lock Wallpaper", category: "Media & System", cmd: "quickshell -c nandoroid ipc call wallpaper openLock", target: "wallpaper", method: "openLock" }
+        { name: "Open Lock Wallpaper", category: "Media & System", cmd: "quickshell -c nandoroid ipc call wallpaper openLock", target: "wallpaper", method: "openLock" },
+        { name: "Wallpaper Carousel Picker", category: "Media & System", cmd: "quickshell -c nandoroid ipc call wallpaper_picker toggle", target: "wallpaper_picker", method: "toggle" }
     ]
 
     readonly property var filteredIpcItems: {

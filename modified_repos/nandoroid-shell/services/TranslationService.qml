@@ -72,7 +72,7 @@ Singleton {
     // Ported from ii: Dynamic fetch to expand the list
     Process {
         id: getLangsProc
-        command: ["trans", "-list-codes", "-no-bidi"]
+        command: ["sh", "-c", "command -v trans >/dev/null 2>&1 && trans -list-codes -no-bidi || true"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {

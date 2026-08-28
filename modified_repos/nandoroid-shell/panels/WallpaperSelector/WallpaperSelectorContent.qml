@@ -57,6 +57,18 @@ Item {
     
     focus: true
     Keys.onEscapePressed: close()
+    Keys.onReturnPressed: {
+        if (selectedWallpaper) {
+            let p = selectedWallpaper.path || selectedWallpaper.fileUrl || selectedWallpaper.url || "";
+            if (p !== "") Wallpapers.select(p);
+        }
+    }
+    Keys.onEnterPressed: {
+        if (selectedWallpaper) {
+            let p = selectedWallpaper.path || selectedWallpaper.fileUrl || selectedWallpaper.url || "";
+            if (p !== "") Wallpapers.select(p);
+        }
+    }
 
     signal closed()
     
@@ -161,6 +173,7 @@ Item {
             WallpaperEngineService.searchQuery = searchFilter
         } else {
             Wallpapers.searchQuery = searchFilter
+            localRecursiveModel.refresh()
         }
     }
 
@@ -757,7 +770,7 @@ Item {
                             if (mainSelector.naiveMode) return NaIveWallpaperService.results;
                             if (mainSelector.favMode) return favModel;
                             if (mainSelector.liveMode) return WallpaperEngineService.results;
-                            return Wallpapers.folderModel;
+                            return localRecursiveModel.count > 0 ? localRecursiveModel : Wallpapers.folderModel;
                         }
 
                         Connections {
@@ -815,13 +828,43 @@ Item {
                             }
                             Component.onCompleted: refresh()
                         }
+
+                        ListModel {
+                            id: localRecursiveModel
+                            function refresh() {
+                                clear();
+                                let rawList = Wallpapers.recursiveWallpapers;
+                                let data = [];
+                                let query = mainSelector.localSearch.toLowerCase().trim();
+
+                                if (rawList && rawList.length > 0) {
+                                    for (let i = 0; i < rawList.length; i++) {
+                                        let item = rawList[i];
+                                        let fn = item.fileName;
+                                        let fp = item.fullPath;
+                                        if (query !== "" && !fn.toLowerCase().includes(query)) continue;
+                                        data.push({ "filePath": fp, "fileName": fn, "fullPath": fp });
+                                    }
+                                }
+
+                                if (mainSelector.sortMode === "name_asc") {
+                                    data.sort((a, b) => a.fileName.localeCompare(b.fileName));
+                                } else if (mainSelector.sortMode === "name_desc") {
+                                    data.sort((a, b) => b.fileName.localeCompare(a.fileName));
+                                }
+
+                                for (let item of data) append(item);
+                            }
+                            Component.onCompleted: refresh()
+                        }
                         
                         Connections {
                             target: Wallpapers
                             function onFavoritesChanged() { favModel.refresh(); }
+                            function onRecursiveWallpapersChanged() { localRecursiveModel.refresh(); }
                         }
                         
-                        onVisibleChanged: { if (visible) favModel.refresh(); }
+                        onVisibleChanged: { if (visible) { favModel.refresh(); localRecursiveModel.refresh(); } }
                         
                         delegate: Item {
                             id: delegateRoot

@@ -24,6 +24,7 @@ Singleton {
     property bool sessionOpen: false
     property bool quickSettingsEditMode: false
     property bool wallpaperSelectorOpen: false
+    property bool carouselWallpaperPickerOpen: false
     property bool launcherOpen: false
     property bool spotlightOpen: false
     property string initialSpotlightQuery: ""
@@ -214,6 +215,19 @@ Singleton {
             spotlightOpen = false
             dashboardOpen = false
             sessionOpen = false
+        }
+    }
+
+    onCarouselWallpaperPickerOpenChanged: {
+        if (carouselWallpaperPickerOpen) {
+            accentPickerOpen = false
+            launcherOpen = false
+            spotlightOpen = false
+            notificationCenterOpen = false
+            quickSettingsOpen = false
+            quickActionsOpen = false
+            sessionOpen = false
+            dashboardOpen = false
         }
     }
 

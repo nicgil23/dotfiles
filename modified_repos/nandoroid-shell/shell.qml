@@ -12,6 +12,7 @@ import "panels/NotificationCenter"
 import "panels/QuickSettings"
 import "panels/QuickActions"
 import "panels/WallpaperSelector"
+import "panels/WallpaperPicker"
 import "panels/Background"
 import "panels/NotificationPopup"
 import "panels/OSD"
@@ -105,6 +106,7 @@ ShellRoot {
 
     // ── Phase 6: Wallpaper Selector & Screen Decor ──
     WallpaperSelector {}
+    WallpaperPicker {}
     ScreenCorners {}
 
     IpcHandler {
@@ -120,6 +122,13 @@ ShellRoot {
             GlobalStates.wallpaperSelectorTarget = "lock";
             GlobalStates.wallpaperSelectorOpen = true;
         }
+    }
+
+    IpcHandler {
+        target: "wallpaper_picker"
+        function open() { GlobalStates.carouselWallpaperPickerOpen = true }
+        function close() { GlobalStates.carouselWallpaperPickerOpen = false }
+        function toggle() { GlobalStates.carouselWallpaperPickerOpen = !GlobalStates.carouselWallpaperPickerOpen }
     }
 
     // ── Phase 7: OSD ──
@@ -253,6 +262,14 @@ ShellRoot {
         onPressed: {
             GlobalStates.wallpaperSelectorTarget = "desktop"
             GlobalStates.wallpaperSelectorOpen = !GlobalStates.wallpaperSelectorOpen
+        }
+    }
+
+    GlobalShortcut {
+        name: "carouselWallpaperPicker"
+        description: "Toggle Carousel Wallpaper Picker"
+        onPressed: {
+            GlobalStates.carouselWallpaperPickerOpen = !GlobalStates.carouselWallpaperPickerOpen
         }
     }
 

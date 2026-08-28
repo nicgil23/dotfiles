@@ -110,20 +110,16 @@ ColumnLayout {
                 spacing: 16 * Appearance.effectiveScale
                 visible: colorSwitcherRow.currentTab === "wallpaper"
 
-                Item {
+                GridLayout {
+                    id: matugenColorGrid
                     Layout.fillWidth: true
-                    implicitHeight: matugenColorGrid.implicitHeight
+                    columns: 4
+                    rowSpacing: 4 * Appearance.effectiveScale
+                    columnSpacing: 4 * Appearance.effectiveScale
 
-                    GridLayout {
-                        id: matugenColorGrid
-                        anchors.fill: parent
-                        columns: 5
-                        rowSpacing: 4 * Appearance.effectiveScale
-                        columnSpacing: 4 * Appearance.effectiveScale
-
-                        opacity: (previewIterateTimer.running || previewMatugen.running) ? 0.3 : 1.0
-                        Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
-                        enabled: !(previewIterateTimer.running || previewMatugen.running)
+                    opacity: (previewIterateTimer.running || previewMatugen.running) ? 0.3 : 1.0
+                    Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    enabled: !(previewIterateTimer.running || previewMatugen.running)
 
                     Repeater {
                         model: root.matugenSchemes
@@ -145,37 +141,7 @@ ColumnLayout {
                             }
                         }
                     }
-
-                    ColorCard {
-                        Layout.fillWidth: true
-                        label: "Accent Picker"
-                        iconName: "colorize"
-                        cardColors: [Appearance.m3colors.m3primary, Appearance.m3colors.m3secondary, Appearance.m3colors.m3tertiary]
-                        isSelected: Config.ready && !Config.options.appearance.background.matugen && Config.options.appearance.background.matugenCustomColor !== "" && Config.options.appearance.background.matugenThemeFile === ""
-                        onClicked: {
-                            GlobalStates.accentPickerTarget = "desktop"
-                            GlobalStates.accentPickerOpen = true
-                        }
-                    }
-                    }
-
-                    MaterialSymbol {
-                        text: "sync"
-                        anchors.centerIn: parent
-                        visible: previewIterateTimer.running || previewMatugen.running
-                        iconSize: 42 * Appearance.effectiveScale
-                        color: Appearance.colors.colPrimary
-                        RotationAnimation on rotation {
-                            loops: Animation.Infinite
-                            from: 0
-                            to: 360
-                            duration: 1000
-                            running: parent.visible
-                        }
-                    }
                 }
-
-
             }
 
             // --- Basic Colors Grid ---
