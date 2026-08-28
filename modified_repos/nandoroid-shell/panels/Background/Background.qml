@@ -107,12 +107,52 @@ Variants {
             }
         }
 
+        Connections {
+            target: WallpaperEngineService
+            function onLiveFadeRequested() {
+                if (WallpaperEngineService.active || liveFadeOverlay.source.toString() !== "") {
+                    liveFadeOverlay.source = "file://" + WallpaperEngineService.screenshotPath + "?t=" + Date.now();
+                    liveFadeOverlay.opacity = 1.0;
+                    liveFadeTimer.restart();
+                }
+            }
+        }
+
+        Timer {
+            id: liveFadeTimer
+            interval: 350
+            repeat: false
+            onTriggered: {
+                liveFadeOverlay.opacity = 0.0;
+            }
+        }
+
+        // --- Live Wallpaper Fade-Out Snapshot Overlay ---
+        Image {
+            id: liveFadeOverlay
+            anchors.fill: parent
+            z: 2
+            fillMode: Image.PreserveAspectCrop
+            cache: false
+            asynchronous: false
+            opacity: 0.0
+
+            Behavior on opacity {
+                NumberAnimation { duration: 600; easing.type: Easing.InOutCubic }
+            }
+
+            visible: opacity > 0.0
+        }
+
         // --- Container for Static Wallpapers ---
         Item {
             id: staticWallpaperContainer
             anchors.fill: parent
             z: 1
             opacity: WallpaperEngineService.active ? 0 : 1
+            Behavior on opacity {
+                NumberAnimation { duration: 600; easing.type: Easing.InOutCubic }
+            }
             visible: opacity > 0
             
             // Previous Wallpaper Image (Must be visible during transition so texture is captured)

@@ -65,31 +65,90 @@ Variants {
                         if (currentData) {
                             let fn = currentData.fileName;
                             let fp = currentData.fullPath !== undefined ? currentData.fullPath : "";
-                            pickerContent.applyWallpaper(fn, fn && (fn.startsWith("000_") || fn.endsWith(".mp4") || fn.endsWith(".webm")), fp);
+                            let isLive = currentData.isLiveEngine === true;
+                            pickerContent.applyWallpaper(fn, fn && (fn.startsWith("000_") || fn.endsWith(".mp4") || fn.endsWith(".webm")), fp, isLive);
                         }
                     }
                 }
 
-                Keys.onEscapePressed: {
-                    if (pickerContent.currentFilter === "Search") {
-                        pickerContent.currentFilter = "All";
-                    } else {
-                        GlobalStates.carouselWallpaperPickerOpen = false;
-                    }
+                Keys.onEscapePressed: (event) => {
+                    GlobalStates.carouselWallpaperPickerOpen = false;
+                    if (event) event.accepted = true;
                 }
 
                 Keys.onReturnPressed: (event) => {
-                    if (pickerContent.currentFilter === "Search" && searchInput.activeFocus) {
+                    if (searchInput.activeFocus) {
+                        view.forceActiveFocus();
+                        if (event) event.accepted = true;
                         return;
                     }
                     pickerContent.applyCurrentWallpaper();
                 }
 
                 Keys.onEnterPressed: (event) => {
-                    if (pickerContent.currentFilter === "Search" && searchInput.activeFocus) {
+                    if (searchInput.activeFocus) {
+                        view.forceActiveFocus();
+                        if (event) event.accepted = true;
                         return;
                     }
                     pickerContent.applyCurrentWallpaper();
+                }
+
+                Keys.onLeftPressed: (event) => {
+                    if (searchInput.activeFocus) return;
+                    if (view.currentIndex > 0) {
+                        view.currentIndex--;
+                    }
+                    view.forceActiveFocus();
+                    event.accepted = true;
+                }
+
+                Keys.onRightPressed: (event) => {
+                    if (searchInput.activeFocus) return;
+                    if (view.currentIndex < view.count - 1) {
+                        view.currentIndex++;
+                    }
+                    view.forceActiveFocus();
+                    event.accepted = true;
+                }
+
+                Keys.onTabPressed: (event) => {
+                    let filters = ["All", "Static", "Live"];
+                    let idx = filters.indexOf(pickerContent.currentFilter);
+                    if (idx === -1) idx = 0;
+                    if (event.modifiers & Qt.ShiftModifier) {
+                        idx = (idx - 1 + filters.length) % filters.length;
+                    } else {
+                        idx = (idx + 1) % filters.length;
+                    }
+                    pickerContent.currentFilter = filters[idx];
+                    view.forceActiveFocus();
+                    event.accepted = true;
+                }
+
+                Keys.onBacktabPressed: (event) => {
+                    let filters = ["All", "Static", "Live"];
+                    let idx = filters.indexOf(pickerContent.currentFilter);
+                    if (idx === -1) idx = 0;
+                    idx = (idx - 1 + filters.length) % filters.length;
+                    pickerContent.currentFilter = filters[idx];
+                    view.forceActiveFocus();
+                    event.accepted = true;
+                }
+
+                Keys.onPressed: (event) => {
+                    if (!searchInput.activeFocus && event.text && event.text.length === 1) {
+                        if (!(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))) {
+                            let ch = event.text;
+                            if (ch >= ' ' && event.key !== Qt.Key_Escape && event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter && event.key !== Qt.Key_Tab && event.key !== Qt.Key_Backtab) {
+                                searchInput.forceActiveFocus();
+                                searchInput.text = searchInput.text + ch;
+                                searchInput.cursorPosition = searchInput.text.length;
+                                event.accepted = true;
+                                return;
+                            }
+                        }
+                    }
                 }
 
                 property string widgetArg: ""
@@ -99,8 +158,8 @@ Variants {
                 property int scrollAccum: 0
                 property real scrollThreshold: 300 * Appearance.effectiveScale
 
-                property string currentFilter: "Todos"
-                property string _lastFilter: "Todos"
+                property string currentFilter: "All"
+                property string _lastFilter: "All"
                 property string searchQuery: ""
                 property bool isOnlineSearch: false
                 property bool isSearchPaused: false
@@ -188,12 +247,23 @@ Variants {
                     return selected.join(",");
                 }
 
-                function applyWallpaper(safeFileName, isVideo, fullPath) {
+                function applyWallpaper(safeFileName, isVideo, fullPath, isLiveEngine) {
                     if (!safeFileName || pickerContent.isApplying) return;
                     
                     pickerContent.isApplying = true;
                     applyUnlockTimer.restart();
                     pickerContent.targetWallName = safeFileName;
+
+                    if (isLiveEngine || (fullPath && fullPath.includes("431960"))) {
+                        let itemFileUrl = "";
+                        let model = pickerContent.activeModel;
+                        if (view.currentIndex >= 0 && view.currentIndex < model.count) {
+                            itemFileUrl = model.get(view.currentIndex).fileUrl || "";
+                        }
+                        WallpaperEngineService.apply(fullPath, itemFileUrl);
+                        pickerContent.isApplying = false;
+                        return;
+                    }
 
                     if (pickerContent.currentFilter === "Search" && pickerContent.hasSearched) {
                         let destFile = pickerContent.srcDir + "/" + safeFileName;
@@ -358,10 +428,55 @@ Variants {
                     function onRecursiveWallpapersChanged() { pickerContent.syncLocalModel(); }
                 }
 
-                onVisibleChanged: { if (visible) { Wallpapers.refreshRecursiveWallpapers(); syncLocalModel(); } }
+                onVisibleChanged: {
+                    if (visible) {
+                        Wallpapers.refreshRecursiveWallpapers();
+                        if (Config.options.appearance.background.liveWallpaperPath !== "" && WallpaperEngineService.results.count === 0 && !WallpaperEngineService.loading) {
+                            WallpaperEngineService.fetch();
+                        }
+                        syncLocalModel();
+                        Qt.callLater(pickerContent.selectCurrentWallpaper);
+                    }
+                }
 
                 onCurrentFilterChanged: syncLocalModel()
                 onSearchQueryChanged: syncLocalModel()
+
+                function selectCurrentWallpaper() {
+                    let livePath = Config.ready ? Config.options.appearance.background.liveWallpaperPath : "";
+                    let currentRaw = (livePath && livePath !== "") ? livePath : Config.options.appearance.background.wallpaperPath;
+                    let currentPath = Functions.FileUtils.trimFileProtocol(currentRaw);
+                    if (!currentPath || currentPath === "") return;
+
+                    currentPath = currentPath.replace(/\/+/g, "/").replace(/\/+$/, "");
+                    let currentFolderId = currentPath.split("/").pop();
+
+                    let model = pickerContent.activeModel;
+                    if (!model || model.count === 0) return;
+
+                    let targetIndex = -1;
+
+                    for (let i = 0; i < model.count; i++) {
+                        let item = model.get(i);
+                        let itemRaw = item.fullPath ? item.fullPath : item.fileUrl;
+                        if (itemRaw) {
+                            let itemPath = Functions.FileUtils.trimFileProtocol(itemRaw).replace(/\/+/g, "/").replace(/\/+$/, "");
+                            if (itemPath === currentPath || (currentFolderId && (itemPath.endsWith("/" + currentFolderId) || itemPath === currentFolderId))) {
+                                targetIndex = i;
+                                break;
+                            }
+                        }
+                        let itemCleanName = pickerContent.getCleanName(item.fileName);
+                        if (targetIndex === -1 && itemCleanName && currentFolderId && itemCleanName === currentFolderId) {
+                            targetIndex = i;
+                        }
+                    }
+
+                    if (targetIndex >= 0 && targetIndex < model.count) {
+                        view.currentIndex = targetIndex;
+                        view.positionViewAtIndex(targetIndex, ListView.Beginning);
+                    }
+                }
 
                 function syncLocalModel() {
                     localProxyModel.clear();
@@ -378,12 +493,12 @@ Variants {
                             let fp = item.fullPath;
                             let isVid = item.isVideo;
 
-                            if (filter === "Fijos" && isVid) continue;
+                            if (filter === "Static" && isVid) continue;
                             if (filter === "Live" && !isVid) continue;
 
                             if (query !== "" && !fn.toLowerCase().includes(query)) continue;
 
-                            batch.push({ "fileName": fn, "fileUrl": fu, "fullPath": fp });
+                            batch.push({ "fileName": fn, "fileUrl": fu, "fullPath": fp, "isLiveEngine": false });
                         }
                     } else {
                         let folderCount = localFolderModel.count;
@@ -393,10 +508,30 @@ Variants {
                             if (fn !== undefined) {
                                 let lowerFn = String(fn).toLowerCase();
                                 let isVid = fn.startsWith("000_") || lowerFn.endsWith(".mp4") || lowerFn.endsWith(".webm") || lowerFn.endsWith(".mkv") || lowerFn.endsWith(".mov") || lowerFn.endsWith(".gif");
-                                if (filter === "Fijos" && isVid) continue;
+                                if (filter === "Static" && isVid) continue;
                                 if (filter === "Live" && !isVid) continue;
                                 if (query !== "" && !lowerFn.includes(query)) continue;
-                                batch.push({ "fileName": fn, "fileUrl": String(fu), "fullPath": "" });
+                                batch.push({ "fileName": fn, "fileUrl": String(fu), "fullPath": "", "isLiveEngine": false });
+                            }
+                        }
+                    }
+
+                    if (filter === "All" || filter === "Live") {
+                        if (WallpaperEngineService.results && WallpaperEngineService.results.count > 0) {
+                            for (let i = 0; i < WallpaperEngineService.results.count; i++) {
+                                let weItem = WallpaperEngineService.results.get(i);
+                                let title = weItem.title ? weItem.title : "Live Wallpaper";
+                                let previewUrl = weItem.preview ? weItem.preview : "";
+                                let folderPath = weItem.folder ? weItem.folder : "";
+
+                                if (query !== "" && !title.toLowerCase().includes(query)) continue;
+
+                                batch.push({
+                                    "fileName": title,
+                                    "fileUrl": previewUrl,
+                                    "fullPath": folderPath,
+                                    "isLiveEngine": true
+                                });
                             }
                         }
                     }
@@ -404,6 +539,7 @@ Variants {
                     if (batch.length > 0) {
                         localProxyModel.append(batch);
                     }
+                    Qt.callLater(pickerContent.selectCurrentWallpaper);
                 }
 
                 FolderListModel {
@@ -528,7 +664,7 @@ Variants {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     view.currentIndex = index;
-                                    pickerContent.applyWallpaper(delegateRoot.safeFileName, delegateRoot.isVideo, model.fullPath !== undefined ? model.fullPath : "");
+                                    pickerContent.applyWallpaper(delegateRoot.safeFileName, delegateRoot.isVideo, model.fullPath !== undefined ? model.fullPath : "", model.isLiveEngine === true);
                                 }
                             }
 
@@ -583,13 +719,13 @@ Variants {
                             implicitWidth: 70 * Appearance.effectiveScale
                             implicitHeight: 36 * Appearance.effectiveScale
                             buttonRadius: 18 * Appearance.effectiveScale
-                            toggled: pickerContent.currentFilter === "Todos"
+                            toggled: pickerContent.currentFilter === "All"
                             colBackground: toggled ? Appearance.m3colors.m3primary : Appearance.colors.colLayer1
-                            onClicked: pickerContent.currentFilter = "Todos"
+                            onClicked: { pickerContent.currentFilter = "All"; view.forceActiveFocus(); }
 
                             StyledText {
                                 anchors.centerIn: parent
-                                text: "Todos"
+                                text: "All"
                                 font.pixelSize: Appearance.font.pixelSize.small
                                 font.weight: Font.DemiBold
                                 color: parent.toggled ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
@@ -600,13 +736,13 @@ Variants {
                             implicitWidth: 64 * Appearance.effectiveScale
                             implicitHeight: 36 * Appearance.effectiveScale
                             buttonRadius: 18 * Appearance.effectiveScale
-                            toggled: pickerContent.currentFilter === "Fijos"
+                            toggled: pickerContent.currentFilter === "Static"
                             colBackground: toggled ? Appearance.m3colors.m3primary : Appearance.colors.colLayer1
-                            onClicked: pickerContent.currentFilter = "Fijos"
+                            onClicked: { pickerContent.currentFilter = "Static"; view.forceActiveFocus(); }
 
                             StyledText {
                                 anchors.centerIn: parent
-                                text: "Fijos"
+                                text: "Static"
                                 font.pixelSize: Appearance.font.pixelSize.small
                                 font.weight: Font.DemiBold
                                 color: parent.toggled ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
@@ -619,7 +755,7 @@ Variants {
                             buttonRadius: 18 * Appearance.effectiveScale
                             toggled: pickerContent.currentFilter === "Live"
                             colBackground: toggled ? Appearance.m3colors.m3primary : Appearance.colors.colLayer1
-                            onClicked: pickerContent.currentFilter = "Live"
+                            onClicked: { pickerContent.currentFilter = "Live"; view.forceActiveFocus(); }
 
                             StyledText {
                                 anchors.centerIn: parent
@@ -660,6 +796,18 @@ Variants {
                                     font.family: Appearance.font.family.main
                                     clip: true
                                     onTextChanged: pickerContent.searchQuery = text
+                                    onAccepted: view.forceActiveFocus()
+                                    Keys.onReturnPressed: (event) => { view.forceActiveFocus(); event.accepted = true; }
+                                    Keys.onEnterPressed: (event) => { view.forceActiveFocus(); event.accepted = true; }
+
+                                    StyledText {
+                                        anchors.fill: parent
+                                        text: "Search..."
+                                        color: Appearance.colors.colSubtext
+                                        font.pixelSize: Appearance.font.pixelSize.normal
+                                        font.family: Appearance.font.family.main
+                                        visible: !searchInput.text && !searchInput.activeFocus
+                                    }
                                 }
 
                                 RippleButton {
@@ -699,11 +847,24 @@ Variants {
                     }
                 }
 
+                Connections {
+                    target: WallpaperEngineService
+                    function onLoadingChanged() {
+                        if (!WallpaperEngineService.loading) {
+                            pickerContent.syncLocalModel();
+                        }
+                    }
+                }
+
                 Component.onCompleted: {
                     Wallpapers.refreshRecursiveWallpapers();
+                    if (WallpaperEngineService.results.count === 0 && !WallpaperEngineService.loading) {
+                        WallpaperEngineService.fetch();
+                    }
                     pickerContent.syncLocalModel();
                     pickerContent.loadMonitors();
                     view.forceActiveFocus();
+                    Qt.callLater(pickerContent.selectCurrentWallpaper);
                 }
             }
         }

@@ -8,6 +8,7 @@ import "../core"
 Singleton {
     id: root
 
+    signal liveFadeRequested()
     property bool loading: false
     property string errorMessage: ""
     property bool isRunning: activeProcess.running
@@ -241,6 +242,7 @@ print(json.dumps(props))
         let cleanPath = folderPath.toString();
         if (cleanPath.startsWith("file://")) cleanPath = cleanPath.substring(7);
         
+        root.liveFadeRequested();
         root.isApplying = true; // Block auto-pause until screenshot ready
         stopInternal();
         
@@ -489,6 +491,7 @@ print(json.dumps(wallpapers))
     }
 
     function stop() {
+        root.liveFadeRequested();
         stopInternal();
         if (Config.ready) {
             Config.options.appearance.background.liveWallpaperPath = "";

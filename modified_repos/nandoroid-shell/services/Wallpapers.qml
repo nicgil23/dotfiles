@@ -305,6 +305,9 @@ Singleton {
     }
 
     function select(path) {
+        if (WallpaperEngineService.active || WallpaperEngineService.isRunning) {
+            WallpaperEngineService.stop();
+        }
         const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString()
         Config.options.appearance.background.wallpaperPath = "file://" + cleanPath
         

@@ -632,8 +632,7 @@ Item {
                                 // --- Local Group (Standard Folders) ---
                                 Repeater {
                                     model: [
-                                        { icon: "wallpaper", name: "Wallpapers", path: Directories.home + "/Pictures/wallpapers" },
-                                        { icon: "download", name: "Downloads", path: Directories.pictures + "/wallpapers/downloads" }
+                                        { icon: "wallpaper", name: "Wallpapers", path: Directories.home + "/Pictures/wallpapers" }
                                     ]
                                     delegate: RippleButton {
                                         id: folderBtn
