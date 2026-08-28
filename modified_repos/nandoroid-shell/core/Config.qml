@@ -141,6 +141,7 @@ Singleton {
                     property bool autoCycleEnabled: false
                     property string autoCycleDirectory: Directories.home + "/Pictures/Wallpapers"
                     property int autoCycleInterval: 30 
+                    property bool autoCycleOnlyFavorites: false
                     property list<string> customFolders: []
                     property bool showCava: false
                     property real cavaOpacity: 0.15
@@ -396,6 +397,7 @@ Singleton {
                 property string islandStyle: "pill" 
                 property bool autoHide: false
                 property string trayStyle: "adaptive"
+                property bool trayMonochromeIcons: false
                 property bool showVolumeIndicator: true
                 property string volumeIndicatorMode: "mutedOnly"
             }

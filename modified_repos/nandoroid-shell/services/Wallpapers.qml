@@ -103,8 +103,8 @@ Singleton {
 
     function selectRandomFromDirectory(dirPath) {
         let cleanPath = dirPath.toString().startsWith("file://") ? dirPath.toString().substring(7) : dirPath.toString();
-        // Use a shell command to pick a random image file from the directory
-        const cmd = `find "${cleanPath}" -maxdepth 1 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.avif" \\) | shuf -n 1`;
+        // Use a shell command to pick a random image file recursively from the directory and subdirectories
+        const cmd = `find -L "${cleanPath}" -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.avif" \\) 2>/dev/null | shuf -n 1`;
         
         const proc = Quickshell.exec(["bash", "-c", cmd]);
         proc.finished.connect(() => {
@@ -586,33 +586,58 @@ Singleton {
         }
     }
 
-    // --- Local state for better reactivity ---
-    property bool _autoCycleEnabled: false
-    property string _autoCycleDirectory: ""
-    property int _autoCycleInterval: 30
+    // --- Local reactive state for autoCycle ---
+    readonly property bool _autoCycleEnabled: Config.ready && Config.options.appearance.background ? (Config.options.appearance.background.autoCycleEnabled ?? false) : false
+    readonly property string _autoCycleDirectory: Config.ready && Config.options.appearance.background ? (Config.options.appearance.background.autoCycleDirectory ?? "") : ""
+    readonly property int _autoCycleInterval: Config.ready && Config.options.appearance.background ? (Config.options.appearance.background.autoCycleInterval ?? 30) : 30
+    readonly property bool _autoCycleOnlyFavorites: Config.ready && Config.options.appearance.background ? (Config.options.appearance.background.autoCycleOnlyFavorites ?? false) : false
 
-    // Explicit setters for the UI to call directly
     function setAutoCycle(enabled) {
         if (!Config.ready) return;
         Config.options.appearance.background.autoCycleEnabled = enabled;
-        _autoCycleEnabled = enabled;
         if (enabled) {
-            autoCycleStartTimer.restart();
-        } else {
-            root.autoCyclePending = false;
+            autoCycleTimer.restart();
+            root.nextWallpaper();
         }
     }
 
     function setAutoCycleDirectory(dir) {
         if (!Config.ready) return;
         Config.options.appearance.background.autoCycleDirectory = dir;
-        _autoCycleDirectory = dir;
+        if (_autoCycleEnabled) {
+            autoCycleTimer.restart();
+            root.nextWallpaper();
+        }
     }
 
     function setAutoCycleInterval(interval) {
         if (!Config.ready) return;
         Config.options.appearance.background.autoCycleInterval = interval;
-        _autoCycleInterval = interval;
+        if (_autoCycleEnabled) {
+            autoCycleTimer.restart();
+        }
+    }
+
+    function setAutoCycleOnlyFavorites(onlyFavs) {
+        if (!Config.ready) return;
+        Config.options.appearance.background.autoCycleOnlyFavorites = onlyFavs;
+        if (_autoCycleEnabled) {
+            autoCycleTimer.restart();
+            root.nextWallpaper();
+        }
+    }
+
+    on_AutoCycleIntervalChanged: {
+        if (autoCycleTimer.running) {
+            autoCycleTimer.restart();
+        }
+    }
+
+    on_AutoCycleEnabledChanged: {
+        if (_autoCycleEnabled) {
+            autoCycleTimer.restart();
+            root.nextWallpaper();
+        }
     }
 
     function syncSettings() {
@@ -822,26 +847,44 @@ Singleton {
         if (!Config.ready) return;
         if (!root._autoCycleEnabled) return;
 
-        const count = model.count;
-        if (count <= 0) {
-            root.autoCyclePending = true;
-            return;
+        // 1. Rotate only favorites if option is enabled
+        if (root._autoCycleOnlyFavorites) {
+            const success = root.selectRandomFavorite();
+            if (success) return;
         }
 
-        let index = Math.floor(Math.random() * count);
-        let newPath = model.get(index, "fileUrl");
+        // 2. Directory-based recursive rotation
+        let targetDir = root._autoCycleDirectory;
+        let cleanPath = (targetDir && targetDir !== "") ? (targetDir.toString().startsWith("file://") ? targetDir.toString().substring(7) : targetDir.toString()) : "";
 
-        if (!newPath) {
-            root.autoCyclePending = true;
-            return;
-        }
+        const cmd = `
+            WP_DIR="${cleanPath}"
+            if [ -z "$WP_DIR" ] || [ ! -d "$WP_DIR" ]; then
+                if [ -d "$HOME/Pictures/wallpapers" ]; then
+                    WP_DIR="$HOME/Pictures/wallpapers"
+                elif [ -d "$HOME/Pictures/Wallpapers" ]; then
+                    WP_DIR="$HOME/Pictures/Wallpapers"
+                fi
+            fi
+            if [ -n "$WP_DIR" ] && [ -d "$WP_DIR" ]; then
+                find -L "$WP_DIR" -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.avif" \\) 2>/dev/null | shuf -n 5
+            fi
+        `;
 
-
-        if (newPath.toString() === Config.options.appearance.background.wallpaperPath.toString() && count > 1) {
-            index = (index + 1) % count;
-            newPath = model.get(index, "fileUrl");
-        }
-
-        root.select(newPath);
+        const proc = Quickshell.exec(["bash", "-c", cmd]);
+        proc.finished.connect(() => {
+            const output = proc.stdout.readAll().trim();
+            if (output !== "") {
+                const lines = output.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+                if (lines.length > 0) {
+                    const currentWP = Config.options.appearance.background.wallpaperPath.toString().replace("file://", "");
+                    let picked = lines[0];
+                    if (picked.toLowerCase() === currentWP.toLowerCase() && lines.length > 1) {
+                        picked = lines[1];
+                    }
+                    root.select(picked);
+                }
+            }
+        });
     }
 }

@@ -26,6 +26,8 @@ MouseArea {
     implicitWidth: 16 * Appearance.effectiveScale
     implicitHeight: 16 * Appearance.effectiveScale
 
+    readonly property bool monochromeEnabled: Config.ready && Config.options.statusBar ? (Config.options.statusBar.trayMonochromeIcons ?? false) : false
+
     onPressed: (event) => {
         if (event.button === Qt.LeftButton) {
             item.activate();
@@ -47,7 +49,7 @@ MouseArea {
         IconImage {
             id: trayIcon
             source: (root.item && root.item.icon) ? root.item.icon : ""
-            visible: source !== ""
+            visible: source !== "" && !root.monochromeEnabled
             anchors.centerIn: parent
             // Keep original 16x16 size
             width: 16 * Appearance.effectiveScale
@@ -56,7 +58,7 @@ MouseArea {
             
             // Apply a solid dark outline (stroke) only when status bar text is dark (light wallpaper)
             // This prevents "ugly" white glows on dark wallpapers
-            layer.enabled: Appearance.colors.resolvedStatusBarDarkText
+            layer.enabled: !root.monochromeEnabled && Appearance.colors.resolvedStatusBarDarkText
             layer.effect: DropShadow {
                 transparentBorder: true
                 horizontalOffset: 0
@@ -66,6 +68,27 @@ MouseArea {
                 spread: 0.6
                 color: Functions.ColorUtils.applyAlpha("#000000", 0.7)
                 cached: true
+            }
+        }
+
+        Item {
+            anchors.fill: parent
+            visible: root.monochromeEnabled && (root.item && root.item.icon !== "" && root.item.icon !== undefined)
+
+            IconImage {
+                id: monoMask
+                source: (root.item && root.item.icon) ? root.item.icon : ""
+                anchors.centerIn: parent
+                width: 16 * Appearance.effectiveScale
+                height: 16 * Appearance.effectiveScale
+                visible: false
+                asynchronous: true
+            }
+
+            Desaturate {
+                anchors.fill: parent
+                source: monoMask
+                desaturation: 1.0
             }
         }
     }

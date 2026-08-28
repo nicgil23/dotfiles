@@ -118,7 +118,7 @@ ColumnLayout {
         orientation: Qt.Vertical
         maxRadius: 20 * Appearance.effectiveScale
         color: Appearance.m3colors.m3surfaceContainerHigh
-        visible: Config.ready && Config.options.appearance.background.autoCycleEnabled
+        visible: Config.ready && Config.options.appearance.background.autoCycleEnabled && !(Config.options.appearance.background.autoCycleOnlyFavorites ?? false)
         RowLayout {
             id: directoryRow
             anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
@@ -151,6 +151,36 @@ ColumnLayout {
                 colBackground: Appearance.colors.colPrimary
                 color: Appearance.colors.colOnPrimary
                 onClicked: folderPickerProc.running = true
+            }
+        }
+    }
+
+    // ── Rotate Only Favorites ──
+    SegmentedWrapper {
+        Layout.fillWidth: true
+        implicitHeight: favoritesRow.implicitHeight + (36 * Appearance.effectiveScale)
+        orientation: Qt.Vertical
+        maxRadius: 20 * Appearance.effectiveScale
+        color: Appearance.m3colors.m3surfaceContainerHigh
+        visible: Config.ready && Config.options.appearance.background.autoCycleEnabled
+        RowLayout {
+            id: favoritesRow
+            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+            spacing: 20 * Appearance.effectiveScale
+            RowLayout {
+                spacing: 16 * Appearance.effectiveScale
+                Layout.preferredWidth: 70 * Appearance.effectiveScale
+                MaterialSymbol { text: "star"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                StyledText { 
+                    text: "Rotate only favorites"
+                    Layout.fillWidth: true
+                    color: Appearance.colors.colOnLayer1 
+                }
+            }
+            Item { Layout.fillWidth: true }
+            AndroidToggle {
+                checked: Config.ready && (Config.options.appearance.background.autoCycleOnlyFavorites ?? false)
+                onToggled: Wallpapers.setAutoCycleOnlyFavorites(!checked)
             }
         }
     }

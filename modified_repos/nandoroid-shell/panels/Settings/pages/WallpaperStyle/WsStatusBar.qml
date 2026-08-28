@@ -1313,6 +1313,27 @@ ColumnLayout {
                         }
                     }
 
+                    // ── Monochrome Tray Icons ──
+                    SegmentedWrapper {
+                        Layout.fillWidth: true
+                        implicitHeight: monochromeTrayRow.implicitHeight + (32 * Appearance.effectiveScale)
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+                        RowLayout {
+                            id: monochromeTrayRow
+                            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 16 * Appearance.effectiveScale
+                            MaterialSymbol { text: "palette"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { text: "Monochrome tray icons"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            AndroidToggle {
+                                checked: Config.ready && Config.options.statusBar ? (Config.options.statusBar.trayMonochromeIcons ?? false) : false
+                                onToggled: if (Config.ready && Config.options.statusBar)
+                                    Config.options.statusBar.trayMonochromeIcons = !Config.options.statusBar.trayMonochromeIcons
+                            }
+                        }
+                    }
+
                     // ── Volume Indicator ──
                     SegmentedWrapper {
                         Layout.fillWidth: true
