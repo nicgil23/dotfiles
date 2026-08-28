@@ -16,6 +16,7 @@ alsa-topology-conf
 alsa-ucm-conf
 amd-ucode
 amf-headers
+anki
 aom
 apache-orc
 appstream
@@ -68,6 +69,7 @@ bluez-utils
 boost
 boost-libs
 borg
+botan
 breeze-icons
 brightnessctl
 brotli
@@ -114,18 +116,17 @@ crun
 crypto++
 cryptsetup
 curl
-dart
 dart-sass
 dav1d
 db5.3
 dbus
 dbus-broker
 dbus-broker-units
-dbus-glib
 dbus-units
 dconf
 debugedit
 default-cursors
+deno
 desktop-file-utils
 device-mapper
 dgop
@@ -160,7 +161,6 @@ fastfetch
 fd
 ffcall
 ffmpeg
-ffmpeg4.4
 ffnvcodec-headers
 fftw
 file
@@ -528,7 +528,6 @@ libmanette
 libmatroska
 libmbim
 libmd
-libmfx
 libmgba
 libmicrodns
 libmicrohttpd
@@ -779,6 +778,7 @@ mtdev
 mujs
 muparser
 mupdf
+namcap
 nasm
 nautilus
 ncurses
@@ -819,6 +819,7 @@ oniguruma
 openal
 opencc
 opencl-headers
+opencode
 opencolorio
 openconnect
 opencore-amr
@@ -874,6 +875,7 @@ pipewire-pulse
 pipewire-session-manager
 pixman
 pkgconf
+pkgfile
 playerctl
 pnpm
 podman
@@ -896,6 +898,7 @@ protobuf-c
 prrte
 psmisc
 pugixml
+pyalpm
 pybind11
 pystring
 python
@@ -912,6 +915,7 @@ python-apsw
 python-argcomplete
 python-argon2-cffi
 python-argon2-cffi-bindings
+python-asgi-lifespan
 python-astor
 python-asttokens
 python-astunparse
@@ -924,6 +928,7 @@ python-beautifulsoup4
 python-black
 python-bleach
 python-blinker
+python-boolean.py
 python-boto3
 python-botocore
 python-brotli
@@ -977,6 +982,7 @@ python-filelock
 python-filetype
 python-findpython
 python-flask
+python-flask-cors
 python-flatbuffers
 python-fonttools
 python-frozenlist
@@ -1000,6 +1006,7 @@ python-html5-parser
 python-html5lib
 python-httpcore
 python-httpx
+python-httpx-sse
 python-huggingface-hub
 python-hyperframe
 python-hypothesis
@@ -1042,6 +1049,7 @@ python-keyring
 python-kiwisolver
 python-lark-parser
 python-lazy-loader
+python-license-expression
 python-llvmlite
 python-lxml
 python-lxml-html-clean
@@ -1052,6 +1060,7 @@ python-markupsafe
 python-matplotlib
 python-matplotlib-inline
 python-maturin
+python-mcp
 python-mdit_py_plugins
 python-mdurl
 python-mechanize
@@ -1096,7 +1105,6 @@ python-pexpect
 python-pillow
 python-pip
 python-pipx
-python-pkg_resources
 python-pkginfo
 python-platformdirs
 python-plotly
@@ -1116,7 +1124,6 @@ python-protobuf
 python-psutil
 python-ptyprocess
 python-pure-eval
-python-py-cpuinfo
 python-py7zr
 python-pyaes
 python-pyarrow
@@ -1132,6 +1139,7 @@ python-pydantic-extra-types
 python-pydantic-settings
 python-pydot
 python-pydub
+python-pyelftools
 python-pyfuse3
 python-pygments
 python-pyinotify
@@ -1150,6 +1158,7 @@ python-pyqt6
 python-pyqt6-sip
 python-pyqt6-webengine
 python-pysdl3
+python-pysocks
 python-pytest
 python-pytest-asyncio
 python-pytest-examples
@@ -1197,6 +1206,7 @@ python-six
 python-sniffio
 python-sortedcontainers
 python-soupsieve
+python-sse-starlette
 python-stack-data
 python-starlette
 python-sympy
@@ -1226,8 +1236,10 @@ python-urllib3
 python-urwid
 python-userpath
 python-uv-build
+python-uv-dynamic-versioning
 python-vcs-versioning
 python-virtualenv
+python-waitress
 python-watchdog
 python-wcwidth
 python-webencodings
@@ -1529,9 +1541,12 @@ xosd
 xvidcore
 xxhash
 xz
+yabridge
 yajl
 yaml-cpp
 yazi
+yt-dlp
+yt-dlp-ejs
 yyjson
 zathura
 zathura-cb
