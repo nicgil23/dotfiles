@@ -1700,11 +1700,13 @@ Item {
                             colText: Appearance.m3colors.m3onError
                             onClicked: {
                                 if (mainSelector.fileToDeletePath !== "") {
-                                    if (Wallpapers.isFavorite(mainSelector.fileToDeletePath)) {
-                                        Wallpapers.toggleFavorite(mainSelector.fileToDeletePath);
+                                    let rawPath = mainSelector.fileToDeletePath;
+                                    let cleanPath = rawPath.toString().startsWith("file://") ? rawPath.toString().substring(7) : rawPath.toString();
+                                    if (Wallpapers.isFavorite(cleanPath)) {
+                                        Wallpapers.toggleFavorite(cleanPath);
                                     }
-                                    Quickshell.execDetached(["rm", "-f", mainSelector.fileToDeletePath]);
-                                    Wallpapers.notifyFileDeleted(mainSelector.fileToDeletePath);
+                                    Quickshell.execDetached(["rm", "-f", cleanPath]);
+                                    Wallpapers.notifyFileDeleted(cleanPath);
                                     
                                     const iconPath = Quickshell.shellPath("assets/icons/NAnDoroid.svg");
                                     Quickshell.execDetached([

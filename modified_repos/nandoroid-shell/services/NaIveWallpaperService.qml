@@ -17,7 +17,8 @@ Singleton {
     property bool loading: false
     property string errorMessage: ""
     
-    readonly property string baseUrl: "https://na-ive.github.io/wallpapers/"
+    readonly property string baseUrl: "https://raw.githubusercontent.com/na-ive/wallpapers/main/"
+    readonly property string previewBaseUrl: "https://raw.githubusercontent.com/na-ive/wallpapers/gh-pages/"
     readonly property string jsonUrl: "https://raw.githubusercontent.com/na-ive/wallpapers/gh-pages/wallpapers.json"
 
     ListModel {
@@ -49,7 +50,7 @@ Singleton {
                                 "id": item.wallhaven_id || item.filename.split('.')[0],
                                 "wallhaven_id": item.wallhaven_id || "",
                                 "filename": item.filename,
-                                "preview": root.baseUrl + item.thumbnail,
+                                "preview": root.previewBaseUrl + (item.preview || item.thumbnail),
                                 "full": root.baseUrl + item.filename,
                                 "color": item.color || "#000000",
                                 "is_naive": true
@@ -82,9 +83,9 @@ Singleton {
 
         Quickshell.execDetached(["mkdir", "-p", root.wallpaperDir]);
 
-        // Check if file exists
+        // Check if file exists and is a valid image (not 0 bytes or HTML)
         const checkProc = createProcess.createObject(null, {
-            command: ["sh", "-c", 'if [ -f "$1" ]; then exit 0; else exit 1; fi', "sh", fullPath]
+            command: ["sh", "-c", 'if [ -f "$1" ] && file "$1" | grep -iqE "image|bitmap"; then exit 0; else rm -f "$1"; exit 1; fi', "sh", fullPath]
         });
         
         checkProc.exited.connect((exitCode) => {
@@ -104,7 +105,7 @@ Singleton {
                 checkProc.destroy();
                 if (apply) {
                     const p = createProcess.createObject(null, {
-                        command: ["sh", "-c", 'curl -L "$1" -o "$2"', "sh", url, fullPath]
+                        command: ["sh", "-c", 'curl -s -L "$1" -o "$2" && file "$2" | grep -iqE "image|bitmap"', "sh", url, fullPath]
                     });
                     p.exited.connect((exitCode) => {
                         if (exitCode === 0) {
@@ -115,6 +116,7 @@ Singleton {
                             }
                             root.sendNotification("Na-ive Wallpapers", "Wallpaper applied successfully!");
                         } else {
+                            Quickshell.execDetached(["rm", "-f", fullPath]);
                             root.sendNotification("Na-ive Wallpapers", "Download failed.");
                         }
                         p.destroy();
@@ -123,7 +125,7 @@ Singleton {
                 } else {
                     Quickshell.execDetached([
                         "sh", "-c", 
-                        'curl -L "$1" -o "$2" && notify-send -a "NAnDoroid" -i "$3" -- "Na-ive Wallpapers" "Downloaded: $4"',
+                        'curl -s -L "$1" -o "$2" && file "$2" | grep -iqE "image|bitmap" && notify-send -a "NAnDoroid" -i "$3" -- "Na-ive Wallpapers" "Downloaded: $4" || (rm -f "$2" && notify-send -a "NAnDoroid" -i "$3" -- "Na-ive Wallpapers" "Download failed.")',
                         "sh", url, fullPath, root.nandoroidIcon, filename
                     ]);
                 }

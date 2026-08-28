@@ -428,14 +428,30 @@ Variants {
                     function onRecursiveWallpapersChanged() { pickerContent.syncLocalModel(); }
                 }
 
+                Connections {
+                    target: WallpaperEngineService
+                    function onLoadingChanged() {
+                        if (!WallpaperEngineService.loading) {
+                            pickerContent.syncLocalModel();
+                        }
+                    }
+                }
+
+                Timer {
+                    id: selectCurrentTimer
+                    interval: 80
+                    repeat: false
+                    onTriggered: pickerContent.selectCurrentWallpaper()
+                }
+
                 onVisibleChanged: {
                     if (visible) {
                         Wallpapers.refreshRecursiveWallpapers();
-                        if (Config.options.appearance.background.liveWallpaperPath !== "" && WallpaperEngineService.results.count === 0 && !WallpaperEngineService.loading) {
+                        if (WallpaperEngineService.results.count === 0 && !WallpaperEngineService.loading) {
                             WallpaperEngineService.fetch();
                         }
                         syncLocalModel();
-                        Qt.callLater(pickerContent.selectCurrentWallpaper);
+                        selectCurrentTimer.restart();
                     }
                 }
 
@@ -445,7 +461,7 @@ Variants {
                 function selectCurrentWallpaper() {
                     let livePath = Config.ready ? Config.options.appearance.background.liveWallpaperPath : "";
                     let currentRaw = (livePath && livePath !== "") ? livePath : Config.options.appearance.background.wallpaperPath;
-                    let currentPath = Functions.FileUtils.trimFileProtocol(currentRaw);
+                    let currentPath = decodeURIComponent(Functions.FileUtils.trimFileProtocol(currentRaw));
                     if (!currentPath || currentPath === "") return;
 
                     currentPath = currentPath.replace(/\/+/g, "/").replace(/\/+$/, "");
@@ -460,7 +476,7 @@ Variants {
                         let item = model.get(i);
                         let itemRaw = item.fullPath ? item.fullPath : item.fileUrl;
                         if (itemRaw) {
-                            let itemPath = Functions.FileUtils.trimFileProtocol(itemRaw).replace(/\/+/g, "/").replace(/\/+$/, "");
+                            let itemPath = decodeURIComponent(Functions.FileUtils.trimFileProtocol(itemRaw)).replace(/\/+/g, "/").replace(/\/+$/, "");
                             if (itemPath === currentPath || (currentFolderId && (itemPath.endsWith("/" + currentFolderId) || itemPath === currentFolderId))) {
                                 targetIndex = i;
                                 break;
@@ -473,8 +489,12 @@ Variants {
                     }
 
                     if (targetIndex >= 0 && targetIndex < model.count) {
+                        let origDuration = view.highlightMoveDuration;
+                        view.highlightMoveDuration = 0;
                         view.currentIndex = targetIndex;
-                        view.positionViewAtIndex(targetIndex, ListView.Beginning);
+                        Qt.callLater(() => {
+                            if (view) view.highlightMoveDuration = origDuration;
+                        });
                     }
                 }
 
@@ -539,7 +559,7 @@ Variants {
                     if (batch.length > 0) {
                         localProxyModel.append(batch);
                     }
-                    Qt.callLater(pickerContent.selectCurrentWallpaper);
+                    selectCurrentTimer.restart();
                 }
 
                 FolderListModel {

@@ -49,6 +49,10 @@ Singleton {
         recursiveScanProc.running = true;
     }
 
+    function notifyFileDeleted(path) {
+        refreshRecursiveWallpapers();
+    }
+
     function isFavorite(path) {
         const cleanPath = path.toString().startsWith("file://") ? path.toString().substring(7) : path.toString();
         // Case-insensitive check for favorites
