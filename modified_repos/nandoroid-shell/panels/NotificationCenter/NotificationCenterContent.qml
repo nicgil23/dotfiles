@@ -59,7 +59,6 @@ Item {
             left: parent.left
             right: parent.right
             top: parent.top
-            bottom: parent.bottom
             margins: 12 * Appearance.effectiveScale
         }
         spacing: 12 * Appearance.effectiveScale
@@ -85,9 +84,9 @@ Item {
         // ── Notification Island ──
         Rectangle {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.maximumHeight: Appearance.sizes.notificationIslandMaxHeight
-            Layout.minimumHeight: 180 * Appearance.effectiveScale
+            Layout.preferredHeight: Math.min(Layout.maximumHeight, Math.max(Layout.minimumHeight, islandColumn.implicitHeight + (24 * Appearance.effectiveScale)))
+            Layout.maximumHeight: Math.max(580 * Appearance.effectiveScale, Appearance.sizes.notificationIslandMaxHeight)
+            Layout.minimumHeight: 320 * Appearance.effectiveScale
             
             color: Appearance.colors.colLayer1
             radius: Appearance.rounding.large

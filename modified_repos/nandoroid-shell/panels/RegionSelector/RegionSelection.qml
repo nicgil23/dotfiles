@@ -44,6 +44,7 @@ PanelWindow {
     property int selectionMode: modeRect
     signal dismiss()
 
+    property string finalScreenshotPath: ""
     property string screenshotDir: Directories.screenshotTemp
     property color overlayColor: Qt.rgba(0, 0, 0, 0.4)
     property color selectionBorderColor: Appearance.colors.colPrimary
@@ -154,7 +155,7 @@ PanelWindow {
         id: cropProcess
         onExited: (exitCode, exitStatus) => {
             if (root.action === actionCopy || root.action === actionEdit) {
-                GlobalStates.screenshotTaken(root.screenshotPath);
+                GlobalStates.screenshotTaken(root.finalScreenshotPath);
             }
             root.dismiss();
         }
@@ -229,14 +230,13 @@ PanelWindow {
         }
 
         
-        const command = ScreenshotAction.getCommand(
+        const actionResult = ScreenshotAction.getCommand(
             root.regionX * root.monitorScale,
             root.regionY * root.monitorScale,
             root.regionWidth * root.monitorScale,
             root.regionHeight * root.monitorScale,
             root.screenshotPath,
-            actionEnum,
-            root.isRecording ? "" : (Config.options.screenshot.autoSave ? Config.options.screenshot.savePath : "temp")
+            actionEnum
         )
         
         root.visible = false; // Hide immediately
@@ -248,7 +248,8 @@ PanelWindow {
             ScreenRecord.active = true;
             ScreenRecord.geometry = root.action === actionRecordFullscreenWithSound ? "fullscreen" : `${rx},${ry} ${rw}x${rh}`;
         }
-        cropProcess.command = command.command;
+        root.finalScreenshotPath = actionResult.targetPath;
+        cropProcess.command = actionResult.command;
         cropProcess.running = true;
     }
 

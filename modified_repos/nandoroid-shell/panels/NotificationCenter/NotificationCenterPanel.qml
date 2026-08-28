@@ -67,7 +67,11 @@ Variants {
 
     NotificationCenterContent {
       id: ncContent
-      height: panelWindow.height
+      height: Math.min(panelWindow.height, ncContent.implicitHeight)
+
+      Behavior on height {
+        NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
+      }
 
       transform: Translate {
         id: ncSlide

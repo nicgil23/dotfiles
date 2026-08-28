@@ -80,11 +80,13 @@ Variants {
             if (validKeys.includes(sel)) {
                 currentShader = sel;
             } else {
-                var pool = (Config.ready && Config.options && Config.options.appearance && Config.options.appearance.background && Config.options.appearance.background.randomTransitionPool && Config.options.appearance.background.randomTransitionPool.length > 0)
+                var rawPool = (Config.ready && Config.options && Config.options.appearance && Config.options.appearance.background)
                     ? Config.options.appearance.background.randomTransitionPool
-                    : validKeys;
-                var picked = pool[Math.floor(Math.random() * pool.length)];
-                currentShader = validKeys.includes(picked) ? picked : "transition";
+                    : null;
+                var poolArr = (rawPool && rawPool.length > 0) ? Array.from(rawPool) : validKeys;
+                var validPool = poolArr.filter(function(k) { return validKeys.includes(k); });
+                if (validPool.length === 0) validPool = validKeys;
+                currentShader = validPool[Math.floor(Math.random() * validPool.length)];
             }
 
             transitionProgress = 0.0;
