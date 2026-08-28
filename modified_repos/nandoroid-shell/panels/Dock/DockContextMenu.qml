@@ -207,7 +207,7 @@ PanelWindow {
                 }
                 Rectangle { Layout.fillWidth: true; Layout.preferredHeight: Math.max(1, 1 * Appearance.effectiveScale); Layout.margins: 4 * Appearance.effectiveScale; color: Appearance.colors.colOutlineVariant; opacity: 0.1 }
                 MenuItem { menuText: "Lock Session"; menuIcon: "lock"; onClicked: { Session.lock(); root.close() } }
-                MenuItem { menuText: "Logout"; menuIcon: "logout"; onClicked: { Session.logout(); root.close() } }
+                MenuItem { menuText: "Reboot to UEFI"; menuIcon: "developer_board"; onClicked: { Session.rebootToFirmware(); root.close() } }
                 MenuItem { menuText: "Reboot"; menuIcon: "restart_alt"; onClicked: { Session.reboot(); root.close() } }
                 MenuItem { menuText: "Power Off"; menuIcon: "power_settings_new"; onClicked: { Session.poweroff(); root.close() } }
             }
@@ -230,8 +230,8 @@ PanelWindow {
                     anchors.fill: parent
                     visible: !itemRoot.isXdgIcon
                     text: itemRoot.menuIcon; iconSize: 18 * Appearance.effectiveScale
-                    fill: (itemRoot.menuIcon === "power_settings_new" || itemRoot.menuIcon === "logout" || itemRoot.menuIcon === "restart_alt") ? 1 : 0
-                    color: (itemRoot.menuIcon === "close" || itemRoot.menuIcon === "gavel" || itemRoot.menuIcon === "power_settings_new" || itemRoot.menuIcon === "logout" || itemRoot.menuIcon === "restart_alt") ? Appearance.colors.colError : Appearance.colors.colOnLayer0
+                    fill: (itemRoot.menuIcon === "power_settings_new" || itemRoot.menuIcon === "logout" || itemRoot.menuIcon === "restart_alt" || itemRoot.menuIcon === "developer_board") ? 1 : 0
+                    color: (itemRoot.menuIcon === "close" || itemRoot.menuIcon === "gavel" || itemRoot.menuIcon === "power_settings_new" || itemRoot.menuIcon === "logout" || itemRoot.menuIcon === "restart_alt" || itemRoot.menuIcon === "developer_board") ? Appearance.colors.colError : Appearance.colors.colOnLayer0
                 }
                 IconImage {
                     anchors.fill: parent
@@ -241,7 +241,7 @@ PanelWindow {
             }
             StyledText {
                 text: itemRoot.menuText; font.pixelSize: Appearance.font.pixelSize.small
-                color: (itemRoot.menuIcon === "close" || itemRoot.menuIcon === "gavel" || itemRoot.menuIcon === "power_settings_new" || itemRoot.menuIcon === "logout" || itemRoot.menuIcon === "restart_alt") ? Appearance.colors.colError : Appearance.colors.colOnLayer0
+                color: (itemRoot.menuIcon === "close" || itemRoot.menuIcon === "gavel" || itemRoot.menuIcon === "power_settings_new" || itemRoot.menuIcon === "logout" || itemRoot.menuIcon === "restart_alt" || itemRoot.menuIcon === "developer_board") ? Appearance.colors.colError : Appearance.colors.colOnLayer0
                 Layout.fillWidth: true
             }
         }

@@ -14,7 +14,7 @@ Item {
     readonly property var actions: [
         { icon: "lock",                text: "Lock",     exec: function() { Session.lock(); GlobalStates.sessionOpen = false; } },
         { icon: "bedtime",             text: "Sleep",    exec: function() { Session.suspend(); GlobalStates.sessionOpen = false; } },
-        { icon: "logout",              text: "Logout",   exec: function() { Session.logout(); GlobalStates.sessionOpen = false; } },
+        { icon: "developer_board",     text: "UEFI",     exec: function() { Session.rebootToFirmware(); GlobalStates.sessionOpen = false; } },
         { icon: "power_settings_new",  text: "Shutdown", exec: function() { Session.poweroff(); GlobalStates.sessionOpen = false; } },
         { icon: "restart_alt",         text: "Reboot",   exec: function() { Session.reboot(); GlobalStates.sessionOpen = false; } }
     ]
