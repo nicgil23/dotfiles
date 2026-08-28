@@ -7,7 +7,7 @@ Loader {
     active: visible
 
     property list<int> points: CavaService.values
-    property real maxVisualizerValue: 1000
+    property real maxVisualizerValue: 100
     property int smoothing: 3
     property color color: Appearance.colors.colPrimary
     property real opacityMultiplier: 0.25

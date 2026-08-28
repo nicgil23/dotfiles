@@ -59,7 +59,7 @@ ColumnLayout {
                     StyledText { text: "Show on desktop"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
                     AndroidToggle {
                         checked: Config.ready && Config.options.appearance.background.showCava
-                        onToggled: if(Config.ready) Config.options.appearance.background.showCava = !checked
+                        onToggled: if(Config.ready) Config.options.appearance.background.showCava = !Config.options.appearance.background.showCava
                     }
                 }
             }
@@ -112,7 +112,7 @@ ColumnLayout {
                     StyledText { text: "Show on lock screen"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
                     AndroidToggle {
                         checked: Config.ready && Config.options.lock.showCava
-                        onToggled: if(Config.ready) Config.options.lock.showCava = !checked
+                        onToggled: if(Config.ready) Config.options.lock.showCava = !Config.options.lock.showCava
                     }
                 }
             }

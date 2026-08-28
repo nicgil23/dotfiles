@@ -114,6 +114,26 @@ ColumnLayout {
                         }
                     }
 
+                    // ── Show Clock on Lockscreen ──────────────
+                    SegmentedWrapper {
+                        Layout.fillWidth: true
+                        implicitHeight: showLockscreenClockRow.implicitHeight + (32 * Appearance.effectiveScale)
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+                        RowLayout {
+                            id: showLockscreenClockRow
+                            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 16 * Appearance.effectiveScale
+                            MaterialSymbol { text: "schedule"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { text: "Show clock on lockscreen"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            AndroidToggle {
+                                checked: Config.ready && (Config.options.lock?.showClock ?? true)
+                                onToggled: if(Config.ready) Config.options.lock.showClock = !Config.options.lock.showClock
+                            }
+                        }
+                    }
+
                     // ── Show Date ──────────────
                     SegmentedWrapper {
                         Layout.fillWidth: true
@@ -150,6 +170,46 @@ ColumnLayout {
                             AndroidToggle {
                                 checked: Config.ready && Config.options.lock.showMediaCard
                                 onToggled: if(Config.ready) Config.options.lock.showMediaCard = !Config.options.lock.showMediaCard
+                            }
+                        }
+                    }
+
+                    // ── Show Wave Visualizer (Cava) ──────────────
+                    SegmentedWrapper {
+                        Layout.fillWidth: true
+                        implicitHeight: showCavaRow.implicitHeight + (32 * Appearance.effectiveScale)
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+                        RowLayout {
+                            id: showCavaRow
+                            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 16 * Appearance.effectiveScale
+                            MaterialSymbol { text: "graphic_eq"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { text: "Show Audio Visualizer (Cava)"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            AndroidToggle {
+                                checked: Config.ready && Config.options.lock.showCava
+                                onToggled: if(Config.ready) Config.options.lock.showCava = !Config.options.lock.showCava
+                            }
+                        }
+                    }
+
+                    // ── Show Foreground Masking Button ──────────────
+                    SegmentedWrapper {
+                        Layout.fillWidth: true
+                        implicitHeight: showFgMaskRow.implicitHeight + (32 * Appearance.effectiveScale)
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+                        RowLayout {
+                            id: showFgMaskRow
+                            anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 16 * Appearance.effectiveScale
+                            MaterialSymbol { text: "auto_fix_high"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { text: "Show Foreground Masking Button"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            AndroidToggle {
+                                checked: Config.ready && Config.options.lock.showForegroundIsolationButton
+                                onToggled: if(Config.ready) Config.options.lock.showForegroundIsolationButton = !Config.options.lock.showForegroundIsolationButton
                             }
                         }
                     }

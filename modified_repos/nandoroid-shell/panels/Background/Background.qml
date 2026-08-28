@@ -50,7 +50,8 @@ Variants {
         readonly property string lockPath: Config.options.lock.useSeparateWallpaper && Config.options.lock.wallpaperPath ? Config.options.lock.wallpaperPath : ""
         property string currentPath: GlobalStates.screenLocked && lockPath ? lockPath : desktopPath
         
-        property var shaderList: ["circlePit", "circleSelect", "magic", "Doom", "Peel", "transition", "pixelate", "stripes"]
+        readonly property string selectedTransition: (Config.ready && Config.options && Config.options.appearance && Config.options.appearance.background && Config.options.appearance.background.transition) ? Config.options.appearance.background.transition : "random"
+        property var shaderList: ["circlePit", "circleSelect", "magic", "Doom", "Peel", "transition", "pixelate", "stripes", "circle"]
         property string currentShader: "pixelate"
         property real transitionProgress: 1.0
 
@@ -72,7 +73,19 @@ Variants {
             // is available when the shader starts rendering on next frame
             previousWallpaper.source = wallpaper.source;
             wallpaper.source = currentPath;
-            currentShader = shaderList[Math.floor(Math.random() * shaderList.length)];
+
+            var sel = bgRoot.selectedTransition;
+            var validKeys = ["Doom", "Peel", "circle", "circlePit", "circleSelect", "magic", "pixelate", "stripes", "transition", "sweep", "expand"];
+            
+            if (validKeys.includes(sel)) {
+                currentShader = sel;
+            } else {
+                var pool = (Config.ready && Config.options && Config.options.appearance && Config.options.appearance.background && Config.options.appearance.background.randomTransitionPool && Config.options.appearance.background.randomTransitionPool.length > 0)
+                    ? Config.options.appearance.background.randomTransitionPool
+                    : validKeys;
+                var picked = pool[Math.floor(Math.random() * pool.length)];
+                currentShader = validKeys.includes(picked) ? picked : "transition";
+            }
 
             transitionProgress = 0.0;
             transitionAnim.restart();
@@ -100,17 +113,19 @@ Variants {
             opacity: WallpaperEngineService.active ? 0 : 1
             visible: opacity > 0
             
+            // Previous Wallpaper Image (Must be visible during transition so texture is captured)
             Image {
                 id: previousWallpaper
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectCrop
-                visible: false
+                visible: bgRoot.transitionProgress < 1.0
                 cache: true
                 smooth: true
                 asynchronous: false
                 layer.enabled: true
             }
 
+            // Target New Wallpaper Image (Shown when transition ends)
             Image {
                 id: wallpaper
                 anchors.fill: parent
@@ -123,10 +138,11 @@ Variants {
                 visible: bgRoot.transitionProgress >= 1.0
             }
             
+            // Shader Effect (Active for shader-based transitions)
             ShaderEffect {
                 id: transitionEffect
                 anchors.fill: parent
-                visible: bgRoot.transitionProgress < 1.0
+                visible: (bgRoot.currentShader !== "sweep" && bgRoot.currentShader !== "expand") && (bgRoot.transitionProgress < 1.0)
                 property var fromImage: previousWallpaper
                 property var toImage: wallpaper
                 property real progress: bgRoot.transitionProgress
@@ -135,6 +151,44 @@ Variants {
                 property vector2d aspectRatio: Qt.vector2d(aspectX, aspectY)
                 property vector2d origin: Qt.vector2d(0.5, 0.5)
                 fragmentShader: Qt.resolvedUrl(`shaders/${bgRoot.currentShader}.frag.qsb`)
+            }
+
+            // Real Horizontal Sweep (Left-to-Right Wipe)
+            Item {
+                id: sweepWipe
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                width: parent.width * bgRoot.transitionProgress
+                clip: true
+                visible: bgRoot.currentShader === "sweep" && bgRoot.transitionProgress < 1.0
+
+                Image {
+                    width: staticWallpaperContainer.width
+                    height: staticWallpaperContainer.height
+                    source: bgRoot.currentPath
+                    fillMode: Image.PreserveAspectCrop
+                    cache: true
+                    smooth: true
+                }
+            }
+
+            // Real Center Expand (Radial Expansion)
+            Item {
+                id: expandWipe
+                anchors.fill: parent
+                visible: bgRoot.currentShader === "expand" && bgRoot.transitionProgress < 1.0
+
+                Image {
+                    anchors.centerIn: parent
+                    width: staticWallpaperContainer.width * bgRoot.transitionProgress
+                    height: staticWallpaperContainer.height * bgRoot.transitionProgress
+                    source: bgRoot.currentPath
+                    fillMode: Image.PreserveAspectCrop
+                    cache: true
+                    smooth: true
+                    opacity: bgRoot.transitionProgress
+                }
             }
         }
 

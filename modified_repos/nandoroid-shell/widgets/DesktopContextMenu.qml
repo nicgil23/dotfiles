@@ -282,7 +282,7 @@ PanelWindow {
 
             MenuItem {
                 visible: root.activeConfigObject === null
-                menuText: "Wallpaper & style"
+                menuText: "Style"
                 menuIcon: "format_paint"
                 
                 HoverHandler {
@@ -445,11 +445,14 @@ PanelWindow {
         // Target calculation
         const screenWidth = root.screen.width;
         const screenHeight = root.screen.height;
-        const menuWidth = menuContainer.implicitWidth;
+        const isWidget = configObject !== null;
+        const menuWidth = isWidget 
+            ? Math.max(Appearance.sizes.contextMenuWidth, menuLayout.implicitWidth + (12 * Appearance.effectiveScale))
+            : (348 * Appearance.effectiveScale);
         const menuHeight = menuLayout.implicitHeight + (12 * Appearance.effectiveScale);
         
         // Constrain to screen
-        root.targetX = Math.min(root._mouseX, screenWidth - menuWidth - 10 * Appearance.effectiveScale);
+        root.targetX = Math.max(10 * Appearance.effectiveScale, Math.min(root._mouseX, screenWidth - menuWidth - 10 * Appearance.effectiveScale));
         if (root._mouseY + menuHeight > screenHeight - 10 * Appearance.effectiveScale) {
             root.targetY = root._mouseY - menuHeight;
         } else {

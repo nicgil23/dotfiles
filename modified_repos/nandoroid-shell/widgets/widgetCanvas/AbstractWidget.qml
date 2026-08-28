@@ -52,8 +52,8 @@ MouseArea {
     cursorShape: (draggable && containsPress) ? Qt.ClosedHandCursor : draggable ? Qt.SizeAllCursor : Qt.ArrowCursor
 
     onClicked: (mouse) => {
-        if (mouse.button === Qt.RightButton) {
-            let p = mapToGlobal(mouse.x, mouse.y);
+        if (mouse.button === Qt.RightButton || mouse.button === Qt.LeftButton) {
+            let p = mapToItem(null, mouse.x, mouse.y);
             requestContextMenu(p.x, p.y);
             mouse.accepted = true;
         }

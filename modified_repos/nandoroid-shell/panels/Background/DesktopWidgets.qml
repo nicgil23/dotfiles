@@ -122,8 +122,7 @@ Variants {
 
         // ── Desktop Visualizer State ──
         readonly property bool _showVisualizer: {
-            if (!Config.ready || !Config.options.appearance.background.showCava) return false;
-            return MprisController.isPlaying;
+            return Config.ready && Config.options.appearance.background.showCava;
         }
         property bool _cavaActive: false
         on_ShowVisualizerChanged: {

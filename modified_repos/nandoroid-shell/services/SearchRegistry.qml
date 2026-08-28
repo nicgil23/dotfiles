@@ -161,7 +161,7 @@ Item {
     }
 
     function getPageName(index) {
-        const names = ["Network", "Bluetooth", "Audio", "Display", "Wallpaper & Style", "Widgets", "System", "Services", "Profile", "About"]
+        const names = ["Network", "Bluetooth", "Audio", "Display", "Style", "Widgets", "System", "Services", "Profile", "About"]
         return names[index] || "Unknown"
     }
 

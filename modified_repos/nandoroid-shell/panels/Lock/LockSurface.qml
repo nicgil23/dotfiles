@@ -168,6 +168,77 @@ MouseArea {
         z: 0
     }
 
+    // ── Cava Service Ref Counting ──
+    property bool _cavaActive: false
+    readonly property bool shouldVisualize: root.visible && (Config.ready && Config.options.lock.showCava)
+    onShouldVisualizeChanged: {
+        if (shouldVisualize && !_cavaActive) {
+            CavaService.refCount++;
+            _cavaActive = true;
+        } else if (!shouldVisualize && _cavaActive) {
+            CavaService.refCount--;
+            _cavaActive = false;
+        }
+    }
+    Component.onDestruction: {
+        if (_cavaActive) CavaService.refCount--;
+    }
+
+    // ── Lockscreen Audio Visualizer (WaveVisualizer) ──
+    WaveVisualizer {
+        id: lockWave
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: parent.height * 0.4
+        z: -1
+        color: Appearance.colors.colPrimary
+        opacityMultiplier: (Config.ready && Config.options.lock) ? Config.options.lock.cavaOpacity : 0.15
+        opacity: root.shouldVisualize ? 1.0 : 0.0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.InOutQuad } }
+    }
+
+    // ── Lockscreen Clock & Weather Cluster ──
+    ColumnLayout {
+        id: lockClockCluster
+        anchors.top: lockStatusBarContainer.bottom
+        anchors.topMargin: 40 * Appearance.effectiveScale
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: 8 * Appearance.effectiveScale
+        z: 2
+
+        NandoClock {
+            id: lockClock
+            isLockscreen: true
+            visible: Config.ready && (Config.options.lock?.showClock ?? true)
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            visible: Config.ready && Config.options.lock.showWeather && Weather.current.temp !== ""
+            spacing: 6 * Appearance.effectiveScale
+
+            MaterialSymbol {
+                text: Weather.current.icon !== "" ? Weather.current.icon : "cloud"
+                iconSize: 18 * Appearance.effectiveScale
+                color: Appearance.colors.colPrimary
+            }
+            StyledText {
+                text: Weather.current.temp + "°  •  " + Weather.current.condition
+                font.pixelSize: 14 * Appearance.effectiveScale
+                font.weight: Font.Medium
+                color: {
+                    const mode = Config.ready && Config.options.lock.weather ? Config.options.lock.weather.textColorMode : "adaptive";
+                    if (mode === "dark") return "#1E1E1E";
+                    if (mode === "light") return "#F5F5F5";
+                    return Appearance.colors.colOnLayer1;
+                }
+            }
+        }
+    }
+
     // ── Foreground Isolation Toggle Button ──
     MouseArea {
         id: fgToggleButton
@@ -779,7 +850,7 @@ MouseArea {
         radius: Appearance.rounding.button
         z: 50 // Above wallpaper and characters, but below corners/status bar
         
-        visible: MprisController.activePlayer !== null
+        visible: (Config.ready && Config.options.lock.showMediaCard) && (MprisController.activePlayer !== null)
 
         // --- Style 1: Mini HUD ---
         RowLayout {

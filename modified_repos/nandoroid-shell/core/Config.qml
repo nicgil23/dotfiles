@@ -149,6 +149,7 @@ Singleton {
                     property int gridSpacing: 12
                     property bool showSnapLines: true
                     property string transition: "random"
+                    property list<string> randomTransitionPool: ["Doom", "Peel", "circle", "circlePit", "circleSelect", "magic", "pixelate", "stripes", "transition", "sweep", "expand"]
                 }
                 property JsonObject screenCorners: JsonObject {
                     property int mode: 1
@@ -519,8 +520,11 @@ Singleton {
                 property bool useSeparateWallpaper: false
                 property bool showCava: true
                 property real cavaOpacity: 0.15
+                property bool showClock: true
                 property bool showMediaCard: true
                 property bool showWeather: true
+                property bool showWidgets: false
+                property bool showAtAGlance: false
                 property JsonObject weather: JsonObject { property string textColorMode: "adaptive" }
                 property JsonObject security: JsonObject { property bool requirePasswordToPower: true }
                 property bool showForegroundIsolationButton: true

@@ -130,7 +130,7 @@ Rectangle {
                         { name: "Bluetooth", icon: "bluetooth" },
                         { name: "Audio", icon: "volume_up" },
                         { name: "Display", icon: "monitor" },
-                        { name: "Wallpaper & Style", icon: "palette" },
+                        { name: "Style", icon: "palette" },
                         { name: "Widgets", icon: "widgets" },
                         { name: "System", icon: "settings_applications" },
                         { name: "Services", icon: "cloud" },

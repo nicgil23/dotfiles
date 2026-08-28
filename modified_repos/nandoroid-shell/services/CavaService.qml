@@ -13,7 +13,7 @@ Singleton {
     property int barCount: Config.ready ? Config.options.appearance.background.cavaBars : 32
     property bool _internalRestart: true
     property int refCount: 0
-    property bool cavaAvailable: false
+    property bool cavaAvailable: true
     property bool pausedBySystem: false
 
     onRefCountChanged: {
@@ -64,18 +64,19 @@ Singleton {
 framerate=30
 bars=${root.barCount}
 autosens=1
-sensitivity=75
+sensitivity=100
 
 [output]
 method=raw
 raw_target=/dev/stdout
 data_format=ascii
+ascii_max_range=100
 channels=mono
 mono_option=average
 
 [smoothing]
-noise_reduction=35
-integral=80
+noise_reduction=30
+integral=75
 gravity=100
 ignore=0
 monstercat=1
