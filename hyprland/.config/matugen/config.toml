@@ -92,3 +92,9 @@ post_hook = "~/.config/quickshell/nandoroid/scripts/colors/apply_terminal_colors
 [templates.tauon]
 input_path = '~/.config/matugen/templates/tauon.ttheme'
 output_path = '~/.local/share/TauonMusicBox/theme/Matugen.ttheme'
+
+[templates.wvkbd]
+input_path = '~/.config/matugen/templates/wvkbd/wvkbd-theme.sh'
+output_path = '~/.config/wvkbd/wvkbd-theme.sh'
+
+

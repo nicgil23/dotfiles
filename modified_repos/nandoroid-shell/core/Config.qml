@@ -405,6 +405,7 @@ Singleton {
             // --- Quick Settings ---
             property JsonObject quickSettings: JsonObject {
                 property bool caffeineActive: false
+                property int caffeineMode: 0
                 property bool showBanner: false
                 property bool showPerformanceStats: true
                 property string quickActionsPosition: "top" 

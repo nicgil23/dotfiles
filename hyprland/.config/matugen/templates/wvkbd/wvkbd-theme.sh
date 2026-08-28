@@ -1,0 +1,10 @@
+# Matugen generated theme for wvkbd
+WVKBD_BG="{{colors.surface_container_lowest.default.hex_stripped}}"
+WVKBD_FG="{{colors.surface_container.default.hex_stripped}}"
+WVKBD_FG_SP="{{colors.secondary_container.default.hex_stripped}}"
+WVKBD_TEXT="{{colors.on_surface.default.hex_stripped}}"
+WVKBD_TEXT_SP="{{colors.on_secondary_container.default.hex_stripped}}"
+WVKBD_PRESS="{{colors.primary_container.default.hex_stripped}}"
+WVKBD_PRESS_SP="{{colors.primary.default.hex_stripped}}"
+WVKBD_SWIPE="{{colors.tertiary_container.default.hex_stripped}}"
+WVKBD_SWIPE_SP="{{colors.tertiary.default.hex_stripped}}"

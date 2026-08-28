@@ -36,6 +36,8 @@ Item {
     property bool showNightModePanel: false
     property bool showPowerProfilePanel: false
     property bool showWindowLayoutPanel: false
+    property bool showCaffeinePanel: false
+
 
     readonly property string currentLayout: GlobalStates.hyprlandLayout || "dwindle"
     readonly property string layoutIcon: {
@@ -148,14 +150,18 @@ Item {
             action: () => Wallpapers.toggleDarkMode()
         },
         "caffeine": {
-            name: "Keep Awake",
-            icon: "kettle",
+            name: Config.options.quickSettings.caffeineMode === 2 ? "AFK Mode" : "Keep Awake",
+            icon: Config.options.quickSettings.caffeineMode === 2 ? "visibility_off" : (Config.options.quickSettings.caffeineMode === 1 || Config.options.quickSettings.caffeineActive ? "kettle" : "coffee"),
             iconOff: "coffee",
-            toggled: Config.options.quickSettings.caffeineActive,
-            statusText: Config.options.quickSettings.caffeineActive ? "Active" : "Inactive",
+            toggled: Config.options.quickSettings.caffeineMode > 0 || Config.options.quickSettings.caffeineActive,
+            statusText: Config.options.quickSettings.caffeineMode === 2 ? "AFK (Screen OFF)" : (Config.options.quickSettings.caffeineMode === 1 || Config.options.quickSettings.caffeineActive ? "Awake (ON)" : "Inactive"),
             action: () => {
-                Config.options.quickSettings.caffeineActive = !Config.options.quickSettings.caffeineActive
-            }
+                let currentMode = Config.options.quickSettings.caffeineMode || (Config.options.quickSettings.caffeineActive ? 1 : 0);
+                let nextMode = currentMode === 1 ? 0 : 1;
+                Idle.applyMode(nextMode);
+            },
+            hasDetails: true,
+            detailsAction: () => { root.showCaffeinePanel = true }
         },
         "nightLight": {
             name: "Night Mode",
@@ -1087,6 +1093,10 @@ Item {
                                             root.showWindowLayoutPanel = true
                                             return
                                         }
+                                        if (type === "caffeine") {
+                                            root.showCaffeinePanel = true
+                                            return
+                                        }
                                         const data = root.allToggles[type]
                                         if (data?.detailsAction) data.detailsAction()
                                     }
@@ -1346,4 +1356,16 @@ Item {
             onDismiss: root.showWindowLayoutPanel = false
         }
     }
+
+    // Caffeine / Inactivity Panel
+    Loader {
+        anchors.fill: parent
+        active: root.showCaffeinePanel
+        sourceComponent: CaffeinePanel {
+            currentMode: Config.ready ? (Config.options.quickSettings.caffeineMode || (Config.options.quickSettings.caffeineActive ? 1 : 0)) : 0
+            onSetMode: (m) => Idle.applyMode(m)
+            onDismiss: root.showCaffeinePanel = false
+        }
+    }
 }
+

@@ -12,7 +12,7 @@ Item {
     id: root
 
     // One-way binding from Config to this service
-    readonly property bool active: Config.ready ? Config.options.quickSettings.caffeineActive : false
+    readonly property bool active: Config.ready ? (Config.options.quickSettings.caffeineActive || Config.options.quickSettings.caffeineMode > 0) : false
 
     IdleInhibitor {
         id: inhibitor
