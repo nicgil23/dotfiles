@@ -45,7 +45,7 @@
       "showGrid": false,
       "showSnapLines": true,
       "transition": "random",
-      "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/cloud-coffee.jpg"
+      "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/thumb-1920-1311951.jpg"
     },
     "clock": {
       "analog": {
@@ -191,7 +191,7 @@
       "baseCurrency": "IDR",
       "desktopX": 1248,
       "desktopY": 816,
-      "locked": true,
+      "locked": false,
       "quote1": "USD",
       "quote2": "EUR",
       "quote3": "JPY",
@@ -274,7 +274,6 @@
     "monochromeIcons": false,
     "pinnedApps": [
       "kitty",
-      "firefox",
       "obsidian",
       "dev.vencord.Vesktop",
       "com.github.flxzt.rnote"
@@ -290,7 +289,6 @@
     "previousLiveWallpaperPath": ""
   },
   "github": {
-    "githubToken": "",
     "githubUsername": "nicgil23"
   },
   "interactions": {
@@ -322,7 +320,7 @@
     "showWidgets": true,
     "useHyprlock": false,
     "useSeparateWallpaper": false,
-    "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/walls-catppuccin-mocha/cloud-coffee.jpg",
+    "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/thumb-1920-1311951.jpg",
     "weather": {
       "textColorMode": "adaptive"
     }
@@ -429,10 +427,6 @@
       },
       {
         "size": 1,
-        "type": "autoHideBar"
-      },
-      {
-        "size": 1,
         "type": "obsidianSync"
       },
       {
@@ -442,6 +436,10 @@
       {
         "size": 1,
         "type": "warp"
+      },
+      {
+        "size": 1,
+        "type": "windowLayout"
       }
     ]
   },
@@ -520,7 +518,7 @@
     "showVolumeIndicator": true,
     "systemMonitorStyle": "outline",
     "textColorMode": "light",
-    "trayStyle": "hide",
+    "trayStyle": "all",
     "useGradient": true,
     "volumeIndicatorMode": "mutedOnly"
   },
