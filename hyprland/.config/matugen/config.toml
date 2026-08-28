@@ -69,6 +69,7 @@ output_path = "~/.local/share/zed/extensions/installed/material-dark/themes/zed_
 [templates.spicetify]
 input_path = "~/.config/matugen/templates/spicetify-color.ini"
 output_path = "~/.config/spicetify/Themes/text/color.ini"
+post_hook = "~/.spicetify/spicetify refresh -s && hyprctl dispatch sendshortcut CTRL, R, class:Spotify"
 
 [templates.cava]
 input_path = '~/.config/matugen/templates/cava_color.ini'
