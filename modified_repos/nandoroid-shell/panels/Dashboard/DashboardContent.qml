@@ -60,12 +60,12 @@ Item {
             when: GlobalStates.dashboardOpen
             PropertyChanges {
                 target: visualContainer
-                y: -2 * Appearance.effectiveScale
+                y: 0
                 opacity: 1
             }
             PropertyChanges {
                 target: panelBg
-                y: -2 * Appearance.effectiveScale
+                y: 0
                 opacity: 1
             }
             PropertyChanges {
@@ -85,16 +85,10 @@ Item {
             to: "visible"
             ParallelAnimation {
                 NumberAnimation {
-                    target: visualContainer
-                    property: "y"
-                    from: -20 * Appearance.effectiveScale
-                    to: -2 * Appearance.effectiveScale
-                    duration: 300
-                    easing.type: Easing.OutQuart
-                }
-                NumberAnimation {
                     target: panelBg
                     property: "y"
+                    from: -root.panelHeight
+                    to: 0
                     duration: root.showShoulders ? 300 : (Appearance.animation.elementMove.duration || 400)
                     easing.bezierCurve: root.showShoulders ? Appearance.animationCurves.emphasizedDecel : (Appearance.animationCurves.expressiveDefaultSpatial || [0.38, 1.21, 0.22, 1])
                 }
@@ -192,7 +186,9 @@ Item {
     // ── Visual Container for Shadow ──
     Item {
         id: visualContainer
-        anchors.fill: parent
+        width: parent.width
+        height: parent.height
+        y: 0
         opacity: panelBg.opacity
 
         layer.enabled: root.showShoulders

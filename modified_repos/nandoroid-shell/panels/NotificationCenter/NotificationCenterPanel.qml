@@ -67,7 +67,7 @@ Variants {
 
     NotificationCenterContent {
       id: ncContent
-      height: implicitHeight
+      height: panelWindow.height
 
       transform: Translate {
         id: ncSlide

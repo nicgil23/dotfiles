@@ -500,10 +500,10 @@ Singleton {
         property real quickSettingsMaxHeight: Math.min(800 * scale, screen.height * 0.85)
         
         property real notificationCenterWidth: Math.min(420 * scale, screen.width * 0.35)
-        property real notificationCenterMaxHeight: Math.min(800 * scale, screen.height * 0.85)
+        property real notificationCenterMaxHeight: Math.min(820 * scale, screen.height * 0.85)
 
         // New scaling tokens for internal components
-        property real notificationIslandMaxHeight: Math.min(450 * scale, screen.height * 0.5)
+        property real notificationIslandMaxHeight: Math.min(480 * scale, screen.height * 0.55)
         property real lockClockSize: Math.min(120 * scale, screen.width * 0.1)
         property real lockInputWidth: Math.min(300 * scale, screen.width * 0.25)
         

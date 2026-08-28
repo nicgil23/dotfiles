@@ -59,8 +59,8 @@ Item {
             left: parent.left
             right: parent.right
             top: parent.top
+            bottom: parent.bottom
             margins: 12 * Appearance.effectiveScale
-            topMargin: 12 * Appearance.effectiveScale
         }
         spacing: 12 * Appearance.effectiveScale
 
@@ -85,7 +85,9 @@ Item {
         // ── Notification Island ──
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: Appearance.sizes.notificationIslandMaxHeight
+            Layout.fillHeight: true
+            Layout.maximumHeight: Appearance.sizes.notificationIslandMaxHeight
+            Layout.minimumHeight: 180 * Appearance.effectiveScale
             
             color: Appearance.colors.colLayer1
             radius: Appearance.rounding.large
