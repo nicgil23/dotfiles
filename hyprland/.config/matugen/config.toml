@@ -44,7 +44,15 @@ post_hook = "sh -c '~/.config/hypr/scripts/generate_silhouette.sh \"$(cat ~/.loc
 
 [templates.discord]
 input_path = "~/.config/matugen/templates/midnight.theme.css"
+output_path = "~/.config/vesktop/themes/midnight.theme.css"
+
+[templates.discord_flatpak]
+input_path = "~/.config/matugen/templates/midnight.theme.css"
 output_path = "~/.var/app/dev.vencord.Vesktop/config/vesktop/themes/midnight.theme.css"
+
+[templates.discord_quickcss]
+input_path = "~/.config/matugen/templates/quickcss.css"
+output_path = "~/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css"
 
 [templates.vscode]
 input_path = "~/.config/matugen/templates/hyprlunavsc.json"
