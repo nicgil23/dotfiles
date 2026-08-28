@@ -161,15 +161,15 @@ Variants {
             }
             
             onDoubleClicked: (mouse) => {
-                if (mouse.button === Qt.LeftButton && widgetRoot.isDesktopEmpty) {
-                    desktopContextMenu.openAt(mouse.x, mouse.y, false);
+                if (mouse.button === Qt.LeftButton && widgetRoot.shouldInteract && !widgetRoot.isWorkspaceChanging) {
+                    desktopContextMenu.openAt(mouse.x, mouse.y, null);
                     mouse.accepted = true;
                 }
             }
             
             onPressAndHold: (mouse) => {
-                if (widgetRoot.isDesktopEmpty) {
-                    desktopContextMenu.openAt(mouse.x, mouse.y, false);
+                if (widgetRoot.shouldInteract && !widgetRoot.isWorkspaceChanging) {
+                    desktopContextMenu.openAt(mouse.x, mouse.y, null);
                     mouse.accepted = true;
                 }
             }

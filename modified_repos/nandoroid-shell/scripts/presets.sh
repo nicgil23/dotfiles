@@ -27,7 +27,7 @@ fi
 case "$action" in
     --save)
         description="$3"
-        jq 'del(._presetMeta)' "$CONFIG_FILE" > "$PRESETS_DIR/${name}.json"
+        jq 'del(._presetMeta) | del(.github.githubToken)' "$CONFIG_FILE" > "$PRESETS_DIR/${name}.json"
         if [ -n "$description" ]; then
             jq --arg desc "$description" '._presetMeta = {"description": $desc}' \
                 "$PRESETS_DIR/${name}.json" > "$PRESETS_DIR/${name}.json.tmp" \

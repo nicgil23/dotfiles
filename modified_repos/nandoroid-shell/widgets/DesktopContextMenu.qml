@@ -282,6 +282,21 @@ PanelWindow {
 
             MenuItem {
                 visible: root.activeConfigObject === null
+                menuText: "System Monitor & Performance"
+                menuIcon: "monitoring"
+                
+                HoverHandler {
+                    onHoveredChanged: if (hovered) root.openSubmenuComponent = null
+                }
+                
+                onClicked: {
+                    GlobalStates.activateSystemMonitor()
+                    root.close()
+                }
+            }
+
+            MenuItem {
+                visible: root.activeConfigObject === null
                 menuText: "Style"
                 menuIcon: "format_paint"
                 

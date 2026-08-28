@@ -239,7 +239,7 @@ ColumnLayout {
                 color: Appearance.colors.colOnLayer0
             }
             StyledText {
-                text: 'hl.bind("SUPER + I", hl.dsp.exec_cmd("quickshell -c nandoroid ipc call settings toggle"))'
+                text: 'hl.bind("SUPER + O", hl.dsp.exec_cmd("quickshell -c nandoroid ipc call settings toggle"))'
                 font.family: "monospace"
                 font.pixelSize: Math.round(11 * Appearance.effectiveScale)
                 color: Appearance.colors.colPrimary
