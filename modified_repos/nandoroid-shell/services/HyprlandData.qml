@@ -71,28 +71,17 @@ Singleton {
         ? "~/.config/hypr/nandoroid/user_persistence.lua"
         : "~/.config/hypr/nandoroid/user_persistence.conf"
 
-    function cycleLayout(forward = true) {
-        const layouts = ["dwindle", "master", "scrolling"];
-        const current = root.activeWorkspace?.tiledLayout || GlobalStates.hyprlandLayout || "dwindle";
-        let index = layouts.indexOf(current);
-        if (index === -1) index = 0;
-        
-        if (forward) {
-            index = (index + 1) % layouts.length;
-        } else {
-            index = (index - 1 + layouts.length) % layouts.length;
-        }
-        
-        const nextLayout = layouts[index];
-        
-        // Apply immediately
-        layoutProc.exec(HyprlandCompat.keyword("general", "layout", `"${nextLayout}"`));
-        
+    function setLayout(targetLayout) {
+        if (!targetLayout) return;
+
+        // Apply immediately without extra quotes
+        layoutProc.exec(HyprlandCompat.keyword("general", "layout", targetLayout));
+
         if (HyprlandCompat.isLua) {
             const luaBlock = `-- LAYOUT_START\n` +
                              `hl.config({\n` +
                              `    general = {\n` +
-                             `        layout = "${nextLayout}"\n` +
+                             `        layout = "${targetLayout}"\n` +
                              `    }\n` +
                              `})\n` +
                              `-- LAYOUT_END`
@@ -111,13 +100,28 @@ Singleton {
             const realPath = root.persistencePath.replace(/^~/, Directories.home.replace("file://", ""));
             Quickshell.execDetached(["python3", "-c", pyCmd, realPath, luaBlock]);
         } else {
-            const cmd = `sed -i '/general:layout/d' ${root.persistencePath} 2>/dev/null || true; echo "general:layout = ${nextLayout}" >> ${root.persistencePath}`;
+            const cmd = `sed -i '/general:layout/d' ${root.persistencePath} 2>/dev/null || true; echo "general:layout = ${targetLayout}" >> ${root.persistencePath}`;
             Quickshell.execDetached(["bash", "-c", cmd]);
         }
-        
-        GlobalStates.hyprlandLayout = nextLayout;
+
+        GlobalStates.hyprlandLayout = targetLayout;
         root.layoutChanged();
         workspaceUpdateTimer.restart(); // Refresh data with a small delay
+    }
+
+    function cycleLayout(forward = true) {
+        const layouts = ["dwindle", "master", "scrolling"];
+        const current = root.activeWorkspace?.tiledLayout || GlobalStates.hyprlandLayout || "dwindle";
+        let index = layouts.indexOf(current);
+        if (index === -1) index = 0;
+        
+        if (forward) {
+            index = (index + 1) % layouts.length;
+        } else {
+            index = (index - 1 + layouts.length) % layouts.length;
+        }
+        
+        setLayout(layouts[index]);
     }
 
     function fetchInitialLayout() {
@@ -132,7 +136,10 @@ Singleton {
                 try {
                     const data = JSON.parse(stdout.readAll());
                     if (data && data.str) {
-                        GlobalStates.hyprlandLayout = data.str;
+                        const cleanStr = data.str.replace(/"/g, "").trim();
+                        if (cleanStr && GlobalStates.availableLayouts.includes(cleanStr)) {
+                            GlobalStates.hyprlandLayout = cleanStr;
+                        }
                     }
                 } catch(e) {}
             }

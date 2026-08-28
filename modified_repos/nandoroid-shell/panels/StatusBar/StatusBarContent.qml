@@ -87,6 +87,12 @@ Item {
         subtextColor: root.subtextColor
     }}
 
+    Component { id: windowLayoutComponent; WindowLayoutIndicator {
+        Layout.alignment: Qt.AlignVCenter
+        color: root.contentColor
+        subtextColor: root.subtextColor
+    }}
+
     Component { id: sysTrayComponent; StatusBarTray {
         Layout.alignment: Qt.AlignVCenter
     }}
@@ -318,6 +324,7 @@ Item {
     function getModuleComponent(name) {
         switch (name) {
             case "distroIcon": return distroIconComponent;
+            case "windowLayout": return windowLayoutComponent;
             case "activeWindow": return activeWindowComponent;
             case "systemMonitor": return sysMonComponent;
             case "networkSpeed": return netSpeedComponent;

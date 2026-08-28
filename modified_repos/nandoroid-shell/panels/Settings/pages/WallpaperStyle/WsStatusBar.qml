@@ -69,6 +69,7 @@ ColumnLayout {
 
     property var allModules: [
         { id: "distroIcon", name: "Distro Icon", icon: "computer" },
+        { id: "windowLayout", name: "Window Layout", icon: "dashboard" },
         { id: "activeWindow", name: "Active Window", icon: "subtitles" },
         { id: "systemMonitor", name: "System Monitor", icon: "memory" },
         { id: "clock", name: "Clock", icon: "schedule" },

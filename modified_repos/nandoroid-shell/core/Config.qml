@@ -423,7 +423,8 @@ Singleton {
                     { "type": "autoRotation", "size": 1 },
                     { "type": "colorPicker", "size": 1 },
                     { "type": "vpnUcm", "size": 1 },
-                    { "type": "autoHideBar", "size": 1 }
+                    { "type": "autoHideBar", "size": 1 },
+                    { "type": "windowLayout", "size": 2 }
                 ]
             }
 

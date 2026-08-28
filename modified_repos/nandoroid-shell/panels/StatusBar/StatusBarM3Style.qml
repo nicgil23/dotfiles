@@ -72,6 +72,19 @@ Item {
         }
     }}
 
+    Component { id: m3WindowLayoutComponent; M3StatusWrapper {
+        id: layoutWrapper
+        m3Color: Appearance.m3colors.m3secondaryContainer
+        m3ContentColor: Appearance.m3colors.m3onSecondaryContainer
+        show: true
+
+        WindowLayoutIndicator {
+            Layout.alignment: Qt.AlignVCenter
+            color: layoutWrapper.m3ContentColor
+            subtextColor: layoutWrapper.subtextColor
+        }
+    }}
+
     Component { id: m3NetSpeedComponent; M3StatusWrapper {
         id: m3NetSpeedWrapper
         show: Config.ready && Config.options.bar ? Config.options.bar.show_network_speed : false
@@ -433,6 +446,7 @@ Item {
     function getM3ModuleComponent(name) {
         switch (name) {
             case "distroIcon": return m3DistroIconComponent;
+            case "windowLayout": return m3WindowLayoutComponent;
             case "activeWindow": return m3ActiveWindowComponent;
             case "systemMonitor": return m3SysMonComponent;
             case "networkSpeed": return m3NetSpeedComponent;

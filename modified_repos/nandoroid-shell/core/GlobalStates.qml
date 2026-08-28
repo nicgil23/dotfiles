@@ -434,9 +434,11 @@ Singleton {
             onRead: data => {
                 try {
                     const parsed = JSON.parse(data);
-                    if (parsed.str && root.availableLayouts.includes(parsed.str)) {
-                        root.hyprlandLayout = parsed.str;
-
+                    if (parsed && parsed.str) {
+                        const cleanStr = parsed.str.replace(/"/g, "").trim();
+                        if (cleanStr && root.availableLayouts.includes(cleanStr)) {
+                            root.hyprlandLayout = cleanStr;
+                        }
                     }
                 } catch (e) {
 

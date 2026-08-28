@@ -35,6 +35,25 @@ Item {
     property bool showAudioInputPanel: false
     property bool showNightModePanel: false
     property bool showPowerProfilePanel: false
+    property bool showWindowLayoutPanel: false
+
+    readonly property string currentLayout: GlobalStates.hyprlandLayout || "dwindle"
+    readonly property string layoutIcon: {
+        switch (currentLayout) {
+            case "dwindle": return "view_quilt"
+            case "master": return "splitscreen"
+            case "scrolling": return "view_column"
+            default: return "grid_view"
+        }
+    }
+    readonly property string layoutDisplayName: {
+        switch (currentLayout) {
+            case "dwindle": return "Dwindle"
+            case "master": return "Master"
+            case "scrolling": return "Scroll"
+            default: return currentLayout.charAt(0).toUpperCase() + currentLayout.slice(1)
+        }
+    }
 
     Rectangle {
         id: backgroundRect
@@ -63,6 +82,7 @@ Item {
                 root.showAudioInputPanel = false;
                 root.showNightModePanel = false;
                 root.showPowerProfilePanel = false;
+                root.showWindowLayoutPanel = false;
                 GlobalStates.quickSettingsEditMode = false;
             }
         }
@@ -189,6 +209,17 @@ Item {
             action: () => PowerProfileService.cycle(),
             hasDetails: true,
             detailsAction: () => { root.showPowerProfilePanel = true }
+        },
+        "windowLayout": {
+            name: "Window Layout",
+            icon: root.layoutIcon,
+            iconOff: root.layoutIcon,
+            toggled: true,
+            statusText: root.layoutDisplayName,
+            action: () => HyprlandData.cycleLayout(true),
+            hasDetails: true,
+            detailsAction: () => { root.showWindowLayoutPanel = true },
+            altAction: () => { root.showWindowLayoutPanel = true }
         },
         "gameMode": {
             name: "Game Mode",
@@ -1052,6 +1083,10 @@ Item {
                                             root.showNightModePanel = true
                                             return
                                         }
+                                        if (type === "windowLayout") {
+                                            root.showWindowLayoutPanel = true
+                                            return
+                                        }
                                         const data = root.allToggles[type]
                                         if (data?.detailsAction) data.detailsAction()
                                     }
@@ -1302,6 +1337,13 @@ Item {
             onDismiss: root.showPowerProfilePanel = false
         }
     }
-    
 
+    // Window Layout Panel
+    Loader {
+        anchors.fill: parent
+        active: root.showWindowLayoutPanel
+        sourceComponent: WindowLayoutPanel {
+            onDismiss: root.showWindowLayoutPanel = false
+        }
+    }
 }
