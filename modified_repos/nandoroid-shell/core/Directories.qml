@@ -60,6 +60,9 @@ Singleton {
         const matugenDir = matugenFile.substring(0, matugenFile.lastIndexOf('/'));
         Quickshell.execDetached(["mkdir", "-p", matugenDir])
 
+        // Ensure GTK css files are writable regular files (not read-only symlinks)
+        Quickshell.execDetached(["bash", "-c", "mkdir -p ~/.config/gtk-3.0 ~/.config/gtk-4.0 && for f in ~/.config/gtk-3.0/gtk.css ~/.config/gtk-4.0/gtk.css; do if [ -L \"$f\" ] || [ ! -w \"$f\" 2>/dev/null ]; then rm -f \"$f\" && touch \"$f\"; fi; done"])
+
         // Pre-create state files for FileView watchers
         Quickshell.execDetached(["mkdir", "-p", `${Functions.FileUtils.trimFileProtocol(state)}/quickshell`])
         Quickshell.execDetached(["touch", `${Functions.FileUtils.trimFileProtocol(state)}/quickshell/nandoroid_states.json`])

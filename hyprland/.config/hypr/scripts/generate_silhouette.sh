@@ -9,13 +9,13 @@ if ! command -v rembg &> /dev/null; then
     echo "rembg is not installed. Silhouette generation skipped."
     # We clear the output file so hyprlock doesn't show the old silhouette
     rm -f "$OUTPUT"
-    exit 1
+    exit 0
 fi
 
 if [ ! -f "$WALLPAPER" ]; then
     echo "Wallpaper file not found: $WALLPAPER"
     rm -f "$OUTPUT"
-    exit 1
+    exit 0
 fi
 
 echo "Generating silhouette for $WALLPAPER..."
