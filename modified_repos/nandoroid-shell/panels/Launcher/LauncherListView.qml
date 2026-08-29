@@ -41,17 +41,18 @@ RippleButton {
             MaterialShape {
                 id: iconBg
                 anchors.fill: parent
+                readonly property bool isNoneShape: Config.ready && Config.options.search ? Config.options.search.iconShape === "None" : false
                 shapeString: Config.ready ? Config.options.search.iconShape : "Square"
-                color: (root.hovered || root.selected) ? Appearance.m3colors.m3primaryContainer : Appearance.m3colors.m3surfaceVariant
-                borderWidth: 1 * Appearance.effectiveScale
-                borderColor: Qt.rgba(0, 0, 0, 0.1)
+                color: isNoneShape ? "transparent" : ((root.hovered || root.selected) ? Appearance.m3colors.m3primaryContainer : Appearance.m3colors.m3surfaceVariant)
+                borderWidth: isNoneShape ? 0 : 1 * Appearance.effectiveScale
+                borderColor: isNoneShape ? "transparent" : Qt.rgba(0, 0, 0, 0.1)
                 
                 IconImage {
                     id: iconImg
                     source: (result && !result.isPlugin) ? Quickshell.iconPath(result.icon || "application-x-executable", "image-missing") : ""
                     visible: result && !result.isPlugin && result.emoji === ""
-                    width: 18 * Appearance.effectiveScale
-                    height: 18 * Appearance.effectiveScale
+                    width: (iconBg.isNoneShape ? 24 : 18) * Appearance.effectiveScale
+                    height: (iconBg.isNoneShape ? 24 : 18) * Appearance.effectiveScale
                     anchors.centerIn: parent
                 }
 
@@ -59,13 +60,13 @@ RippleButton {
                     text: result.emoji || ""
                     visible: result && result.emoji !== ""
                     anchors.centerIn: parent
-                    font.pixelSize: Math.round(18 * Appearance.effectiveScale)
+                    font.pixelSize: Math.round((iconBg.isNoneShape ? 24 : 18) * Appearance.effectiveScale)
                 }
                 
                 MaterialSymbol {
                     text: (result && result.isPlugin) ? (result.icon || "extension") : ""
                     visible: result && result.isPlugin && result.emoji === "" && !result.isImage
-                    iconSize: 18 * Appearance.effectiveScale
+                    iconSize: (iconBg.isNoneShape ? 24 : 18) * Appearance.effectiveScale
                     anchors.centerIn: parent
                     color: (root.hovered || root.selected) ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurfaceVariant
                 }

@@ -26,7 +26,7 @@ ColumnLayout {
                 spacing: 16 * Appearance.effectiveScale
                 
                 property bool showAllShapes: false
-                readonly property var allShapes: ["Square", "Circle", "Diamond", "Pill", "Clover4Leaf", "Burst", "Heart", "Flower", "Arch", "Fan", "Gem", "Sunny", "VerySunny", "Slanted", "Arrow", "SemiCircle", "Oval", "ClamShell", "Pentagon", "Ghostish", "Clover8Leaf", "SoftBurst", "Boom", "SoftBoom", "Puffy", "PuffyDiamond", "Bun", "Cookie4Sided", "Cookie6Sided", "Cookie7Sided", "Cookie9Sided", "Cookie12Sided", "PixelCircle", "PixelTriangle", "Triangle"]
+                readonly property var allShapes: ["None", "Square", "Circle", "Diamond", "Pill", "Clover4Leaf", "Burst", "Heart", "Flower", "Arch", "Fan", "Gem", "Sunny", "VerySunny", "Slanted", "Arrow", "SemiCircle", "Oval", "ClamShell", "Pentagon", "Ghostish", "Clover8Leaf", "SoftBurst", "Boom", "SoftBoom", "Puffy", "PuffyDiamond", "Bun", "Cookie4Sided", "Cookie6Sided", "Cookie7Sided", "Cookie9Sided", "Cookie12Sided", "PixelCircle", "PixelTriangle", "Triangle"]
     
                 RowLayout {
                     spacing: 12 * Appearance.effectiveScale
@@ -78,12 +78,24 @@ ColumnLayout {
                             ColumnLayout {
                                 anchors.centerIn: parent
                                 spacing: 8 * Appearance.effectiveScale
-                                MaterialShape {
+                                Item {
                                     Layout.alignment: Qt.AlignHCenter
                                     Layout.preferredWidth: 32 * Appearance.effectiveScale
                                     Layout.preferredHeight: 32 * Appearance.effectiveScale
-                                    shapeString: modelData
-                                    color: shapeBtn.isSelected ? Appearance.colors.colNotchText : Appearance.m3colors.m3onSurfaceVariant
+                                    
+                                    MaterialShape {
+                                        anchors.fill: parent
+                                        visible: modelData !== "None"
+                                        shapeString: modelData === "None" ? "Square" : modelData
+                                        color: shapeBtn.isSelected ? Appearance.colors.colNotchText : Appearance.m3colors.m3onSurfaceVariant
+                                    }
+                                    MaterialSymbol {
+                                        anchors.centerIn: parent
+                                        visible: modelData === "None"
+                                        text: "crop_free"
+                                        iconSize: 28 * Appearance.effectiveScale
+                                        color: shapeBtn.isSelected ? Appearance.colors.colNotchText : Appearance.m3colors.m3onSurfaceVariant
+                                    }
                                 }
                                 StyledText {
                                     Layout.alignment: Qt.AlignHCenter

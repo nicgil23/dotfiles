@@ -49,6 +49,7 @@ Item {
 
     // Map strings to enum values
     readonly property var shapeMap: ({
+        "None": MaterialShape.Shape.Square,
         "Circle": MaterialShape.Shape.Circle,
         "Square": MaterialShape.Shape.Square,
         "Slanted": MaterialShape.Shape.Slanted,
@@ -161,6 +162,7 @@ Item {
     ShapeCanvas {
         id: canvas
         anchors.fill: parent
+        visible: root.shapeString !== "None"
         color: root.color
         borderWidth: root.borderWidth
         borderColor: root.borderColor

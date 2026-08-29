@@ -44,25 +44,25 @@ RippleButton {
             MaterialShape {
                 id: iconBg
                 anchors.fill: parent
-                color: (root.hovered || root.selected) ? Appearance.m3colors.m3primaryContainer : Appearance.m3colors.m3surfaceVariant
+                readonly property bool isNoneShape: Config.ready && Config.options.search ? Config.options.search.iconShape === "None" : false
+                color: isNoneShape ? "transparent" : ((root.hovered || root.selected) ? Appearance.m3colors.m3primaryContainer : Appearance.m3colors.m3surfaceVariant)
                 shapeString: Config.ready ? Config.options.search.iconShape : "Square"
-                borderWidth: 1 * Appearance.effectiveScale
-                borderColor: Qt.rgba(0, 0, 0, 0.1)
+                borderWidth: isNoneShape ? 0 : 1 * Appearance.effectiveScale
+                borderColor: isNoneShape ? "transparent" : Qt.rgba(0, 0, 0, 0.1)
                 
                 IconImage {
                     id: iconImg
                     source: app ? Quickshell.iconPath(app.icon || "application-x-executable", "image-missing") : ""
                     visible: app && !app.isPlugin && !app.emoji
-                    width: 32 * Appearance.effectiveScale
-                    height: 32 * Appearance.effectiveScale
+                    width: (iconBg.isNoneShape ? 44 : 32) * Appearance.effectiveScale
+                    height: (iconBg.isNoneShape ? 44 : 32) * Appearance.effectiveScale
                     anchors.centerIn: parent
                 }
-
 
                 MaterialSymbol {
                     text: (app && app.isPlugin) ? app.icon : ""
                     visible: app && app.isPlugin && !app.emoji
-                    iconSize: 32 * Appearance.effectiveScale
+                    iconSize: (iconBg.isNoneShape ? 44 : 32) * Appearance.effectiveScale
                     anchors.centerIn: parent
                     color: (root.hovered || root.selected) ? Appearance.m3colors.m3onPrimaryContainer : Appearance.m3colors.m3onSurfaceVariant
                 }
@@ -70,7 +70,7 @@ RippleButton {
                 StyledText {
                     text: (app && app.emoji) ? app.emoji : ""
                     visible: app && app.emoji !== ""
-                    font.pixelSize: Math.round(32 * Appearance.effectiveScale)
+                    font.pixelSize: Math.round((iconBg.isNoneShape ? 44 : 32) * Appearance.effectiveScale)
                     anchors.centerIn: parent
                 }
             }
