@@ -107,12 +107,14 @@ return {
         },
     },
 
-    "saghen/blink.cmp",
-    opts = {
-        keymap = {
-            preset = "enter",
-            ["<Tab>"] = { "select_next", "fallback" },
-            ["<S-Tab>"] = { "select_prev", "fallback" },
+    {
+        "saghen/blink.cmp",
+        opts = {
+            keymap = {
+                preset = "enter",
+                ["<Tab>"] = { "accept", "snippet_forward", "fallback" },
+                ["<S-Tab>"] = { "snippet_backward", "fallback" },
+            },
         },
     },
 }
