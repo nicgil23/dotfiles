@@ -77,39 +77,41 @@ Variants {
                 }
 
                 Keys.onReturnPressed: (event) => {
-                    if (searchInput.activeFocus) {
-                        view.forceActiveFocus();
-                        if (event) event.accepted = true;
-                        return;
-                    }
                     pickerContent.applyCurrentWallpaper();
+                    if (event) event.accepted = true;
                 }
 
                 Keys.onEnterPressed: (event) => {
-                    if (searchInput.activeFocus) {
-                        view.forceActiveFocus();
-                        if (event) event.accepted = true;
-                        return;
-                    }
                     pickerContent.applyCurrentWallpaper();
+                    if (event) event.accepted = true;
                 }
 
                 Keys.onLeftPressed: (event) => {
-                    if (searchInput.activeFocus) return;
                     if (view.currentIndex > 0) {
                         view.currentIndex--;
                     }
-                    view.forceActiveFocus();
-                    event.accepted = true;
+                    if (event) event.accepted = true;
                 }
 
                 Keys.onRightPressed: (event) => {
-                    if (searchInput.activeFocus) return;
                     if (view.currentIndex < view.count - 1) {
                         view.currentIndex++;
                     }
-                    view.forceActiveFocus();
-                    event.accepted = true;
+                    if (event) event.accepted = true;
+                }
+
+                Keys.onUpPressed: (event) => {
+                    if (view.currentIndex > 0) {
+                        view.currentIndex--;
+                    }
+                    if (event) event.accepted = true;
+                }
+
+                Keys.onDownPressed: (event) => {
+                    if (view.currentIndex < view.count - 1) {
+                        view.currentIndex++;
+                    }
+                    if (event) event.accepted = true;
                 }
 
                 Keys.onTabPressed: (event) => {
@@ -819,9 +821,33 @@ Variants {
                                     font.family: Appearance.font.family.main
                                     clip: true
                                     onTextChanged: pickerContent.searchQuery = text
-                                    onAccepted: view.forceActiveFocus()
-                                    Keys.onReturnPressed: (event) => { view.forceActiveFocus(); event.accepted = true; }
-                                    Keys.onEnterPressed: (event) => { view.forceActiveFocus(); event.accepted = true; }
+                                    onAccepted: pickerContent.applyCurrentWallpaper()
+                                    Keys.onReturnPressed: (event) => { pickerContent.applyCurrentWallpaper(); if (event) event.accepted = true; }
+                                    Keys.onEnterPressed: (event) => { pickerContent.applyCurrentWallpaper(); if (event) event.accepted = true; }
+                                    Keys.onLeftPressed: (event) => {
+                                        if (view.currentIndex > 0) {
+                                            view.currentIndex--;
+                                        }
+                                        if (event) event.accepted = true;
+                                    }
+                                    Keys.onRightPressed: (event) => {
+                                        if (view.currentIndex < view.count - 1) {
+                                            view.currentIndex++;
+                                        }
+                                        if (event) event.accepted = true;
+                                    }
+                                    Keys.onUpPressed: (event) => {
+                                        if (view.currentIndex > 0) {
+                                            view.currentIndex--;
+                                        }
+                                        if (event) event.accepted = true;
+                                    }
+                                    Keys.onDownPressed: (event) => {
+                                        if (view.currentIndex < view.count - 1) {
+                                            view.currentIndex++;
+                                        }
+                                        if (event) event.accepted = true;
+                                    }
 
                                     StyledText {
                                         anchors.fill: parent
