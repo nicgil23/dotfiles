@@ -850,7 +850,7 @@ MouseArea {
         radius: Appearance.rounding.button
         z: 50 // Above wallpaper and characters, but below corners/status bar
         
-        visible: (Config.ready && Config.options.lock.showMediaCard) && (MprisController.activePlayer !== null)
+        visible: (Config.ready && Config.options.lock.showMediaCard) && (MprisController.hasMedia)
 
         // --- Style 1: Mini HUD ---
         RowLayout {

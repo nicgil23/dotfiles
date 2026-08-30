@@ -17,7 +17,7 @@ Rectangle {
     implicitHeight: 118 * Appearance.effectiveScale
     radius: Appearance.rounding.card
     color: Functions.ColorUtils.applyAlpha(root.effectiveLayer0, 1)
-    visible: MprisController.activePlayer !== null
+    visible: MprisController.hasMedia
     clip: true
 
     property bool showVisualizer: true

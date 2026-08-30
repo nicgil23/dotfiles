@@ -66,7 +66,7 @@ Item {
         // ── Media Card ──
         MediaCard {
             Layout.fillWidth: true
-            visible: (Config.options.media?.showMediaCard ?? true) && MprisController.activePlayer !== null
+            visible: (Config.options.media?.showMediaCard ?? true) && MprisController.hasMedia
             // This panel is hosted in an always-active Loader and collapsed via
             // opacity, so the card's `visible` stays true while closed. Bind the
             // wavy Canvas lifecycle to the real open-state to avoid 60fps

@@ -27,6 +27,8 @@ Singleton {
     property string trackArtUrl: activePlayer?.trackArtUrl ?? ""
     property string desktopEntry: activePlayer?.desktopEntry ?? ""
 
+    property bool hasMedia: activePlayer !== null && trackTitle !== "" && trackTitle !== "No media" && (activePlayer.playbackState !== MprisPlaybackState.Stopped)
+
     property real position: activePlayer?.position ?? 0
     property real length: activePlayer?.length ?? 0
 

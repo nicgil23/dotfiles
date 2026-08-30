@@ -61,7 +61,7 @@ clubed() {
 	local chrome_cmd="google-chrome-stable"
 	command -v google-chrome &>/dev/null && chrome_cmd="google-chrome"
 
-	kitty --directory "$target_dir" &>/dev/null &
+	kitty --directory "$autotask_dir" &>/dev/null &
 
 	if command -v hyprctl &>/dev/null; then
 		hyprctl dispatch exec "[workspace 3] kitty --directory $autotask_dir agy" &>/dev/null
