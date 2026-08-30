@@ -581,7 +581,7 @@ Item {
             anchors.left: parent.left
             anchors.leftMargin: centerClusterCard.padding
             anchors.verticalCenter: parent.verticalCenter
-            show: Config.ready && Config.options.statusBar && Config.options.statusBar.centerModule === "clock"
+            show: !Config.ready || !Config.options.statusBar || (Config.options.statusBar.centerModule ?? "clock") === "clock"
             m3Color: Appearance.m3colors.m3primaryContainer
             m3ContentColor: Appearance.m3colors.m3onPrimaryContainer
 
@@ -625,7 +625,7 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: centerClusterCard.padding
             anchors.verticalCenter: parent.verticalCenter
-            show: Config.ready && Config.options.statusBar && Config.options.statusBar.centerModule === "clock"
+            show: !Config.ready || !Config.options.statusBar || (Config.options.statusBar.centerModule ?? "clock") === "clock"
             m3Color: Appearance.m3colors.m3primaryContainer
             m3ContentColor: Appearance.m3colors.m3onPrimaryContainer
 

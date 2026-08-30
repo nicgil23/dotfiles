@@ -65,9 +65,30 @@ Scope {
                 return swState[mon.name] !== undefined && swState[mon.name] !== "";
             }
 
+            property bool dropzoneWindowExpanded: GlobalStates.dropzoneNotchOpen
+            Timer {
+                id: dropzoneWindowDelayTimer
+                interval: 450
+                onTriggered: {
+                    if (!GlobalStates.dropzoneNotchOpen) {
+                        barWindow.dropzoneWindowExpanded = false
+                    }
+                }
+            }
+            Connections {
+                target: GlobalStates
+                function onDropzoneNotchOpenChanged() {
+                    if (GlobalStates.dropzoneNotchOpen) {
+                        barWindow.dropzoneWindowExpanded = true
+                    } else {
+                        dropzoneWindowDelayTimer.restart()
+                    }
+                }
+            }
+
             exclusiveZone: (autoHide && !mustShow) ? 0 : actualStatusBarHeight
             WlrLayershell.namespace: "nandoroid:statusbar"
-            WlrLayershell.layer: specialWorkspaceActive ? WlrLayer.Overlay : WlrLayer.Top
+            WlrLayershell.layer: (specialWorkspaceActive || dropzoneWindowExpanded) ? WlrLayer.Overlay : WlrLayer.Top
 
             anchors {
                 left: true
@@ -76,7 +97,7 @@ Scope {
             }
 
             color: "transparent"
-            implicitHeight: actualStatusBarHeight + (showBackground ? cornerRadius : 0)
+            implicitHeight: Math.max(actualStatusBarHeight + 380 * Appearance.effectiveScale, modelData.height * 0.6)
 
             // Define clickable area mask
             mask: Region {
@@ -88,7 +109,7 @@ Scope {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
-                height: (autoHide && !mustShow) ? 3 * Appearance.effectiveScale : parent.height
+                height: (autoHide && !mustShow) ? 3 * Appearance.effectiveScale : (dropzoneWindowExpanded ? Math.max(actualStatusBarHeight + 380 * Appearance.effectiveScale, modelData.height * 0.6) : (actualStatusBarHeight + (showBackground ? cornerRadius : 0)))
             }
 
             // ── Hover Detection Infrastructure ──────────────────

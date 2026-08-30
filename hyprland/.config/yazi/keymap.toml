@@ -180,9 +180,9 @@ keymap = [
 ]
 
 [[mgr.prepend_keymap]]
-on  = "<º>"
-run = "shell -- ripdrag -a -x %s"
-desc = "Drag and drop con ripdrag"
+on  = "º"
+run = 'shell -- /home/hypr/.local/bin/nandoroid-dropzone-add %s'
+desc = "Enviar a la Isla Dinámica (Dropzone)"
 
 [spot]
 

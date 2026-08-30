@@ -441,7 +441,7 @@ Item {
 
     // Time (Left of Notch)
     StyledText {
-        visible: Config.ready && Config.options.statusBar && Config.options.statusBar.centerModule === "clock"
+        visible: !Config.ready || !Config.options.statusBar || (Config.options.statusBar.centerModule ?? "clock") === "clock"
         anchors.verticalCenter: parent.verticalCenter
         x: dynamicIsland.x + dynamicIsland.pill.x - width - 16 * Appearance.effectiveScale
         text: DateTime.currentTime
@@ -452,7 +452,7 @@ Item {
 
     // Date (Right of Notch)
     StyledText {
-        visible: Config.ready && Config.options.statusBar && Config.options.statusBar.centerModule === "clock"
+        visible: !Config.ready || !Config.options.statusBar || (Config.options.statusBar.centerModule ?? "clock") === "clock"
         anchors.verticalCenter: parent.verticalCenter
         x: dynamicIsland.x + dynamicIsland.pill.x + dynamicIsland.pill.width + 16 * Appearance.effectiveScale
         text: DateTime.currentDate

@@ -330,6 +330,14 @@ ShellRoot {
         }
     }
 
+    GlobalShortcut {
+        name: "dropzoneToggle"
+        description: "Toggle Dropzone Floating Island"
+        onPressed: {
+            GlobalStates.dropzoneNotchOpen = !GlobalStates.dropzoneNotchOpen
+        }
+    }
+
     IpcHandler {
         target: "session"
         function open() { GlobalStates.sessionOpen = true }
@@ -354,6 +362,24 @@ ShellRoot {
         function open_direct() { GlobalStates.systemMonitorOpen = true }
         function close() { GlobalStates.systemMonitorOpen = false }
         function toggle() { GlobalStates.activateSystemMonitor() }
+    }
+
+    IpcHandler {
+        target: "dropzone"
+        function add(pathsStr: string) {
+            if (!pathsStr) return
+            let list = pathsStr.split("\n").filter(p => p.trim().length > 0)
+            if (list.length <= 1 && pathsStr.includes(" ")) {
+                // Split by spaces while preserving escaped spaces if needed
+                list = pathsStr.match(/(?:[^\s"]+|"[^"]*")+/g) || [pathsStr]
+                list = list.map(s => s.replace(/^"|"$/g, ''))
+            }
+            DropzoneService.addFiles(list)
+        }
+        function open() { GlobalStates.dropzoneNotchOpen = true }
+        function close() { GlobalStates.dropzoneNotchOpen = false }
+        function toggle() { GlobalStates.dropzoneNotchOpen = !GlobalStates.dropzoneNotchOpen }
+        function clear() { DropzoneService.clearAll() }
     }
 
     // ── Phase 14: Region Selector ──

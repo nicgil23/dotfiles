@@ -50,3 +50,4 @@ singleton LyricsService 1.0 LyricsService.qml
 singleton CurrencyService 1.0 CurrencyService.qml
 singleton GlobalFocusGrab GlobalFocusGrab.qml
 singleton VersionService VersionService.qml
+singleton DropzoneService DropzoneService.qml
