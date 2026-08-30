@@ -32,7 +32,7 @@ return {
             {
                 "<leader>aa",
                 toggle_agy,
-                mode = { "n", "t" },
+                mode = "n",
                 desc = "Toggle Antigravity AI (Side Split)",
             },
         },
