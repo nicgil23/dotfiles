@@ -45,7 +45,7 @@ backup_pkgs() {
     echo "Respaldo completado en $backup_dir"
 }
 
-# Función de yazi 
+# Función de yazi
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	yazi "$@" --cwd-file="$tmp"
@@ -55,6 +55,25 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+clubed() {
+	local autotask_dir="/home/hypr/workspace/AutoTask"
+	local target_dir="/home/hypr/workspace/AutoTask/frontend"
+	local chrome_cmd="google-chrome-stable"
+	command -v google-chrome &>/dev/null && chrome_cmd="google-chrome"
+
+	kitty --directory "$target_dir" &>/dev/null &
+
+	if command -v hyprctl &>/dev/null; then
+		hyprctl dispatch exec "[workspace 3] kitty --directory $autotask_dir agy" &>/dev/null
+		hyprctl dispatch exec "[workspace 5] $chrome_cmd http://localhost:3000/" &>/dev/null
+	else
+		kitty --directory "$autotask_dir" agy &>/dev/null &
+		"$chrome_cmd" http://localhost:3000/ &>/dev/null &
+	fi
+
+	cd "$target_dir" && npm run dev
+}
+
 # Linea para que el laucher de quichshell reconozca los iconos de las APPs de flatpak
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share
 
@@ -62,13 +81,8 @@ export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/
 bindkey '^H' backward-kill-word # Ctrl + Retroceso para borrar la palabra hacia atrás
 bindkey '^[[3;5~' kill-word # Ctrl + Suprimir para borrar la palabra hacia adelante
 
-# Antigravity
-
-
-
 # Created by `pipx` on 2026-06-07 01:33:26
 export PATH="$PATH:/home/hypr/.local/bin"
-
 
 # Added by Antigravity CLI installer
 export PATH="/home/hypr/.local/bin:$PATH"

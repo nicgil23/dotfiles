@@ -54,9 +54,26 @@ vim.keymap.set(
     { noremap = true, silent = true, desc = "Find Word under cursor globally (Ripgrep)" }
 )
 
--- Buffer navigation with Ctrl+h / Ctrl+l (previous / next buffer)
-vim.keymap.set("n", "<C-h>", "<cmd>bprevious<cr>", { noremap = true, silent = true, desc = "Prev Buffer" })
-vim.keymap.set("n", "<C-l>", "<cmd>bnext<cr>", { noremap = true, silent = true, desc = "Next Buffer" })
+-- Buffer / Window navigation with Ctrl+h / Ctrl+l
+-- Move to left/right window if split exists (e.g. AI sidebar), otherwise navigate buffers
+local function nav_left()
+  if vim.fn.winnr("h") ~= vim.fn.winnr() then
+    vim.cmd("wincmd h")
+  else
+    vim.cmd("bprevious")
+  end
+end
+
+local function nav_right()
+  if vim.fn.winnr("l") ~= vim.fn.winnr() then
+    vim.cmd("wincmd l")
+  else
+    vim.cmd("bnext")
+  end
+end
+
+vim.keymap.set({ "n", "t" }, "<C-h>", nav_left, { noremap = true, silent = true, desc = "Navigate Left (Window / Buffer)" })
+vim.keymap.set({ "n", "t" }, "<C-l>", nav_right, { noremap = true, silent = true, desc = "Navigate Right (Window / Buffer)" })
 
 -- Window navigation with Shift+h / Shift+l (left / right split window)
 vim.keymap.set("n", "H", "<C-w>h", { noremap = true, silent = true, desc = "Go to Left Window" })
