@@ -36,7 +36,7 @@ Item {
         Qt.callLater(() => { tabHighlight.idx2 = currentTab })
         GlobalStates.closeSubPopups()
     }
-    readonly property int tabCount: 7
+    readonly property int tabCount: 6
     readonly property int tabButtonSize: 44 * Appearance.effectiveScale
     readonly property int tabStripWidth: tabButtonSize + 16 * Appearance.effectiveScale // button + side padding
 
@@ -338,7 +338,6 @@ Item {
                             { icon: "edit_note",        tooltip: "Notepad" },
                             { icon: "timer",            tooltip: "Cronómetro / Temporizador" },
                             { icon: "translate",        tooltip: "Translator" },
-                            { icon: "keyboard",         tooltip: "Atajos de teclado / Shortcuts" },
                             { icon: "code",             tooltip: "GitHub" }
                         ]
                         delegate: Item {
@@ -463,32 +462,13 @@ Item {
                     sourceComponent: DashTranslation { width: contentArea.width; height: contentArea.height }
                 }
 
-                // Tab 5: Shortcuts
+                // Tab 5: GitHub
                 Loader {
                     anchors.fill: parent
                     active: true
                     visible: root.currentTab === 5
                     opacity: visible ? 1 : 0
                     transform: Translate { y: root.currentTab === 5 ? 0 : (root.currentTab > 5 ? -12 * Appearance.effectiveScale : 12 * Appearance.effectiveScale)
-                        Behavior on y { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                    }
-                    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
-                    sourceComponent: DashShortcuts { width: contentArea.width; height: contentArea.height }
-
-                    onVisibleChanged: {
-                        if (visible && item && typeof item.refresh === "function") {
-                            item.refresh()
-                        }
-                    }
-                }
-
-                // Tab 6: GitHub
-                Loader {
-                    anchors.fill: parent
-                    active: true
-                    visible: root.currentTab === 6
-                    opacity: visible ? 1 : 0
-                    transform: Translate { y: root.currentTab === 6 ? 0 : (root.currentTab > 6 ? -12 * Appearance.effectiveScale : 12 * Appearance.effectiveScale)
                         Behavior on y { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
                     }
                     Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }

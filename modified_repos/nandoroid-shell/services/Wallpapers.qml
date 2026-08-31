@@ -643,9 +643,7 @@ Singleton {
     function syncSettings() {
         if (!Config.ready) return;
         const bg = Config.options.appearance.background;
-        _autoCycleEnabled = bg.autoCycleEnabled;
-        _autoCycleDirectory = bg.autoCycleDirectory || "";
-        _autoCycleInterval = bg.autoCycleInterval || 30;
+        // Reactive properties _autoCycleEnabled, _autoCycleDirectory, and _autoCycleInterval automatically update via bindings.
         
         
         // Initial theme load on startup/reload
