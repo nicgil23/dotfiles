@@ -23,24 +23,56 @@ ColumnLayout {
     readonly property bool hasArchive: DropzoneService.stashedFiles.some(f => f.isArchive)
     readonly property bool hasNonArchive: DropzoneService.stashedFiles.some(f => !f.isArchive)
 
-    readonly property var availableTransforms: {
+    property bool trashAnimActive: false
+
+    Timer {
+        id: trashAnimTimer
+        interval: 280
+        repeat: false
+        onTriggered: {
+            root.trashAnimActive = false
+            DropzoneService.clearAll()
+        }
+    }
+
+    readonly property var categorizedTransforms: {
         let list = []
         if (hasImage) {
-            list.push({ id: "png", label: "PNG" })
-            list.push({ id: "jpg", label: "JPG" })
-            list.push({ id: "webp", label: "WEBP" })
-            list.push({ id: "exif", label: "Clean EXIF" })
+            list.push({
+                title: "IMAGES",
+                items: [
+                    { id: "png", label: "PNG" },
+                    { id: "jpg", label: "JPG" },
+                    { id: "webp", label: "WEBP" },
+                    { id: "svg", label: "SVG" },
+                    { id: "exif", label: "Clean EXIF" }
+                ]
+            })
         }
         if (hasVideo) {
-            list.push({ id: "gif", label: "MP4 → GIF" })
-            list.push({ id: "mp3", label: "MP4 → MP3" })
+            list.push({
+                title: "VIDEO",
+                items: [
+                    { id: "gif", label: "GIF" },
+                    { id: "webm", label: "WEBM" },
+                    { id: "mp3", label: "MP3" }
+                ]
+            })
         }
+        let archiveItems = []
         if (hasNonArchive) {
-            list.push({ id: "zip", label: "ZIP" })
-            list.push({ id: "targz", label: "TAR.GZ" })
+            archiveItems.push({ id: "zip", label: "ZIP" })
+            archiveItems.push({ id: "targz", label: "TAR.GZ" })
+            archiveItems.push({ id: "7z", label: "7Z" })
         }
         if (hasArchive) {
-            list.push({ id: "extract", label: "Extract Archive" })
+            archiveItems.push({ id: "extract", label: "Extract" })
+        }
+        if (archiveItems.length > 0) {
+            list.push({
+                title: "FILES",
+                items: archiveItems
+            })
         }
         return list
     }
@@ -73,6 +105,17 @@ ColumnLayout {
                 cmds.push(`magick "${imgs[i].path}" "${outPath}"`)
                 outPathsToAdd.push(outPath)
             }
+        } else if (transformId === "svg") {
+            let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
+            count = imgs.length
+            pathsToRemove = imgs.map(f => f.path)
+            for (let i = 0; i < imgs.length; i++) {
+                let dir = DropzoneService.getFileDir(imgs[i].path)
+                let nameWithoutExt = DropzoneService.getFileName(imgs[i].path).replace(/\.[^/.]+$/, "")
+                let outPath = dir + "/" + nameWithoutExt + "_vector." + transformId.toLowerCase()
+                cmds.push(`magick "${imgs[i].path}" pnm:- | potrace -s -o "${outPath}"`)
+                outPathsToAdd.push(outPath)
+            }
         } else if (transformId === "exif") {
             let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
             count = imgs.length
@@ -85,7 +128,7 @@ ColumnLayout {
                 cmds.push(`magick "${imgs[i].path}" -strip "${outPath}"`)
                 outPathsToAdd.push(outPath)
             }
-        } else if (transformId === "gif" || transformId === "mp3") {
+        } else if (transformId === "gif" || transformId === "mp3" || transformId === "webm") {
             let vids = DropzoneService.stashedFiles.filter(f => f.isVideo)
             count = vids.length
             pathsToRemove = vids.map(f => f.path)
@@ -96,17 +139,17 @@ ColumnLayout {
                 cmds.push(`ffmpeg -y -i "${vids[i].path}" "${outPath}"`)
                 outPathsToAdd.push(outPath)
             }
-        } else if (transformId === "zip" || transformId === "targz") {
+        } else if (transformId === "zip" || transformId === "targz" || transformId === "7z") {
             let paths = DropzoneService.stashedFiles.map(f => f.path)
             count = paths.length
             pathsToRemove = paths
             let firstDir = DropzoneService.getFileDir(paths[0])
-            let ext = transformId === "targz" ? "tar.gz" : "zip"
+            let ext = transformId === "targz" ? "tar.gz" : transformId
             let outPath = firstDir + "/isla_archive." + ext
             let pathsStr = paths.map(p => `"${p}"`).join(" ")
             let zipCmd = transformId === "targz"
                 ? `tar -czvf "${outPath}" ${pathsStr}`
-                : `zip -j "${outPath}" ${pathsStr}`
+                : (transformId === "7z" ? `7z a "${outPath}" ${pathsStr}` : `zip -j "${outPath}" ${pathsStr}`)
             cmds.push(zipCmd)
             outPathsToAdd.push(outPath)
         } else if (transformId === "extract") {
@@ -117,10 +160,7 @@ ColumnLayout {
                 let dir = DropzoneService.getFileDir(archs[i].path)
                 let nameWithoutExt = DropzoneService.getFileName(archs[i].path).replace(/\.[^/.]+$/, "").replace(/\.tar$/, "")
                 let outDir = dir + "/" + nameWithoutExt + "_extracted"
-                let ext = DropzoneService.getFileExt(archs[i].path)
-                let extCmd = (ext === "zip")
-                    ? `mkdir -p "${outDir}" && unzip -o "${archs[i].path}" -d "${outDir}"`
-                    : `mkdir -p "${outDir}" && tar -xzvf "${archs[i].path}" -C "${outDir}"`
+                let extCmd = `mkdir -p "${outDir}" && 7z x "${archs[i].path}" -o"${outDir}" -y`
                 cmds.push(extCmd)
                 outPathsToAdd.push(outDir)
             }
@@ -212,17 +252,34 @@ ColumnLayout {
             }
         }
 
-        // Files grid
+        // Files list / grid
         ScrollView {
             anchors.fill: parent
             visible: DropzoneService.hasFiles
             clip: true
+            opacity: root.trashAnimActive ? 0.0 : 1.0
+            scale: root.trashAnimActive ? 0.85 : 1.0
+            transformOrigin: Item.BottomRight
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 220
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 220
+                    easing.type: Easing.OutBack
+                }
+            }
 
             GridView {
                 id: gridView
                 anchors.fill: parent
                 cellWidth: gridView.width / 3
-                cellHeight: 70 * Appearance.effectiveScale
+                cellHeight: 65 * Appearance.effectiveScale
                 model: DropzoneService.stashedFiles
 
                 delegate: Item {
@@ -231,11 +288,9 @@ ColumnLayout {
 
                     Rectangle {
                         anchors.fill: parent
-                        anchors.margins: 4 * Appearance.effectiveScale
-                        color: itemHover.hovered ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(1, 1, 1, 0.06)
+                        anchors.margins: 3 * Appearance.effectiveScale
+                        color: itemHover.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
                         radius: 8 * Appearance.effectiveScale
-                        border.color: itemHover.hovered ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.12)
-                        border.width: 1
 
                         HoverHandler { id: itemHover }
                         property bool wasItemDragging: false
@@ -300,19 +355,38 @@ ColumnLayout {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 6 * Appearance.effectiveScale
+                            anchors.margins: 4 * Appearance.effectiveScale
                             spacing: 6 * Appearance.effectiveScale
 
                             // Icon / Thumbnail
                             Item {
-                                width: 34 * Appearance.effectiveScale
-                                height: 34 * Appearance.effectiveScale
+                                width: 32 * Appearance.effectiveScale
+                                height: 32 * Appearance.effectiveScale
 
                                 Image {
+                                    id: imgThumb
                                     anchors.fill: parent
                                     source: modelData.isImage ? "file://" + modelData.path : ""
                                     fillMode: Image.PreserveAspectCrop
                                     visible: modelData.isImage && status === Image.Ready
+                                    mipmap: true
+                                }
+
+                                Image {
+                                    id: themeIcon
+                                    anchors.fill: parent
+                                    anchors.margins: 2 * Appearance.effectiveScale
+                                    source: {
+                                        if (modelData.isImage) return ""
+                                        if (modelData.thumbPath && modelData.thumbPath !== "") return "file://" + modelData.thumbPath
+                                        if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
+                                        if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
+                                        if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
+                                        if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
+                                        return Quickshell.iconPath("text-x-generic", "document")
+                                    }
+                                    fillMode: Image.PreserveAspectFit
+                                    visible: !modelData.isImage && status === Image.Ready
                                     mipmap: true
                                 }
 
@@ -321,14 +395,14 @@ ColumnLayout {
                                     text: modelData.isDir ? "folder" : (modelData.isImage ? "image" : (modelData.isVideo ? "movie" : (modelData.isAudio ? "audiotrack" : (modelData.isArchive ? "folder_zip" : "description"))))
                                     iconSize: 20 * Appearance.effectiveScale
                                     color: Qt.rgba(1, 1, 1, 0.85)
-                                    visible: !modelData.isImage || (status !== Image.Ready)
+                                    visible: !modelData.isImage ? (themeIcon.status !== Image.Ready) : (imgThumb.status !== Image.Ready)
                                 }
                             }
 
                             // File details
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: 2 * Appearance.effectiveScale
+                                spacing: 1 * Appearance.effectiveScale
 
                                 StyledText {
                                     Layout.fillWidth: true
@@ -345,19 +419,6 @@ ColumnLayout {
                                     color: Qt.rgba(1, 1, 1, 0.5)
                                 }
                             }
-
-                            // Delete single file button
-                            MaterialSymbol {
-                                text: "close"
-                                iconSize: 14 * Appearance.effectiveScale
-                                color: Qt.rgba(1, 1, 1, 0.6)
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: DropzoneService.removeFile(index)
-                                }
-                            }
                         }
                     }
                 }
@@ -369,22 +430,22 @@ ColumnLayout {
     ColumnLayout {
         Layout.fillWidth: true
         visible: DropzoneService.hasFiles
-        spacing: 6 * Appearance.effectiveScale
+        spacing: 8 * Appearance.effectiveScale
 
-        // ── ROW 1: BATCH ACTIONS (Grab All 75% width - text only, Clear All, Transformations, Send to Mobile) ──
+        // ── ROW 1: BATCH ACTIONS BAR (Agarrar Todos 75% + 3 Icon Buttons) ──
         RowLayout {
             Layout.fillWidth: true
-            spacing: 6 * Appearance.effectiveScale
+            spacing: 8 * Appearance.effectiveScale
 
-            // 1. "Grab All Files" Card (75% width, Text Only)
+            // 1. "Agarrar Todos (N)" Unified Textured Bar
             Rectangle {
                 id: grabAllCard
                 Layout.fillWidth: true
-                Layout.preferredWidth: 9
-                implicitHeight: 34 * Appearance.effectiveScale
-                radius: 8 * Appearance.effectiveScale
-                color: grabAllHover.hovered ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.1)
-                border.color: grabAllHover.hovered ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.15)
+                Layout.preferredWidth: 8
+                implicitHeight: 36 * Appearance.effectiveScale
+                radius: 10 * Appearance.effectiveScale
+                color: grabAllHover.hovered ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+                border.color: grabAllHover.hovered ? Qt.rgba(1, 1, 1, 0.25) : Qt.rgba(1, 1, 1, 0.1)
                 border.width: 1
 
                 HoverHandler { id: grabAllHover }
@@ -449,94 +510,109 @@ ColumnLayout {
 
                 StyledText {
                     anchors.centerIn: parent
-                    text: "Grab All Files (" + DropzoneService.stashedFiles.length + ")"
-                    font.pixelSize: Math.round(11 * Appearance.effectiveScale)
-                    font.weight: Font.Bold
-                    color: Appearance.colors.colNotchText
+                    text: "Grab All (" + DropzoneService.stashedFiles.length + ")"
+                    font.pixelSize: Math.round(12 * Appearance.effectiveScale)
+                    font.weight: Font.Medium
+                    color: Qt.rgba(1, 1, 1, 0.9)
                     elide: Text.ElideRight
                 }
             }
 
-            // 2. "Clear All" Icon Button (Trash icon delete_sweep)
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                implicitHeight: 34 * Appearance.effectiveScale
-                radius: 8 * Appearance.effectiveScale
-                color: clearHover.hovered ? Qt.rgba(0.9, 0.2, 0.2, 0.3) : Qt.rgba(1, 1, 1, 0.08)
-                border.color: clearHover.hovered ? Qt.rgba(0.9, 0.2, 0.2, 0.5) : Qt.rgba(1, 1, 1, 0.12)
-                border.width: 1
+            // 2. Clear All (Trash icon with original pop & shake animation)
+            MaterialSymbol {
+                id: trashIcon
+                text: "delete"
+                iconSize: 20 * Appearance.effectiveScale
+                color: root.trashAnimActive ? "#ff4d4d" : (clearHover.hovered ? "#ff6b6b" : Qt.rgba(1, 1, 1, 0.5))
+                scale: root.trashAnimActive ? 1.35 : 1.0
+                rotation: root.trashAnimActive ? -25 : 0
 
-                HoverHandler { id: clearHover }
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 180
+                        easing.type: Easing.OutBack
+                    }
+                }
 
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "delete_sweep"
-                    iconSize: 18 * Appearance.effectiveScale
-                    color: clearHover.hovered ? "#ff6b6b" : Qt.rgba(1, 1, 1, 0.8)
+                Behavior on rotation {
+                    SequentialAnimation {
+                        NumberAnimation { to: -20; duration: 60 }
+                        NumberAnimation { to: 20; duration: 60 }
+                        NumberAnimation { to: -10; duration: 50 }
+                        NumberAnimation { to: 0; duration: 70 }
+                    }
+                }
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 150
+                    }
                 }
 
                 MouseArea {
+                    id: clearHoverArea
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: DropzoneService.clearAll()
+                    HoverHandler { id: clearHover }
+                    onClicked: {
+                        if (trashAnimTimer.running) return
+                        root.trashAnimActive = true
+                        trashAnimTimer.start()
+                    }
                 }
             }
 
-            // 3. Transformations Icon Button (Icon: "tune")
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                implicitHeight: 34 * Appearance.effectiveScale
-                radius: 8 * Appearance.effectiveScale
-                color: root.transformationsOpen ? Qt.rgba(1, 1, 1, 0.25) : (plusHover.hovered ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.1))
-                border.color: root.transformationsOpen ? Appearance.colors.colAccent : (plusHover.hovered ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.15))
-                border.width: 1
+            // 3. Transformations Toggle (Tune icon with rotation animation)
+            MaterialSymbol {
+                id: tuneIcon
+                text: root.transformationsOpen ? "close" : "tune"
+                iconSize: 20 * Appearance.effectiveScale
+                color: tuneHover.hovered ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(1, 1, 1, 0.5)
+                rotation: root.transformationsOpen ? 180 : 0
 
-                HoverHandler { id: plusHover }
+                Behavior on rotation {
+                    NumberAnimation {
+                        duration: 250
+                        easing.type: Easing.OutCubic
+                    }
+                }
 
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: root.transformationsOpen ? "close" : "tune"
-                    iconSize: 18 * Appearance.effectiveScale
-                    color: root.transformationsOpen ? Appearance.colors.colAccent : Qt.rgba(1, 1, 1, 0.8)
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 200
+                    }
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.transformationsOpen = !root.transformationsOpen
+                    HoverHandler { id: tuneHover }
+                    onClicked: {
+                        root.transformationsOpen = !root.transformationsOpen
+                        if (!root.transformationsOpen) {
+                            root.selectedTransformId = ""
+                            root.selectedTransformLabel = ""
+                        }
+                    }
                 }
             }
 
-            // 4. "Send to Mobile" Icon Button (Icon: "phonelink")
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                implicitHeight: 34 * Appearance.effectiveScale
-                radius: 8 * Appearance.effectiveScale
-                color: mobileHover.hovered ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.1)
-                border.color: mobileHover.hovered ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.15)
-                border.width: 1
-
-                HoverHandler { id: mobileHover }
-
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "phonelink"
-                    iconSize: 18 * Appearance.effectiveScale
-                    color: mobileHover.hovered ? Appearance.colors.colAccent : Qt.rgba(1, 1, 1, 0.8)
-                }
+            // 4. Send to Mobile (Phonelink icon)
+            MaterialSymbol {
+                text: "phonelink"
+                iconSize: 20 * Appearance.effectiveScale
+                color: mobileHover.hovered ? "#FFFFFF" : Qt.rgba(1, 1, 1, 0.5)
 
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
+                    HoverHandler { id: mobileHover }
                     onClicked: {
                         if (DropzoneService.stashedFiles.length > 0) {
                             let count = DropzoneService.stashedFiles.length
                             DropzoneService.sendToKdeConnect(DropzoneService.stashedFiles[0].path)
                             GlobalStates.dropzoneNotchOpen = false
-                            let notifCmd = `sleep 0.75 && notify-send -a "KDE Connect" "KDE Connect" "Has subido ${count} ${count === 1 ? "archivo" : "archivos"}"`
+                            let notifCmd = `sleep 0.75 && notify-send -a "KDE Connect" "KDE Connect" "Uploaded ${count} ${count === 1 ? "file" : "files"} to Mobile"`
                             Quickshell.execDetached(["bash", "-c", notifCmd])
                         }
                     }
@@ -544,13 +620,13 @@ ColumnLayout {
             }
         }
 
-        // ── ROW 2 / SECTION 4: TRANSFORMATIONS OPTIONS & DESTINATION SELECTOR WITH SMOOTH TRANSITION ──
+        // ── ROW 2: UNIFIED TRANSFORMATIONS BAR (Clean Container without Individual Capsules) ──
         Item {
             id: transformationsContainer
             Layout.fillWidth: true
             clip: true
 
-            readonly property bool isExpanded: root.transformationsOpen || root.selectedTransformId !== ""
+            readonly property bool isExpanded: root.transformationsOpen
 
             implicitHeight: isExpanded ? innerContent.implicitHeight : 0
             opacity: isExpanded ? 1.0 : 0.0
@@ -574,106 +650,154 @@ ColumnLayout {
                 width: parent.width
                 spacing: 6 * Appearance.effectiveScale
 
-                // Expanded Transformation Options (Flow of chips)
-                Flow {
+                // Categorized Options (Floating layout without outer big capsule container)
+                ColumnLayout {
+                    id: catColumn
                     Layout.fillWidth: true
+                    Layout.topMargin: 8 * Appearance.effectiveScale
                     spacing: 6 * Appearance.effectiveScale
                     visible: root.transformationsOpen
 
                     Repeater {
-                        model: root.availableTransforms
-                        delegate: Rectangle {
-                            implicitWidth: itemText.implicitWidth + 20 * Appearance.effectiveScale
-                            implicitHeight: 28 * Appearance.effectiveScale
-                            radius: 6 * Appearance.effectiveScale
-                            color: itemHover.hovered ? Qt.rgba(1, 1, 1, 0.22) : (root.selectedTransformId === modelData.id ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.1))
-                            border.color: root.selectedTransformId === modelData.id ? Appearance.colors.colAccent : Qt.rgba(1, 1, 1, 0.15)
-                            border.width: 1
+                        model: root.categorizedTransforms
+                        delegate: RowLayout {
+                            id: catRow
+                            property var categoryData: modelData
+                            Layout.fillWidth: true
+                            spacing: 10 * Appearance.effectiveScale
 
-                            HoverHandler { id: itemHover }
-
+                            // Category Label (e.g. IMÁGENES, VÍDEO, ARCHIVOS)
                             StyledText {
-                                id: itemText
-                                anchors.centerIn: parent
-                                text: modelData.label
-                                font.pixelSize: Math.round(11 * Appearance.effectiveScale)
-                                font.weight: root.selectedTransformId === modelData.id ? Font.Bold : Font.Normal
-                                color: Appearance.colors.colNotchText
+                                text: categoryData.title
+                                font.pixelSize: Math.round(9 * Appearance.effectiveScale)
+                                font.weight: Font.Bold
+                                color: Qt.rgba(1, 1, 1, 0.35)
+                                Layout.preferredWidth: 68 * Appearance.effectiveScale
                             }
 
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    root.selectedTransformId = modelData.id
-                                    root.selectedTransformLabel = modelData.label
+                            // Actions text list
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 6 * Appearance.effectiveScale
+
+                                Repeater {
+                                    model: categoryData.items
+                                    delegate: RowLayout {
+                                        spacing: 6 * Appearance.effectiveScale
+
+                                        Rectangle {
+                                            implicitWidth: itemText.implicitWidth + 12 * Appearance.effectiveScale
+                                            implicitHeight: 22 * Appearance.effectiveScale
+                                            radius: 4 * Appearance.effectiveScale
+                                            color: root.selectedTransformId === modelData.id ? Qt.rgba(1, 1, 1, 0.15) : (txHover.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
+
+                                            HoverHandler { id: txHover }
+
+                                            StyledText {
+                                                id: itemText
+                                                anchors.centerIn: parent
+                                                text: modelData.label
+                                                font.pixelSize: Math.round(11 * Appearance.effectiveScale)
+                                                font.weight: root.selectedTransformId === modelData.id ? Font.DemiBold : Font.Normal
+                                                color: root.selectedTransformId === modelData.id ? "#FFFFFF" : (txHover.hovered ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(1, 1, 1, 0.55))
+                                            }
+
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    root.selectedTransformId = modelData.id
+                                                    root.selectedTransformLabel = modelData.label
+                                                }
+                                            }
+                                        }
+
+                                        StyledText {
+                                            text: "•"
+                                            font.pixelSize: Math.round(9 * Appearance.effectiveScale)
+                                            color: Qt.rgba(1, 1, 1, 0.2)
+                                            visible: index < catRow.categoryData.items.length - 1
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // ── DESTINATION SELECTION (Original Folder vs Mobile) ──
-                // Appears when a transformation option is selected!
+                // Destination Selection (Save to:)
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6 * Appearance.effectiveScale
-                    visible: root.selectedTransformId !== ""
+                    Layout.topMargin: 4 * Appearance.effectiveScale
+                    spacing: 10 * Appearance.effectiveScale
+                    visible: root.transformationsOpen && root.selectedTransformId !== ""
 
+                    // Category Label
                     StyledText {
-                        text: "Save to:"
-                        font.pixelSize: Math.round(11 * Appearance.effectiveScale)
-                        font.weight: Font.Medium
-                        color: Qt.rgba(1, 1, 1, 0.6)
+                        text: "SAVE TO"
+                        font.pixelSize: Math.round(9 * Appearance.effectiveScale)
+                        font.weight: Font.Bold
+                        color: Qt.rgba(1, 1, 1, 0.35)
+                        Layout.preferredWidth: 68 * Appearance.effectiveScale
                     }
 
-                    Rectangle {
+                    // Destination Options
+                    RowLayout {
                         Layout.fillWidth: true
-                        implicitHeight: 30 * Appearance.effectiveScale
-                        radius: 6 * Appearance.effectiveScale
-                        color: origHover.hovered ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.12)
-                        border.color: Qt.rgba(1, 1, 1, 0.2)
-                        border.width: 1
+                        spacing: 6 * Appearance.effectiveScale
 
-                        HoverHandler { id: origHover }
+                        Rectangle {
+                            implicitWidth: origText.implicitWidth + 12 * Appearance.effectiveScale
+                            implicitHeight: 22 * Appearance.effectiveScale
+                            radius: 4 * Appearance.effectiveScale
+                            color: origHover.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+
+                            HoverHandler { id: origHover }
+
+                            StyledText {
+                                id: origText
+                                anchors.centerIn: parent
+                                text: "Original Folder"
+                                font.pixelSize: Math.round(11 * Appearance.effectiveScale)
+                                font.weight: Font.Normal
+                                color: origHover.hovered ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(1, 1, 1, 0.55)
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.executeTransform(root.selectedTransformId, "local")
+                            }
+                        }
 
                         StyledText {
-                            anchors.centerIn: parent
-                            text: "Original Folder"
-                            font.pixelSize: Math.round(11 * Appearance.effectiveScale)
-                            font.weight: Font.DemiBold
-                            color: Appearance.colors.colNotchText
+                            text: "•"
+                            font.pixelSize: Math.round(9 * Appearance.effectiveScale)
+                            color: Qt.rgba(1, 1, 1, 0.2)
                         }
 
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.executeTransform(root.selectedTransformId, "original")
-                        }
-                    }
+                        Rectangle {
+                            implicitWidth: mobText.implicitWidth + 12 * Appearance.effectiveScale
+                            implicitHeight: 22 * Appearance.effectiveScale
+                            radius: 4 * Appearance.effectiveScale
+                            color: destMobHover.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
 
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: 30 * Appearance.effectiveScale
-                        radius: 6 * Appearance.effectiveScale
-                        color: destMobHover.hovered ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.12)
-                        border.color: Qt.rgba(1, 1, 1, 0.2)
-                        border.width: 1
+                            HoverHandler { id: destMobHover }
 
-                        HoverHandler { id: destMobHover }
+                            StyledText {
+                                id: mobText
+                                anchors.centerIn: parent
+                                text: "Mobile (KDE Connect)"
+                                font.pixelSize: Math.round(11 * Appearance.effectiveScale)
+                                font.weight: Font.Normal
+                                color: destMobHover.hovered ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(1, 1, 1, 0.55)
+                            }
 
-                        StyledText {
-                            anchors.centerIn: parent
-                            text: "Mobile"
-                            font.pixelSize: Math.round(11 * Appearance.effectiveScale)
-                            font.weight: Font.DemiBold
-                            color: Appearance.colors.colNotchText
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.executeTransform(root.selectedTransformId, "kdeconnect")
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.executeTransform(root.selectedTransformId, "kdeconnect")
+                            }
                         }
                     }
                 }
