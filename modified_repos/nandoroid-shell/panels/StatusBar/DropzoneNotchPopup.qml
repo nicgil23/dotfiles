@@ -177,12 +177,13 @@ ColumnLayout {
                     Rectangle {
                         anchors.fill: parent
                         anchors.margins: 4 * Appearance.effectiveScale
-                        color: itemHover.hovered ? Appearance.colors.colLayer2 : Qt.rgba(1, 1, 1, 0.08)
+                        color: itemHover.hovered ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(1, 1, 1, 0.06)
                         radius: 8 * Appearance.effectiveScale
-                        border.color: itemHover.hovered ? Qt.rgba(1, 1, 1, 0.3) : "transparent"
+                        border.color: itemHover.hovered ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.12)
                         border.width: 1
 
                         HoverHandler { id: itemHover }
+                        property bool wasItemDragging: false
 
                         Item {
                             id: dragTarget
@@ -194,6 +195,7 @@ ColumnLayout {
                                 "text/uri-list": "file://" + modelData.path
                             }
                             Drag.imageSource: {
+                                if (modelData.thumbPath) return "file://" + modelData.thumbPath
                                 if (modelData.isImage) return "file://" + modelData.path
                                 if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
                                 if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
@@ -203,6 +205,9 @@ ColumnLayout {
                             }
                             Drag.hotSpot.x: 16 * Appearance.effectiveScale
                             Drag.hotSpot.y: 16 * Appearance.effectiveScale
+                            Drag.onDragFinished: (dropAction) => {
+                                DropzoneService.removeFile(index)
+                            }
                         }
 
                         MouseArea {
@@ -210,11 +215,32 @@ ColumnLayout {
                             anchors.fill: parent
                             cursorShape: Qt.OpenHandCursor
                             drag.target: dragTarget
+                            acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+                            drag.onActiveChanged: {
+                                if (drag.active) {
+                                    wasItemDragging = true
+                                } else if (wasItemDragging) {
+                                    wasItemDragging = false
+                                    dragTarget.x = 0
+                                    dragTarget.y = 0
+                                    if (!containsMouse) {
+                                        DropzoneService.removeFile(index)
+                                    }
+                                }
+                            }
                             onReleased: {
                                 dragTarget.x = 0
                                 dragTarget.y = 0
                             }
-                            onClicked: DropzoneService.grabFile(modelData.path)
+                            onClicked: (mouse) => {
+                                if (mouse.button === Qt.LeftButton) {
+                                    DropzoneService.openFile(modelData.path, modelData.isDir)
+                                } else if (mouse.button === Qt.MiddleButton) {
+                                    DropzoneService.copyPath(modelData.path)
+                                } else if (mouse.button === Qt.RightButton) {
+                                    DropzoneService.removeFile(index)
+                                }
+                            }
                         }
 
                         RowLayout {
@@ -239,7 +265,7 @@ ColumnLayout {
                                     anchors.centerIn: parent
                                     text: modelData.isDir ? "folder" : (modelData.isImage ? "image" : (modelData.isVideo ? "movie" : (modelData.isAudio ? "audiotrack" : (modelData.isArchive ? "folder_zip" : "description"))))
                                     iconSize: 20 * Appearance.effectiveScale
-                                    color: Appearance.colors.colNotchText
+                                    color: Qt.rgba(1, 1, 1, 0.85)
                                     visible: !modelData.isImage || (status !== Image.Ready)
                                 }
                             }
@@ -254,7 +280,7 @@ ColumnLayout {
                                     text: modelData.name
                                     font.pixelSize: Math.round(11 * Appearance.effectiveScale)
                                     font.weight: Font.DemiBold
-                                    color: Appearance.colors.colNotchText
+                                    color: "#FFFFFF"
                                     elide: Text.ElideRight
                                 }
 
@@ -317,15 +343,48 @@ ColumnLayout {
                     Drag.mimeData: {
                         "text/uri-list": DropzoneService.stashedFiles.map(f => "file://" + f.path).join("\r\n")
                     }
-                    Drag.hotSpot.x: 16 * Appearance.effectiveScale
-                    Drag.hotSpot.y: 16 * Appearance.effectiveScale
+                    Drag.imageSource: {
+                        if (DropzoneService.grabAllThumbPath && DropzoneService.grabAllThumbPath !== "") {
+                            return "file://" + DropzoneService.grabAllThumbPath
+                        }
+                        if (DropzoneService.stashedFiles.length > 0) {
+                            let first = DropzoneService.stashedFiles[0]
+                            if (first.thumbPath && first.thumbPath !== "") return "file://" + first.thumbPath
+                            if (first.isImage) return "file://" + first.path
+                            if (first.isDir) return Quickshell.iconPath("folder", "inode-directory")
+                            if (first.isVideo) return Quickshell.iconPath("video-x-generic", "video")
+                            if (first.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
+                            if (first.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
+                            return Quickshell.iconPath("text-x-generic", "document")
+                        }
+                        return ""
+                    }
+                    Drag.hotSpot.x: 42.5 * Appearance.effectiveScale
+                    Drag.hotSpot.y: 42.5 * Appearance.effectiveScale
+                    Drag.onDragFinished: (dropAction) => {
+                        DropzoneService.clearAll()
+                    }
                 }
+
+                property bool wasGrabAllDragging: false
 
                 MouseArea {
                     id: grabAllMouseArea
                     anchors.fill: parent
                     cursorShape: Qt.OpenHandCursor
                     drag.target: grabAllDragTarget
+                    drag.onActiveChanged: {
+                        if (drag.active) {
+                            wasGrabAllDragging = true
+                        } else if (wasGrabAllDragging) {
+                            wasGrabAllDragging = false
+                            grabAllDragTarget.x = 0
+                            grabAllDragTarget.y = 0
+                            if (!containsMouse) {
+                                DropzoneService.clearAll()
+                            }
+                        }
+                    }
                     onReleased: {
                         grabAllDragTarget.x = 0
                         grabAllDragTarget.y = 0
