@@ -21,6 +21,7 @@ ColumnLayout {
     readonly property bool hasImage: DropzoneService.stashedFiles.some(f => f.isImage)
     readonly property bool hasVideo: DropzoneService.stashedFiles.some(f => f.isVideo)
     readonly property bool hasArchive: DropzoneService.stashedFiles.some(f => f.isArchive)
+    readonly property bool hasNonArchive: DropzoneService.stashedFiles.some(f => !f.isArchive)
 
     readonly property var availableTransforms: {
         let list = []
@@ -34,8 +35,10 @@ ColumnLayout {
             list.push({ id: "gif", label: "MP4 → GIF" })
             list.push({ id: "mp3", label: "MP4 → MP3" })
         }
-        list.push({ id: "zip", label: "ZIP" })
-        list.push({ id: "targz", label: "TAR.GZ" })
+        if (hasNonArchive) {
+            list.push({ id: "zip", label: "ZIP" })
+            list.push({ id: "targz", label: "TAR.GZ" })
+        }
         if (hasArchive) {
             list.push({ id: "extract", label: "Extract Archive" })
         }
@@ -54,33 +57,85 @@ ColumnLayout {
     function executeTransform(transformId, dest) {
         if (!DropzoneService.hasFiles) return
 
-        let count = DropzoneService.stashedFiles.length || 1
+        let count = 0
+        let pathsToRemove = []
+        let outPathsToAdd = []
+        let cmds = []
 
         if (transformId === "png" || transformId === "jpg" || transformId === "webp") {
-            let img = DropzoneService.stashedFiles.find(f => f.isImage)
-            if (img) DropzoneService.convertImage(img.path, transformId, dest)
+            let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
+            count = imgs.length
+            pathsToRemove = imgs.map(f => f.path)
+            for (let i = 0; i < imgs.length; i++) {
+                let dir = DropzoneService.getFileDir(imgs[i].path)
+                let nameWithoutExt = DropzoneService.getFileName(imgs[i].path).replace(/\.[^/.]+$/, "")
+                let outPath = dir + "/" + nameWithoutExt + "_converted." + transformId.toLowerCase()
+                cmds.push(`magick "${imgs[i].path}" "${outPath}"`)
+                outPathsToAdd.push(outPath)
+            }
         } else if (transformId === "exif") {
-            let img = DropzoneService.stashedFiles.find(f => f.isImage)
-            if (img) DropzoneService.cleanExif(img.path, dest)
+            let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
+            count = imgs.length
+            pathsToRemove = imgs.map(f => f.path)
+            for (let i = 0; i < imgs.length; i++) {
+                let dir = DropzoneService.getFileDir(imgs[i].path)
+                let ext = DropzoneService.getFileExt(DropzoneService.getFileName(imgs[i].path))
+                let nameWithoutExt = DropzoneService.getFileName(imgs[i].path).replace(/\.[^/.]+$/, "")
+                let outPath = dir + "/" + nameWithoutExt + "_clean." + ext
+                cmds.push(`magick "${imgs[i].path}" -strip "${outPath}"`)
+                outPathsToAdd.push(outPath)
+            }
         } else if (transformId === "gif" || transformId === "mp3") {
-            let vid = DropzoneService.stashedFiles.find(f => f.isVideo)
-            if (vid) DropzoneService.convertVideo(vid.path, transformId, dest)
-        } else if (transformId === "zip") {
+            let vids = DropzoneService.stashedFiles.filter(f => f.isVideo)
+            count = vids.length
+            pathsToRemove = vids.map(f => f.path)
+            for (let i = 0; i < vids.length; i++) {
+                let dir = DropzoneService.getFileDir(vids[i].path)
+                let nameWithoutExt = DropzoneService.getFileName(vids[i].path).replace(/\.[^/.]+$/, "")
+                let outPath = dir + "/" + nameWithoutExt + "_converted." + transformId.toLowerCase()
+                cmds.push(`ffmpeg -y -i "${vids[i].path}" "${outPath}"`)
+                outPathsToAdd.push(outPath)
+            }
+        } else if (transformId === "zip" || transformId === "targz") {
             let paths = DropzoneService.stashedFiles.map(f => f.path)
-            DropzoneService.compressArchive(paths, "zip", dest)
-        } else if (transformId === "targz") {
-            let paths = DropzoneService.stashedFiles.map(f => f.path)
-            DropzoneService.compressArchive(paths, "tar.gz", dest)
+            count = paths.length
+            pathsToRemove = paths
+            let firstDir = DropzoneService.getFileDir(paths[0])
+            let ext = transformId === "targz" ? "tar.gz" : "zip"
+            let outPath = firstDir + "/isla_archive." + ext
+            let pathsStr = paths.map(p => `"${p}"`).join(" ")
+            let zipCmd = transformId === "targz"
+                ? `tar -czvf "${outPath}" ${pathsStr}`
+                : `zip -j "${outPath}" ${pathsStr}`
+            cmds.push(zipCmd)
+            outPathsToAdd.push(outPath)
         } else if (transformId === "extract") {
-            let arch = DropzoneService.stashedFiles.find(f => f.isArchive)
-            if (arch) DropzoneService.decompressArchive(arch.path, dest)
+            let archs = DropzoneService.stashedFiles.filter(f => f.isArchive)
+            count = archs.length
+            pathsToRemove = archs.map(f => f.path)
+            for (let i = 0; i < archs.length; i++) {
+                let dir = DropzoneService.getFileDir(archs[i].path)
+                let nameWithoutExt = DropzoneService.getFileName(archs[i].path).replace(/\.[^/.]+$/, "").replace(/\.tar$/, "")
+                let outDir = dir + "/" + nameWithoutExt + "_extracted"
+                let ext = DropzoneService.getFileExt(archs[i].path)
+                let extCmd = (ext === "zip")
+                    ? `mkdir -p "${outDir}" && unzip -o "${archs[i].path}" -d "${outDir}"`
+                    : `mkdir -p "${outDir}" && tar -xzvf "${archs[i].path}" -C "${outDir}"`
+                cmds.push(extCmd)
+                outPathsToAdd.push(outDir)
+            }
         }
 
         root.selectedTransformId = ""
         root.selectedTransformLabel = ""
         root.transformationsOpen = false
 
-        if (dest === "kdeconnect") {
+        if (cmds.length > 0) {
+            let fullCmd = cmds.join(" && ")
+            DropzoneService.runTransformationCmd(fullCmd, pathsToRemove, outPathsToAdd, dest)
+        }
+
+        if (dest === "kdeconnect" && count > 0) {
             GlobalStates.dropzoneNotchOpen = false
             let notifCmd = `sleep 0.75 && notify-send -a "KDE Connect" "KDE Connect" "Has subido ${count} ${count === 1 ? "archivo" : "archivos"}"`
             Quickshell.execDetached(["bash", "-c", notifCmd])

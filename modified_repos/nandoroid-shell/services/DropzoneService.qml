@@ -285,6 +285,19 @@ print(json.dumps(res))`
         GlobalStates.dropzoneNotchOpen = false
     }
 
+    function replaceStashedItems(pathsToRemove, outPathsToAdd) {
+        if (!pathsToRemove || pathsToRemove.length === 0) return
+        let current = Array.from(root.stashedFiles).filter(f => !pathsToRemove.includes(f.path))
+        root.stashedFiles = current
+        root.filesUpdated()
+        if (current.length === 0) {
+            root.grabAllThumbPath = ""
+        }
+        if (outPathsToAdd && outPathsToAdd.length > 0) {
+            addFiles(outPathsToAdd)
+        }
+    }
+
     function openFile(path, isDir) {
         if (!path) return
         let checkIsDir = (isDir !== undefined) ? isDir : (root.stashedFiles.find(f => f.path === path)?.isDir ?? false)
@@ -314,6 +327,47 @@ print(json.dumps(res))`
         Quickshell.execDetached(["ripdrag", "-a", "-x"].concat(paths))
     }
 
+    property var pendingPathsToRemove: []
+    property var pendingOutPathsToAdd: []
+    property string pendingDestOption: ""
+    property string pendingTargetDevice: ""
+
+    Process {
+        id: transformProc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (root.pendingDestOption === "kdeconnect") {
+                    let dev = root.pendingTargetDevice || root.defaultKdeDevice
+                    if (dev && root.pendingOutPathsToAdd && root.pendingOutPathsToAdd.length > 0) {
+                        for (let i = 0; i < root.pendingOutPathsToAdd.length; i++) {
+                            Quickshell.execDetached(["kdeconnect-cli", "--device", dev, "--share", root.pendingOutPathsToAdd[i]])
+                        }
+                    }
+                } else {
+                    if (root.pendingPathsToRemove && root.pendingPathsToRemove.length > 0) {
+                        root.replaceStashedItems(root.pendingPathsToRemove, root.pendingOutPathsToAdd)
+                    }
+                }
+                root.pendingPathsToRemove = []
+                root.pendingOutPathsToAdd = []
+                root.pendingDestOption = ""
+                root.pendingTargetDevice = ""
+            }
+        }
+    }
+
+    function runTransformationCmd(cmd, pathsToRemove, outPathsToAdd, destOption, targetDevice) {
+        if (!cmd) return
+        root.pendingPathsToRemove = pathsToRemove || []
+        root.pendingOutPathsToAdd = outPathsToAdd || []
+        root.pendingDestOption = destOption || ""
+        root.pendingTargetDevice = targetDevice || ""
+
+        let pyScript = `import sys, subprocess; subprocess.run(sys.argv[1], shell=True)`
+        transformProc.command = ["python3", "-c", pyScript, cmd]
+        transformProc.running = true
+    }
+
     // --- Action Handlers ---
 
     function convertImage(filePath, targetFormat, destOption, targetDevice) {
@@ -321,17 +375,15 @@ print(json.dumps(res))`
         let nameWithoutExt = getFileName(filePath).replace(/\.[^/.]+$/, "")
         let outPath = dir + "/" + nameWithoutExt + "_converted." + targetFormat.toLowerCase()
 
-        let cmd = `convert "${filePath}" "${outPath}"`
+        let cmd = `magick "${filePath}" "${outPath}"`
         Quickshell.execDetached(["bash", "-c", cmd])
 
         let dev = targetDevice || defaultKdeDevice
         if (destOption === "kdeconnect" && dev) {
             let sendCmd = `sleep 1 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
             Quickshell.execDetached(["bash", "-c", sendCmd])
-        } else {
-            let addCmd = `sleep 1 && quickshell -p /home/hypr/dotfiles/modified_repos/nandoroid-shell ipc call dropzone add "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", addCmd])
         }
+        return outPath
     }
 
     function convertVideo(filePath, targetFormat, destOption, targetDevice) {
@@ -346,10 +398,8 @@ print(json.dumps(res))`
         if (destOption === "kdeconnect" && dev) {
             let sendCmd = `sleep 2 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
             Quickshell.execDetached(["bash", "-c", sendCmd])
-        } else {
-            let addCmd = `sleep 2 && quickshell -p /home/hypr/dotfiles/modified_repos/nandoroid-shell ipc call dropzone add "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", addCmd])
         }
+        return outPath
     }
 
     function cleanExif(filePath, destOption, targetDevice) {
@@ -358,21 +408,19 @@ print(json.dumps(res))`
         let nameWithoutExt = getFileName(filePath).replace(/\.[^/.]+$/, "")
         let outPath = dir + "/" + nameWithoutExt + "_clean." + ext
 
-        let cmd = `convert "${filePath}" -strip "${outPath}"`
+        let cmd = `magick "${filePath}" -strip "${outPath}"`
         Quickshell.execDetached(["bash", "-c", cmd])
 
         let dev = targetDevice || defaultKdeDevice
         if (destOption === "kdeconnect" && dev) {
             let sendCmd = `sleep 1 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
             Quickshell.execDetached(["bash", "-c", sendCmd])
-        } else {
-            let addCmd = `sleep 1 && quickshell -p /home/hypr/dotfiles/modified_repos/nandoroid-shell ipc call dropzone add "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", addCmd])
         }
+        return outPath
     }
 
     function compressArchive(filePaths, archiveType, destOption, targetDevice) {
-        if (!filePaths || filePaths.length === 0) return
+        if (!filePaths || filePaths.length === 0) return ""
         let firstDir = getFileDir(filePaths[0])
         let ext = archiveType === "tar.gz" ? "tar.gz" : "zip"
         let outPath = firstDir + "/isla_archive." + ext
@@ -388,10 +436,8 @@ print(json.dumps(res))`
         if (destOption === "kdeconnect" && dev) {
             let sendCmd = `sleep 1.5 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
             Quickshell.execDetached(["bash", "-c", sendCmd])
-        } else {
-            let addCmd = `sleep 1.5 && quickshell -p /home/hypr/dotfiles/modified_repos/nandoroid-shell ipc call dropzone add "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", addCmd])
         }
+        return outPath
     }
 
     function decompressArchive(archivePath, destOption, targetDevice) {
@@ -410,10 +456,8 @@ print(json.dumps(res))`
         if (destOption === "kdeconnect" && dev) {
             let sendCmd = `sleep 2 && kdeconnect-cli --device "${dev}" --share "${outDir}"`
             Quickshell.execDetached(["bash", "-c", sendCmd])
-        } else {
-            let addCmd = `sleep 2 && quickshell -p /home/hypr/dotfiles/modified_repos/nandoroid-shell ipc call dropzone add "${outDir}"`
-            Quickshell.execDetached(["bash", "-c", addCmd])
         }
+        return outDir
     }
 
     function sendToKdeConnect(filePath, deviceId) {
