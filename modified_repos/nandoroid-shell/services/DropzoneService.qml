@@ -74,7 +74,7 @@ elif err_count > 0:
     print(json.dumps({"success": False, "sent": count - err_count, "total": count, "error": "partial_failed"}))
 else:
     print(json.dumps({"success": True, "sent": count, "total": count}))
-    cmd = f'notify-send -i org.kde.kdeconnect.app -a "KDE Connect" -u normal "KDE Connect" "Enviados {label} al móvil correctamente"'
+    cmd = f'notify-send -i kdeconnect -a "KDE Connect" -u normal "KDE Connect" "Enviados {label} al móvil correctamente"'
     subprocess.run(cmd, shell=True)
 `
         kdeSendProc.command = ["python3", "-c", pyScript, dev || "", JSON.stringify(fileList)]

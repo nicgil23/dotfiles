@@ -301,10 +301,12 @@ Item {
                 width: 18 * Appearance.effectiveScale
                 height: 18 * Appearance.effectiveScale
                 source: {
-                    let iconName = AppSearch.guessIcon("org.kde.kdeconnect.app", "kdeconnect", "KDE Connect")
-                    return iconName ? Quickshell.iconPath(iconName, "kdeconnect") : Quickshell.iconPath("kdeconnect", "")
+                    let p = Quickshell.iconPath("kdeconnect", "org.kde.kdeconnect")
+                    if (p) return p
+                    let g = AppSearch.guessIcon("kdeconnect", "org.kde.kdeconnect", "KDE Connect")
+                    return g ? Quickshell.iconPath(g, "") : ""
                 }
-                visible: islandState === "kdeconnect" && !root.kdeConnectIsError && status === Image.Ready
+                visible: islandState === "kdeconnect" && status === Image.Ready
                 opacity: parent.parent.width > (18 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
             }
@@ -313,7 +315,7 @@ Item {
                 text: root.kdeConnectIsError ? "phonelink_erase" : "phonelink"
                 iconSize: 18 * Appearance.effectiveScale
                 color: root.kdeConnectIsError ? Appearance.m3colors.m3error : Appearance.colors.colNotchText
-                visible: islandState === "kdeconnect" && (root.kdeConnectIsError || kdeConnectAppImg.status !== Image.Ready)
+                visible: islandState === "kdeconnect" && kdeConnectAppImg.status !== Image.Ready
                 opacity: parent.parent.width > (18 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
             }
