@@ -47,17 +47,27 @@ Singleton {
                 Config.options.gameModeState.previousLayout = HyprlandData.activeWorkspace.tiledLayout || GlobalStates.hyprlandLayout || "dwindle";
             }
 
-            const batchCmd = [
-                HyprlandCompat.keywordStr("animations", "enabled", 0),
-                HyprlandCompat.keywordStr("decoration", "shadow:enabled", 0),
-                HyprlandCompat.keywordStr("decoration", "blur:enabled", 0),
-                HyprlandCompat.keywordStr("general", "gaps_in", 0),
-                HyprlandCompat.keywordStr("general", "gaps_out", 0),
-                HyprlandCompat.keywordStr("general", "border_size", 0),
-                HyprlandCompat.keywordStr("decoration", "rounding", 0),
-                HyprlandCompat.keywordStr("decoration", "inactive_opacity", 1),
-                HyprlandCompat.keywordStr("general", "allow_tearing", 1)
+            const rawRules = [
+                "animations:enabled 0",
+                "decoration:shadow:enabled 0",
+                "decoration:blur:enabled 0",
+                "general:gaps_in 0",
+                "general:gaps_out 0",
+                "general:border_size 0",
+                "decoration:rounding 0",
+                "decoration:inactive_opacity 1",
+                "general:allow_tearing 1"
             ];
+
+            const batchCmd = rawRules.map(r => {
+                const spaceIdx = r.indexOf(" ");
+                const keyPath = r.substring(0, spaceIdx);
+                const val = r.substring(spaceIdx + 1);
+                const firstColon = keyPath.indexOf(":");
+                const section = keyPath.substring(0, firstColon);
+                const key = keyPath.substring(firstColon + 1);
+                return HyprlandCompat.keywordStr(section, key, val);
+            });
             
             // Apply via hyprctl immediately
             Quickshell.execDetached(HyprlandCompat.batch(batchCmd))
@@ -99,7 +109,7 @@ Singleton {
                 Quickshell.execDetached(["python3", "-c", pyCmd, realPath, luaBlock]);
             } else {
                 const persistCmd = `sed -i '/animations:enabled/d; /decoration:shadow:enabled/d; /decoration:blur:enabled/d; /general:gaps_in/d; /general:gaps_out/d; /general:border_size/d; /decoration:rounding/d; /decoration:inactive_opacity/d; /general:allow_tearing/d' ${realPath} 2>/dev/null || true; ` +
-                    batchCmd.map(c => `echo "${c.replace(' ', ' = ')}" >> ${realPath}`).join('; ');
+                    rawRules.map(c => `echo "${c.replace(' ', ' = ')}" >> ${realPath}`).join('; ');
                 Quickshell.execDetached(["bash", "-c", persistCmd]);
             }
 
@@ -218,7 +228,10 @@ Singleton {
         }
     }
 
-    onActiveChanged: updateStatusBar()
+    onActiveChanged: {
+        Notifications.silent = root.active;
+        updateStatusBar();
+    }
 
     // Ensure we check startup state when config is ready if it wasn't before
     Connections {
