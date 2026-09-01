@@ -132,8 +132,8 @@ Singleton {
             return 
         }
 
-        const pythonExec = Quickshell.env("HOME") + "/.local/share/nandoroid/venv/bin/python3"
-        const scriptPath = Quickshell.env("HOME") + "/.config/quickshell/nandoroid/scripts/lyrics.py"
+        const pythonExec = "python3"
+        const scriptPath = Quickshell.shellPath("scripts/lyrics.py")
 
         lyricsProc.command = [
             pythonExec,
