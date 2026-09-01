@@ -28,7 +28,7 @@ PanelWindow {
     property var appToplevel: null
     property string appId: appToplevel ? appToplevel.appId : ""
     
-    property bool isPinned: (appToplevel && appId !== "") ? (appToplevel.pinned ?? false) : false
+    property bool isPinned: (appToplevel && appId !== "") ? TaskbarApps.isPinned(appId) : false
     property int windowCount: (appToplevel && appToplevel.toplevels) ? appToplevel.toplevels.length : 0
     
     property bool isLauncher: false

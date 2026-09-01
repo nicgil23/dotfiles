@@ -18,46 +18,64 @@ Singleton {
     function getDesktopEntry(appId) {
         if (!appId) return null;
         if (_entryCache[appId]) return _entryCache[appId];
-        const entry = DesktopEntries.byId(appId) || DesktopEntries.heuristicLookup(appId);
+        let entry = DesktopEntries.byId(appId);
+        if (!entry) {
+            const apps = Array.from(DesktopEntries.applications.values);
+            const lowerAppId = appId.toLowerCase();
+            for (const app of apps) {
+                if (app && app.id && app.id.toLowerCase() === lowerAppId) {
+                    entry = app;
+                    break;
+                }
+            }
+        }
+        if (!entry) {
+            entry = DesktopEntries.heuristicLookup(appId);
+        }
         if (entry) _entryCache[appId] = entry;
         return entry;
     }
 
     function isPinned(appId) {
-        if (!Config.ready) return false;
-        return Config.options.dock.pinnedApps.indexOf(appId) !== -1;
+        if (!Config.ready || !appId) return false;
+        const target = appId.toLowerCase();
+        return Config.options.dock.pinnedApps.some(p => p.toLowerCase() === target);
     }
 
     function togglePin(appId) {
-        if (!Config.ready) return;
+        if (!Config.ready || !appId) return;
         let pinned = Array.from(Config.options.dock.pinnedApps);
-        const idx = pinned.indexOf(appId);
-        if (idx !== -1) pinned.splice(idx, 1);
-        else pinned.push(appId);
+        const target = appId.toLowerCase();
+        const idx = pinned.findIndex(p => p.toLowerCase() === target);
+        if (idx !== -1) {
+            pinned.splice(idx, 1);
+        } else {
+            pinned.push(appId);
+        }
         Config.options.dock.pinnedApps = pinned;
     }
 
     function moveApp(appId, direction) {
         if (!appId || !Config.ready) return;
         const pinnedApps = Array.from(Config.options.dock.pinnedApps);
-        const isPinned = pinnedApps.includes(appId);
+        const target = appId.toLowerCase();
+        const idx = pinnedApps.findIndex(p => p.toLowerCase() === target);
         
-        if (isPinned) {
-            const idx = pinnedApps.indexOf(appId);
-            const target = idx + direction;
-            if (target >= 0 && target < pinnedApps.length) {
-                pinnedApps.splice(idx, 1);
-                pinnedApps.splice(target, 0, appId);
+        if (idx !== -1) {
+            const newTarget = idx + direction;
+            if (newTarget >= 0 && newTarget < pinnedApps.length) {
+                const item = pinnedApps.splice(idx, 1)[0];
+                pinnedApps.splice(newTarget, 0, item);
                 Config.options.dock.pinnedApps = pinnedApps;
             }
         } else {
             const unpinned = Array.from(root.unpinnedOrder);
-            const idx = unpinned.indexOf(appId.toLowerCase());
-            if (idx === -1) return;
-            const target = idx + direction;
-            if (target >= 0 && target < unpinned.length) {
-                unpinned.splice(idx, 1);
-                unpinned.splice(target, 0, appId.toLowerCase());
+            const unpinnedIdx = unpinned.indexOf(target);
+            if (unpinnedIdx === -1) return;
+            const newTarget = unpinnedIdx + direction;
+            if (newTarget >= 0 && newTarget < unpinned.length) {
+                const item = unpinned.splice(unpinnedIdx, 1)[0];
+                unpinned.splice(newTarget, 0, item);
                 root.unpinnedOrder = unpinned;
             }
         }
