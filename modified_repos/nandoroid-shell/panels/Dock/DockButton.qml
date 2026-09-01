@@ -9,25 +9,22 @@ import "../../widgets"
  */
 RippleButton {
     id: root
-    Layout.fillHeight: true
+    Layout.alignment: Qt.AlignVCenter
     
-    // Default size for dock buttons
-    implicitHeight: 64 * Appearance.effectiveScale
-    implicitWidth: Math.max(48 * Appearance.effectiveScale, implicitHeight - (dockTopInset + dockBottomInset))
+    // Default compact size for dock buttons
+    implicitHeight: 42 * Appearance.effectiveScale
+    implicitWidth: 42 * Appearance.effectiveScale
     buttonRadius: Appearance.rounding.normal
     
     // Ensure the background is transparent by default if not toggled
     colBackground: toggled ? Appearance.colors.colPrimary : "transparent"
     
-    // Custom inset properties to avoid conflict with FINAL topInset/bottomInset
     property real dockTopInset: 0
     property real dockBottomInset: 0
     
     background: Rectangle {
         id: bgRect
         anchors.fill: parent
-        anchors.topMargin: root.dockTopInset
-        anchors.bottomMargin: root.dockBottomInset
         radius: root.buttonRadius
         color: root.baseColor
         

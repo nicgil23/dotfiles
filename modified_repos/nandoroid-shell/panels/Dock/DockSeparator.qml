@@ -7,8 +7,9 @@ import "../../core"
  */
 Rectangle {
     id: root
-    // Using simple anchoring and margins for now, will refine in Dock.qml
     Layout.fillHeight: true
+    Layout.topMargin: 10 * Appearance.effectiveScale
+    Layout.bottomMargin: 10 * Appearance.effectiveScale
     implicitWidth: Math.max(1, 1 * Appearance.effectiveScale)
     color: Appearance.colors.colOutlineVariant
     opacity: 0.5

@@ -26,14 +26,13 @@ DockButton {
     readonly property var desktopEntry: appToplevel ? TaskbarApps.getDesktopEntry(appToplevel.appId) : null
     
     enabled: !isSeparator
-    implicitWidth: isSeparator ? Math.max(1, 1 * Appearance.effectiveScale) : Math.max(48 * Appearance.effectiveScale, implicitHeight - (dockTopInset + dockBottomInset))
+    implicitHeight: 44 * Appearance.effectiveScale
+    implicitWidth: isSeparator ? Math.max(1, 1 * Appearance.effectiveScale) : 44 * Appearance.effectiveScale
 
     background: Item {
         anchors.fill: parent
         Rectangle {
             anchors.fill: parent
-            anchors.topMargin: root.dockTopInset
-            anchors.bottomMargin: root.dockBottomInset
             radius: root.buttonRadius
             color: root.baseColor
             visible: !(Config.ready && Config.options.dock.monochromeIcons)
@@ -49,8 +48,6 @@ DockButton {
     }
     
     colBackground: "transparent"
-    dockTopInset: (Config.ready && Config.options.dock.monochromeIcons ? 4 : 0) * Appearance.effectiveScale
-    dockBottomInset: (Config.ready && Config.options.dock.monochromeIcons ? 4 : 0) * Appearance.effectiveScale
 
     onClicked: {
         if (!appToplevel || !appToplevel.toplevels) return;
@@ -111,14 +108,14 @@ DockButton {
         }
 
         Row {
-            spacing: 2 * Appearance.effectiveScale
-            anchors { bottom: parent.bottom; bottomMargin: root.dockBottomInset + 6 * Appearance.effectiveScale; horizontalCenter: parent.horizontalCenter }
+            spacing: 3 * Appearance.effectiveScale
+            anchors { bottom: parent.bottom; bottomMargin: 2 * Appearance.effectiveScale; horizontalCenter: parent.horizontalCenter }
             visible: appToplevel && appToplevel.toplevels && appToplevel.toplevels.length > 0
             Repeater {
                 model: (appToplevel && appToplevel.toplevels) ? Math.min(appToplevel.toplevels.length, 3) : 0
                 delegate: Rectangle {
                     radius: Appearance.rounding.full
-                    width: (appToplevel.toplevels.length === 1) ? 12 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
+                    width: (appToplevel.toplevels.length <= 3) ? 10 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
                     height: 4 * Appearance.effectiveScale
                     color: root.appIsActive ? Appearance.colors.colPrimary : Functions.ColorUtils.applyAlpha(Appearance.colors.colOnLayer0, 0.4)
                     Behavior on color { animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this) }

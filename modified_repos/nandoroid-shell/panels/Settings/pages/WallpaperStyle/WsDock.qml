@@ -226,6 +226,143 @@ ColumnLayout {
                 }
             }
 
+            // ── Background Opacity ──────────────
+            SegmentedWrapper {
+                Layout.fillWidth: true
+                implicitHeight: bgOpacityRow.implicitHeight + (32 * Appearance.effectiveScale)
+                orientation: Qt.Vertical
+                maxRadius: 20 * Appearance.effectiveScale
+                color: Appearance.m3colors.m3surfaceContainerHigh
+                enabled: Config.ready && Config.options.dock && Config.options.dock.enable
+                opacity: enabled ? 1 : 0.5
+                RowLayout {
+                    id: bgOpacityRow
+                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                    spacing: 20 * Appearance.effectiveScale
+
+                    RowLayout {
+                        spacing: 16 * Appearance.effectiveScale
+                        Layout.preferredWidth: 140 * Appearance.effectiveScale
+                        MaterialSymbol { text: "opacity"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                        StyledText { text: "Background Opacity"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1; elide: Text.ElideRight }
+                    }
+
+                    StyledSlider {
+                        Layout.fillWidth: true; from: 0.0; to: 1.0; stepSize: 0.05
+                        value: Config.ready && Config.options.dock ? (Config.options.dock.bgOpacity ?? 1.0) : 1.0
+                        onMoved: if (Config.ready && Config.options.dock) Config.options.dock.bgOpacity = value
+                    }
+                    
+                    StyledText {
+                        text: Math.round((Config.ready && Config.options.dock ? (Config.options.dock.bgOpacity ?? 1.0) : 1.0) * 100).toString() + "%"
+                        color: Appearance.colors.colOnLayer1; Layout.preferredWidth: 50 * Appearance.effectiveScale; horizontalAlignment: Text.AlignRight
+                    }
+                }
+            }
+
+            // ── Corner Radius ──────────────
+            SegmentedWrapper {
+                Layout.fillWidth: true
+                implicitHeight: cornerRadiusRow.implicitHeight + (32 * Appearance.effectiveScale)
+                orientation: Qt.Vertical
+                maxRadius: 20 * Appearance.effectiveScale
+                color: Appearance.m3colors.m3surfaceContainerHigh
+                enabled: Config.ready && Config.options.dock && Config.options.dock.enable
+                opacity: enabled ? 1 : 0.5
+                RowLayout {
+                    id: cornerRadiusRow
+                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                    spacing: 20 * Appearance.effectiveScale
+
+                    RowLayout {
+                        spacing: 16 * Appearance.effectiveScale
+                        Layout.preferredWidth: 140 * Appearance.effectiveScale
+                        MaterialSymbol { text: "rounded_corner"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                        StyledText { text: "Corner Radius"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1; elide: Text.ElideRight }
+                    }
+
+                    StyledSlider {
+                        Layout.fillWidth: true; from: 0; to: 32; stepSize: 1
+                        value: Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Config.options.dock.cornerRadius : (Appearance.rounding.normal + 6)
+                        onMoved: if (Config.ready && Config.options.dock) Config.options.dock.cornerRadius = Math.round(value)
+                    }
+                    
+                    StyledText {
+                        text: (Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Math.round(Config.options.dock.cornerRadius) : Math.round(Appearance.rounding.normal + 6)).toString() + "px"
+                        color: Appearance.colors.colOnLayer1; Layout.preferredWidth: 50 * Appearance.effectiveScale; horizontalAlignment: Text.AlignRight
+                    }
+                }
+            }
+
+            // ── Show Shadow ──────────────
+            SegmentedWrapper {
+                Layout.fillWidth: true
+                implicitHeight: shadowRow.implicitHeight + (36 * Appearance.effectiveScale)
+                orientation: Qt.Vertical
+                maxRadius: 20 * Appearance.effectiveScale
+                color: Appearance.m3colors.m3surfaceContainerHigh
+                enabled: Config.ready && Config.options.dock && Config.options.dock.enable
+                opacity: enabled ? 1 : 0.5
+                RowLayout {
+                    id: shadowRow
+                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "drop_shadow"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { text: "Show Shadow"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                    AndroidToggle {
+                        checked: Config.ready && Config.options.dock ? (Config.options.dock.showShadow ?? false) : false
+                        onToggled: if (Config.ready && Config.options.dock)
+                            Config.options.dock.showShadow = !Config.options.dock.showShadow
+                    }
+                }
+            }
+
+            // ── Show Pin Button ──────────────
+            SegmentedWrapper {
+                Layout.fillWidth: true
+                implicitHeight: pinBtnRow.implicitHeight + (36 * Appearance.effectiveScale)
+                orientation: Qt.Vertical
+                maxRadius: 20 * Appearance.effectiveScale
+                color: Appearance.m3colors.m3surfaceContainerHigh
+                enabled: Config.ready && Config.options.dock && Config.options.dock.enable
+                opacity: enabled ? 1 : 0.5
+                RowLayout {
+                    id: pinBtnRow
+                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "keep"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { text: "Show Pin Button"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                    AndroidToggle {
+                        checked: Config.ready && Config.options.dock ? (Config.options.dock.showPinButton ?? true) : true
+                        onToggled: if (Config.ready && Config.options.dock)
+                            Config.options.dock.showPinButton = !Config.options.dock.showPinButton
+                    }
+                }
+            }
+
+            // ── Show Media Card ──────────────
+            SegmentedWrapper {
+                Layout.fillWidth: true
+                implicitHeight: mediaCardRow.implicitHeight + (36 * Appearance.effectiveScale)
+                orientation: Qt.Vertical
+                maxRadius: 20 * Appearance.effectiveScale
+                color: Appearance.m3colors.m3surfaceContainerHigh
+                enabled: Config.ready && Config.options.dock && Config.options.dock.enable
+                opacity: enabled ? 1 : 0.5
+                RowLayout {
+                    id: mediaCardRow
+                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "music_note"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { text: "Show Media Card"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                    AndroidToggle {
+                        checked: Config.ready && Config.options.dock ? (Config.options.dock.showMedia ?? true) : true
+                        onToggled: if (Config.ready && Config.options.dock)
+                            Config.options.dock.showMedia = !Config.options.dock.showMedia
+                    }
+                }
+            }
+
             // ── Show App Launcher ──────────────
             SegmentedWrapper {
                 Layout.fillWidth: true
@@ -239,7 +376,7 @@ ColumnLayout {
                     id: launcherRow
                     anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
                     spacing: 16 * Appearance.effectiveScale
-                    MaterialSymbol { text: "widgets"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    MaterialSymbol { text: "apps"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
                     StyledText { text: "Show App Launcher"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
                     AndroidToggle {
                         checked: Config.ready && Config.options.dock ? (Config.options.dock.showLauncher ?? true) : true

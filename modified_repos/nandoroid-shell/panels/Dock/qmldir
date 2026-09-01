@@ -5,3 +5,4 @@ DockButton DockButton.qml
 DockSeparator DockSeparator.qml
 DockContextMenu DockContextMenu.qml
 DockPreview DockPreview.qml
+DockMedia DockMedia.qml

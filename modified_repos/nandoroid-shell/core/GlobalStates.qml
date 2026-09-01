@@ -310,7 +310,6 @@ Singleton {
             dashboardOpen = false
             sessionOpen = false
             systemMonitorOpen = false
-            settingsOpen = false
         }
     }
 
@@ -320,7 +319,6 @@ Singleton {
         quickActionsOpen = false
         launcherOpen = false
         spotlightOpen = false
-        settingsOpen = false
         dashboardOpen = false
         systemMonitorOpen = false
         sessionOpen = false
@@ -329,7 +327,7 @@ Singleton {
         dropzoneNotchOpen = false
         trayOverflowOpen = false
         accentPickerOpen = false
-        // Note: wallpaperSelectorOpen and regionSelectorOpen are excluded
+        // Note: settingsOpen, wallpaperSelectorOpen, and regionSelectorOpen are excluded
     }
 
     function activateSettings() {

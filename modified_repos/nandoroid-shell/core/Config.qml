@@ -444,6 +444,11 @@ Singleton {
                 property list<string> pinnedApps: ["kitty", "org.kde.dolphin"]
                 property list<string> ignoredAppRegexes: ["^xwaylandvideobridge$"]
                 property real scale: 1.0
+                property real bgOpacity: 1.0
+                property real cornerRadius: -1
+                property bool showShadow: false
+                property bool showPinButton: true
+                property bool showMedia: true
                 property bool showLauncher: true
                 property bool showOverview: true
             }
