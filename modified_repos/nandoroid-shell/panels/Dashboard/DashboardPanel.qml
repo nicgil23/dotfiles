@@ -21,7 +21,7 @@ Variants {
 
     exclusiveZone: 0
     WlrLayershell.namespace: "nandoroid:dashboard"
-    WlrLayershell.layer: isOpen || closeTimer.running ? WlrLayer.Overlay : WlrLayer.Background
+    WlrLayershell.layer: isOpen || closeTimer.running ? WlrLayer.Top : WlrLayer.Background
     WlrLayershell.keyboardFocus: isOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     color: "transparent"
 
@@ -41,7 +41,7 @@ Variants {
       let bgStyle = Config.options.statusBar.backgroundStyle ?? 0;
       if (bgStyle === 1) return true;
       if (bgStyle === 2) {
-        let activeWsId = HyprlandData.activeWorkspace?.id;
+        let activeWsId = HyprlandData.activeWorkspace ? HyprlandData.activeWorkspace.id : undefined;
         return activeWsId ? HyprlandData.windowList.some(w => w.workspace.id === activeWsId && !w.floating) : false;
       }
       return false;

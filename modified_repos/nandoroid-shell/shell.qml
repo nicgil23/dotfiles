@@ -368,12 +368,7 @@ ShellRoot {
         target: "dropzone"
         function add(pathsStr: string) {
             if (!pathsStr) return
-            let list = pathsStr.split("\n").filter(p => p.trim().length > 0)
-            if (list.length <= 1 && pathsStr.includes(" ")) {
-                // Split by spaces while preserving escaped spaces if needed
-                list = pathsStr.match(/(?:[^\s"]+|"[^"]*")+/g) || [pathsStr]
-                list = list.map(s => s.replace(/^"|"$/g, ''))
-            }
+            let list = pathsStr.split(/[\r\n]+/).filter(p => p.trim().length > 0)
             DropzoneService.addFiles(list)
         }
         function open() { GlobalStates.dropzoneNotchOpen = true }

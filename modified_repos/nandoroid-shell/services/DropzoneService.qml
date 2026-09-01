@@ -20,6 +20,7 @@ Singleton {
     readonly property string defaultKdeDevice: kdeConnectDevices.length > 0 ? kdeConnectDevices[0] : ""
 
     signal filesUpdated()
+    signal kdeConnectSent(int count)
 
     Process {
         id: checkDirsProcess
@@ -74,8 +75,13 @@ Singleton {
         for (let i = 0; i < paths.length; i++) {
             let p = String(paths[i]).trim()
             if (!p) continue
-            if (p.startsWith("file://")) p = p.substring(7)
-            
+            if (p.startsWith("file://")) {
+                p = p.substring(7)
+                try { p = decodeURIComponent(p) } catch(e) {}
+            } else if (p.includes("%")) {
+                try { p = decodeURIComponent(p) } catch(e) {}
+            }
+
             // Avoid duplicate paths
             if (current.some(f => f.path === p)) continue
 
@@ -186,9 +192,7 @@ Singleton {
                 if (root.pendingDestOption === "kdeconnect") {
                     let dev = root.pendingTargetDevice || root.defaultKdeDevice
                     if (dev && root.pendingOutPathsToAdd && root.pendingOutPathsToAdd.length > 0) {
-                        for (let i = 0; i < root.pendingOutPathsToAdd.length; i++) {
-                            Quickshell.execDetached(["kdeconnect-cli", "--device", dev, "--share", root.pendingOutPathsToAdd[i]])
-                        }
+                        root.sendToKdeConnect(root.pendingOutPathsToAdd, dev)
                     }
                 } else {
                     if (root.pendingPathsToRemove && root.pendingPathsToRemove.length > 0) {
@@ -308,6 +312,8 @@ Singleton {
         let fileList = Array.isArray(files) ? files : [files]
         if (fileList.length === 0) return
 
+        root.kdeConnectSent(fileList.length)
+
         let dev = deviceId || defaultKdeDevice
 
         let pyScript = `import sys, os, subprocess, json, time
@@ -322,24 +328,22 @@ if not dev:
     subprocess.run(cmd, shell=True)
     sys.exit(1)
 
-args = ["kdeconnect-cli", "--device", dev]
+err_count = 0
 for f in files:
     if f.startswith("file://"): f = f[7:]
-    args.extend(["--share", f])
+    r = subprocess.run(["kdeconnect-cli", "--device", dev, "--share", f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if r.returncode != 0:
+        err_count += 1
+    time.sleep(0.2)
 
-res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-err = (res.returncode != 0)
-
-if err and count > 1:
-    err = False
-    for f in files:
-        if f.startswith("file://"): f = f[7:]
-        r = subprocess.run(["kdeconnect-cli", "--device", dev, "--share", f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if r.returncode != 0: err = True
-        time.sleep(0.5)
-
-if err:
+if err_count == count:
     cmd = f'notify-send -a "KDE Connect" -u critical "KDE Connect" "Ha habido un error al enviar {label} al móvil"'
+    subprocess.run(cmd, shell=True)
+elif err_count > 0:
+    cmd = f'notify-send -a "KDE Connect" -u normal "KDE Connect" "Se han enviado {count - err_count} de {count} archivos al móvil"'
+    subprocess.run(cmd, shell=True)
+else:
+    cmd = f'notify-send -a "KDE Connect" -u normal "KDE Connect" "Enviados {label} al móvil correctamente"'
     subprocess.run(cmd, shell=True)
 `
         let cmd = ["python3", "-c", pyScript, dev || "", JSON.stringify(fileList)]

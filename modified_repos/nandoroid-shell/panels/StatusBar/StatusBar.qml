@@ -88,7 +88,7 @@ Scope {
 
             exclusiveZone: (autoHide && !mustShow) ? 0 : actualStatusBarHeight
             WlrLayershell.namespace: "nandoroid:statusbar"
-            WlrLayershell.layer: (specialWorkspaceActive || dropzoneWindowExpanded) ? WlrLayer.Overlay : WlrLayer.Top
+            WlrLayershell.layer: (specialWorkspaceActive || dropzoneWindowExpanded || GlobalStates.dropzoneNotchOpen) ? WlrLayer.Overlay : WlrLayer.Top
 
             anchors {
                 left: true

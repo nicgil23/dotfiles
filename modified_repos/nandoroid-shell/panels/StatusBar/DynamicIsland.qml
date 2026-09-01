@@ -52,6 +52,33 @@ Item {
     property bool mediaShowing: false
     Timer { id: mediaTimer; interval: 3000; onTriggered: root.mediaShowing = false }
 
+    // KDE Connect Notch Status
+    property bool kdeConnectShowing: false
+    property string kdeConnectText: ""
+
+    Timer {
+        id: kdeConnectHideTimer
+        interval: 3500
+        onTriggered: root.kdeConnectShowing = false
+    }
+
+    Timer {
+        id: kdeConnectStartTimer
+        interval: 800
+        onTriggered: {
+            root.kdeConnectShowing = true
+            kdeConnectHideTimer.restart()
+        }
+    }
+
+    Connections {
+        target: DropzoneService
+        function onKdeConnectSent(count) {
+            root.kdeConnectText = (count === 1) ? "1 file sent" : (count + " files sent")
+            kdeConnectStartTimer.restart()
+        }
+    }
+
     Connections {
         target: MprisController
         function onTrackTitleChanged() {
@@ -68,6 +95,7 @@ Item {
 
     readonly property string islandState: {
         if (islandStateOverride !== "") return islandStateOverride
+        if (kdeConnectShowing) return "kdeconnect"
         if (Notifications.activePopup) return "notification"
         if (ScreenRecord.active) return "recording"
         if ((mediaShowing || GlobalStates.mediaNotchOpen) && MprisController.activePlayer) return "media"
@@ -94,6 +122,12 @@ Item {
 
     // Universal Ear Width Calculation for ALL States
     readonly property real leftNaturalWidth: {
+        if (islandState === "kdeconnect") {
+            let w = 0
+            if (kdeConnectIcon.visible) w += (18 * Appearance.effectiveScale) + (6 * Appearance.effectiveScale)
+            if (kdeConnectAppLabel.visible) w += kdeConnectAppLabel.implicitWidth + (4 * Appearance.effectiveScale)
+            return w > 0 ? w + (4 * Appearance.effectiveScale) : 0
+        }
         if (islandState === "notification") {
             let w = 0
             if (notifLogo.visible) w += (20 * Appearance.effectiveScale) + (6 * Appearance.effectiveScale)
@@ -107,6 +141,7 @@ Item {
     }
     
     readonly property real rightNaturalWidth: {
+        if (islandState === "kdeconnect") return kdeConnectSummaryLabel.implicitWidth + (8 * Appearance.effectiveScale)
         if (islandState === "notification") return notifSummaryLabel.visible ? Math.min(notifSummaryLabel.implicitWidth, root.currentEarMaxWidth - (8 * Appearance.effectiveScale)) + (8 * Appearance.effectiveScale) : 0
         if (islandState === "recording") return recordTimeLabel.implicitWidth + (8 * Appearance.effectiveScale)
         if (islandState === "media") return mediaRightNaturalWidth
@@ -161,16 +196,16 @@ Item {
                 visible: islandState === "notification"
                 opacity: parent.parent.width > (24 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                appIcon: Notifications.activePopup?.appIcon || (islandStateOverride !== "" ? "chat" : "")
-                appName: Notifications.activePopup?.appName || ""
-                image: Notifications.activePopup?.image || ""
-                summary: Notifications.activePopup?.summary || (islandStateOverride !== "" ? "New Message" : "")
-                urgency: Notifications.activePopup?.urgency || "normal"
+                appIcon: (Notifications.activePopup ? Notifications.activePopup.appIcon : "") || (islandStateOverride !== "" ? "chat" : "")
+                appName: Notifications.activePopup ? Notifications.activePopup.appName : ""
+                image: Notifications.activePopup ? Notifications.activePopup.image : ""
+                summary: (Notifications.activePopup ? Notifications.activePopup.summary : "") || (islandStateOverride !== "" ? "New Message" : "")
+                urgency: (Notifications.activePopup ? Notifications.activePopup.urgency : "") || "normal"
                 color: "transparent"
             }
             StyledText {
                 id: notifAppNameLabel
-                text: Notifications.activePopup?.appName || (islandStateOverride !== "" ? "Messages" : "Notification")
+                text: (Notifications.activePopup ? Notifications.activePopup.appName : "") || (islandStateOverride !== "" ? "Messages" : "Notification")
                 visible: islandState === "notification"
                 opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -249,6 +284,33 @@ Item {
             font.pixelSize: Math.round(12 * Appearance.effectiveScale); font.weight: Font.DemiBold; color: Appearance.colors.colNotchText
             visible: islandState === "pomodoro"
         }
+
+        // KDE Connect - centered
+        Row {
+            anchors.centerIn: parent
+            visible: islandState === "kdeconnect"
+            spacing: 6 * Appearance.effectiveScale
+            MaterialSymbol {
+                id: kdeConnectIcon
+                text: "phonelink"
+                iconSize: 18 * Appearance.effectiveScale
+                color: Appearance.colors.colNotchText
+                visible: islandState === "kdeconnect"
+                opacity: parent.parent.width > (18 * Appearance.effectiveScale) ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+            }
+            StyledText {
+                id: kdeConnectAppLabel
+                text: "KDE Connect"
+                visible: islandState === "kdeconnect"
+                opacity: parent.parent.width > (30 * Appearance.effectiveScale) ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+                font.pixelSize: Math.round(12 * Appearance.effectiveScale)
+                font.weight: Font.Medium
+                color: Appearance.colors.colNotchText
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
     }
 
     // --- RIGHT EAR ---
@@ -278,8 +340,22 @@ Item {
         Behavior on anchors.leftMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
 
         StyledText {
+            id: kdeConnectSummaryLabel
+            anchors.centerIn: parent
+            text: root.kdeConnectText
+            visible: islandState === "kdeconnect"
+            opacity: parent.width > (15 * Appearance.effectiveScale) ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            font.pixelSize: Math.round(12 * Appearance.effectiveScale)
+            font.weight: Font.DemiBold
+            color: Appearance.colors.colNotchText
+            width: Math.min(implicitWidth, root.currentEarMaxWidth - (8 * Appearance.effectiveScale))
+            elide: Text.ElideRight
+        }
+
+        StyledText {
             id: notifSummaryLabel; anchors.centerIn: parent
-            text: Notifications.activePopup?.summary || (islandStateOverride !== "" ? "New Message" : "")
+            text: (Notifications.activePopup ? Notifications.activePopup.summary : "") || (islandStateOverride !== "" ? "New Message" : "")
             visible: islandState === "notification"
             opacity: parent.width > (20 * Appearance.effectiveScale) ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
