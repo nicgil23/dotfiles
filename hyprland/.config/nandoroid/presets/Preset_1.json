@@ -20,7 +20,8 @@
     "background": {
       "autoCycleDirectory": "file:///home/hypr/Pictures/wallpapers",
       "autoCycleEnabled": false,
-      "autoCycleInterval": 30,
+      "autoCycleInterval": 60,
+      "autoCycleOnlyFavorites": true,
       "cavaBars": 128,
       "cavaOpacity": 0.15,
       "customFolders": [],
@@ -45,7 +46,7 @@
       "showGrid": false,
       "showSnapLines": true,
       "transition": "random",
-      "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/thumb-1920-1311951.jpg"
+      "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png"
     },
     "clock": {
       "analog": {
@@ -223,8 +224,8 @@
       "desktopCenterX": -1,
       "desktopCenterY": -1,
       "desktopRightX": -1,
-      "desktopX": 1176,
-      "desktopY": 756,
+      "desktopX": 1116,
+      "desktopY": 696,
       "locked": false,
       "showLyrics": false,
       "showOnDesktop": false,
@@ -264,8 +265,10 @@
   },
   "dock": {
     "autoHide": true,
-    "autoHideMode": 1,
-    "backgroundStyle": 2,
+    "autoHideMode": 0,
+    "backgroundStyle": 1,
+    "bgOpacity": 0.7000000000000001,
+    "cornerRadius": 10,
     "enable": true,
     "hoverRegionHeight": 5,
     "ignoredAppRegexes": [
@@ -275,14 +278,17 @@
     "pinnedApps": [
       "kitty",
       "obsidian",
-      "dev.vencord.Vesktop",
-      "com.github.flxzt.rnote"
+      "com.github.flxzt.rnote",
+      "vesktop"
     ],
     "pinnedOnStartup": false,
-    "scale": 0.8500000000000001,
+    "scale": 0.95,
     "showLauncher": true,
+    "showMedia": false,
     "showOnlyInDesktop": false,
-    "showOverview": true
+    "showOverview": true,
+    "showPinButton": false,
+    "showShadow": true
   },
   "gameModeState": {
     "previousLayout": "",
@@ -305,7 +311,7 @@
   },
   "lock": {
     "cavaOpacity": 0.15,
-    "fgPreferencesJson": "{\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg\":true}",
+    "fgPreferencesJson": "{\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png\":true}",
     "foregroundPath": "",
     "launchOnStartup": false,
     "security": {
@@ -320,7 +326,7 @@
     "showWidgets": true,
     "useHyprlock": false,
     "useSeparateWallpaper": false,
-    "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/thumb-1920-1311951.jpg",
+    "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png",
     "weather": {
       "textColorMode": "adaptive"
     }
@@ -333,7 +339,7 @@
   },
   "nightMode": {
     "active": false,
-    "colorTemperature": 4500
+    "colorTemperature": 4400
   },
   "notifications": {
     "clearOnStartup": true,
@@ -361,6 +367,7 @@
   },
   "quickSettings": {
     "caffeineActive": false,
+    "caffeineMode": 0,
     "quickActionsPosition": "top",
     "showBanner": false,
     "showPerformanceStats": true,
@@ -483,7 +490,7 @@
     "enableGrouping": false,
     "enableUsageTracking": true,
     "filePrefix": "?",
-    "iconShape": "Circle",
+    "iconShape": "None",
     "imageSearch": {
       "imageSearchEngineBaseUrl": "https://lens.google.com/uploadbyurl?url="
     },
@@ -518,6 +525,7 @@
     "showVolumeIndicator": true,
     "systemMonitorStyle": "outline",
     "textColorMode": "light",
+    "trayMonochromeIcons": false,
     "trayStyle": "all",
     "useGradient": true,
     "volumeIndicatorMode": "mutedOnly"
@@ -526,7 +534,7 @@
     "bluetoothEnabled": true,
     "dndActive": false,
     "easyeffectsEnabled": false,
-    "lastUpdateCheckDate": "2026-08-28",
+    "lastUpdateCheckDate": "2026-09-01",
     "monitoredDisks": [
       {
         "alias": "System",
