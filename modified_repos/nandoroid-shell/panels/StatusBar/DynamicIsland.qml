@@ -372,7 +372,7 @@ Item {
                 name: "open"
                 when: GlobalStates.dropzoneNotchOpen
                 PropertyChanges { target: backgroundPill; pillWidth: backgroundPill.targetDropzoneWidth }
-                PropertyChanges { target: backgroundPill; pillHeight: Math.min(440 * Appearance.effectiveScale, dropzoneLayout.implicitHeight + (24 * Appearance.effectiveScale)) }
+                PropertyChanges { target: backgroundPill; pillHeight: Math.min(500 * Appearance.effectiveScale, dropzoneLayout.implicitHeight + (24 * Appearance.effectiveScale)) }
                 PropertyChanges { target: backgroundPill; pillX: -backgroundPill.targetDropzoneWidth / 2 }
             }
         ]
@@ -381,30 +381,30 @@ Item {
             Transition {
                 from: "closed"; to: "open"
                 SequentialAnimation {
-                    // Stage 1: Expand Width & X horizontally first (exact reverse of collapse Stage 2)
+                    // Stage 1: Expand Width & X horizontally first with smooth OutCubic easing
                     ParallelAnimation {
-                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 220; easing.type: Easing.OutQuint }
-                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 220; easing.type: Easing.OutQuint }
+                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 180; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 180; easing.type: Easing.OutCubic }
                     }
-                    // Stage 2: Expand Height vertically & fade in content (exact reverse of collapse Stage 1)
+                    // Stage 2: Expand Height vertically & fade in content smoothly
                     ParallelAnimation {
-                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 180; easing.type: Easing.OutQuint }
-                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 1; duration: 140; easing.type: Easing.OutQuint }
+                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 150; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 1; duration: 130; easing.type: Easing.OutCubic }
                     }
                 }
             },
             Transition {
                 from: "open"; to: "closed"
                 SequentialAnimation {
-                    // Stage 1: Shrink Height vertically & fade out content first
+                    // Stage 1: Fade out content & shrink Height vertically first
                     ParallelAnimation {
-                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 180; easing.type: Easing.OutQuint }
-                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 0; duration: 140; easing.type: Easing.OutQuint }
+                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 0; duration: 100; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 140; easing.type: Easing.OutCubic }
                     }
                     // Stage 2: Shrink Width & X horizontally back to normal
                     ParallelAnimation {
-                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 220; easing.type: Easing.OutQuint }
-                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 220; easing.type: Easing.OutQuint }
+                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 170; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 170; easing.type: Easing.OutCubic }
                     }
                 }
             }
@@ -458,11 +458,9 @@ Item {
         // ── EMBEDDED DROPZONE HUD CONTENT ──
         DropzoneNotchPopup {
             id: dropzoneLayout
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.leftMargin: 16 * Appearance.effectiveScale
-            anchors.rightMargin: 16 * Appearance.effectiveScale
+            width: backgroundPill.targetDropzoneWidth - (32 * Appearance.effectiveScale)
             anchors.topMargin: (isWaterdrop ? 6 : (isM3 ? 6 : 4)) * Appearance.effectiveScale
             anchors.bottomMargin: 12 * Appearance.effectiveScale
             spacing: 8 * Appearance.effectiveScale

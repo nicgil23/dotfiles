@@ -39,7 +39,6 @@ Singleton {
                     }
                     if (updated) {
                         root.stashedFiles = current
-                        root.filesUpdated()
                     }
                 } catch(e) {}
             }
@@ -84,7 +83,6 @@ Singleton {
                         }
                     }
                     root.stashedFiles = current
-                    root.filesUpdated()
                 } catch(e) {}
             }
         }

@@ -109,7 +109,7 @@ Scope {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
-                height: (autoHide && !mustShow) ? 3 * Appearance.effectiveScale : (dropzoneWindowExpanded ? Math.max(actualStatusBarHeight + 380 * Appearance.effectiveScale, modelData.height * 0.6) : (actualStatusBarHeight + (showBackground ? cornerRadius : 0)))
+                height: (autoHide && !mustShow) ? 3 * Appearance.effectiveScale : (dropzoneWindowExpanded ? Math.max(actualStatusBarHeight + 500 * Appearance.effectiveScale, modelData.height * 0.6) : (actualStatusBarHeight + (showBackground ? cornerRadius : 0)))
             }
 
             // ── Hover Detection Infrastructure ──────────────────
