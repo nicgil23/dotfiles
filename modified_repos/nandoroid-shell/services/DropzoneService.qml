@@ -6,7 +6,7 @@ import "../core"
 
 /**
  * Service managing files dropped or stashed into the Dynamic Island (Dropzone).
- * Handles file metadata, formats, KDE Connect sharing, and conversion tasks.
+ * Handles file metadata, format detection, KDE Connect sharing, and conversion tasks.
  */
 Singleton {
     id: root
@@ -22,106 +22,36 @@ Singleton {
     signal filesUpdated()
     signal kdeConnectSent(int count, bool isError)
 
-    Process {
-        id: kdeSendProc
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (!text) return
-                try {
-                    let res = JSON.parse(text.trim())
-                    let isError = !res.success
-                    let count = isError ? res.total : res.sent
-                    root.kdeConnectSent(count, isError)
-                } catch(e) {
-                    root.kdeConnectSent(0, true)
-                }
-            }
-        }
-    }
+    // Recognized file extensions by category
+    readonly property var imgExts: ["png", "jpg", "jpeg", "webp", "gif", "bmp", "svg", "ico", "tiff", "avif"]
+    readonly property var vidExts: ["mp4", "mkv", "webm", "avi", "mov", "flv", "wmv", "m4v"]
+    readonly property var audExts: ["mp3", "flac", "wav", "ogg", "m4a", "aac", "opus", "wma"]
+    readonly property var archExts: ["zip", "tar", "gz", "tgz", "7z", "rar", "xz", "bz2"]
 
-    function sendToKdeConnect(files, deviceId) {
-        if (!files) return
-        let fileList = Array.isArray(files) ? files : [files]
-        if (fileList.length === 0) return
-
-        root.clearAll()
-
-        let dev = deviceId || defaultKdeDevice
-
-        let pyScript = `import sys, os, subprocess, json, time
-
-dev = sys.argv[1]
-files = json.loads(sys.argv[2])
-count = len(files)
-
-if not dev:
-    print(json.dumps({"success": False, "sent": 0, "total": count, "error": "no_device"}))
-    sys.exit(0)
-
-err_count = 0
-for f in files:
-    if f.startswith("file://"): f = f[7:]
-    r = subprocess.run(["kdeconnect-cli", "--device", dev, "--share", f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if r.returncode != 0:
-        err_count += 1
-    time.sleep(0.2)
-
-label = "1 archivo" if count == 1 else f"{count} archivos"
-
-if err_count == count:
-    print(json.dumps({"success": False, "sent": 0, "total": count, "error": "all_failed"}))
-elif err_count > 0:
-    print(json.dumps({"success": False, "sent": count - err_count, "total": count, "error": "partial_failed"}))
-else:
-    print(json.dumps({"success": True, "sent": count, "total": count}))
-    cmd = f'notify-send -i kdeconnect -a "KDE Connect" -u normal "KDE Connect" "Enviados {label} al móvil correctamente"'
-    subprocess.run(cmd, shell=True)
-`
-        kdeSendProc.command = ["python3", "-c", pyScript, dev || "", JSON.stringify(fileList)]
-        kdeSendProc.running = true
-    }
-
-    Process {
-        id: checkDirsProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (!text) return
-                try {
-                    let map = JSON.parse(text)
-                    let updated = false
-                    let current = Array.from(root.stashedFiles)
-                    for (let i = 0; i < current.length; i++) {
-                        let item = current[i]
-                        if (map[item.path] !== undefined && item.isDir !== map[item.path]) {
-                            item.isDir = map[item.path]
-                            updated = true
-                        }
-                    }
-                    if (updated) {
-                        root.stashedFiles = current
-                    }
-                } catch(e) {}
-            }
-        }
-    }
+    // ── Path Helper Utilities ──
 
     function getFileName(path) {
         if (!path) return ""
-        let parts = path.split("/")
-        return parts[parts.length - 1]
+        let clean = String(path).replace(/\/+$/, "")
+        let idx = clean.lastIndexOf("/")
+        return idx !== -1 ? clean.substring(idx + 1) : clean
     }
 
     function getFileDir(path) {
         if (!path) return ""
-        let idx = path.lastIndexOf("/")
-        return idx !== -1 ? path.substring(0, idx) : ""
+        let clean = String(path).replace(/\/+$/, "")
+        let idx = clean.lastIndexOf("/")
+        return idx !== -1 ? clean.substring(0, idx) : ""
     }
 
     function getFileExt(name) {
         if (!name) return ""
-        let idx = name.lastIndexOf(".")
-        return idx !== -1 ? name.substring(idx + 1).toLowerCase() : ""
+        let cleanName = getFileName(name)
+        let idx = cleanName.lastIndexOf(".")
+        return (idx > 0 && idx < cleanName.length - 1) ? cleanName.substring(idx + 1).toLowerCase() : ""
     }
+
+    // ── Stash Management ──
 
     function addFiles(paths) {
         if (!paths) return
@@ -129,7 +59,6 @@ else:
         
         let current = Array.from(root.stashedFiles)
         let pathsToCheck = []
-        let newItems = []
 
         for (let i = 0; i < paths.length; i++) {
             let p = String(paths[i]).trim()
@@ -148,11 +77,11 @@ else:
             let dir = getFileDir(p)
             let ext = getFileExt(name)
 
-            let isImg = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "svg", "ico"].includes(ext)
-            let isVid = ["mp4", "mkv", "webm", "avi", "mov", "flv"].includes(ext)
-            let isAud = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "opus"].includes(ext)
-            let isArch = ["zip", "tar", "gz", "tgz", "7z", "rar", "xz", "bz2"].includes(ext)
-            let initialIsDir = p.endsWith("/") || ext === ""
+            let isImg = imgExts.includes(ext)
+            let isVid = vidExts.includes(ext)
+            let isAud = audExts.includes(ext)
+            let isArch = archExts.includes(ext)
+            let initialIsDir = p.endsWith("/") || (ext === "" && !isImg && !isVid && !isAud && !isArch)
 
             let itemObj = {
                 path: p,
@@ -167,7 +96,6 @@ else:
             }
 
             current.push(itemObj)
-            newItems.push(itemObj)
             pathsToCheck.push(p)
         }
 
@@ -209,13 +137,14 @@ else:
         }
     }
 
+    // ── External Actions ──
+
     function openFile(path, isDir) {
         if (!path) return
         let itemFound = root.stashedFiles.find(f => f.path === path)
         let checkIsDir = (isDir !== undefined) ? isDir : (itemFound ? itemFound.isDir : false)
         if (checkIsDir) {
-            let cmd = `kitty -e yazi "${path}"`
-            Quickshell.execDetached(["bash", "-c", cmd])
+            Quickshell.execDetached(["bash", "-c", 'kitty -e yazi "$1"', "_", path])
         } else {
             Quickshell.execDetached(["xdg-open", path])
         }
@@ -224,8 +153,7 @@ else:
     function copyPath(path) {
         if (!path) return
         let name = getFileName(path)
-        let cmd = `printf '%s' "${path}" | wl-copy && notify-send -a "Dropzone" "Ruta copiada" "${name}"`
-        Quickshell.execDetached(["bash", "-c", cmd])
+        Quickshell.execDetached(["bash", "-c", 'printf "%s" "$1" | wl-copy && notify-send -a "Dropzone" "Ruta copiada" "$2"', "_", path, name])
     }
 
     function grabFile(path) {
@@ -237,6 +165,63 @@ else:
         if (stashedFiles.length === 0) return
         let paths = stashedFiles.map(f => f.path)
         Quickshell.execDetached(["ripdrag", "-a", "-x"].concat(paths))
+    }
+
+    // ── Processes ──
+
+    Process {
+        id: checkDirsProcess
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!text) return
+                try {
+                    let map = JSON.parse(text)
+                    let updated = false
+                    let current = Array.from(root.stashedFiles)
+                    for (let i = 0; i < current.length; i++) {
+                        let item = current[i]
+                        if (map[item.path] !== undefined && item.isDir !== map[item.path]) {
+                            item.isDir = map[item.path]
+                            updated = true
+                        }
+                    }
+                    if (updated) {
+                        root.stashedFiles = current
+                    }
+                } catch(e) {}
+            }
+        }
+    }
+
+    Process {
+        id: kdeSendProc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!text) return
+                try {
+                    let res = JSON.parse(text.trim())
+                    let isError = !res.success
+                    let count = isError ? res.total : res.sent
+                    root.kdeConnectSent(count, isError)
+                } catch(e) {
+                    root.kdeConnectSent(0, true)
+                }
+            }
+        }
+    }
+
+    function sendToKdeConnect(files, deviceId) {
+        if (!files) return
+        let fileList = Array.isArray(files) ? files : [files]
+        if (fileList.length === 0) return
+
+        root.clearAll()
+
+        let dev = deviceId || defaultKdeDevice
+        let scriptPath = Quickshell.shellPath("scripts/kde_share.py")
+
+        kdeSendProc.command = ["python3", scriptPath, dev || "", JSON.stringify(fileList)]
+        kdeSendProc.running = true
     }
 
     property var pendingPathsToRemove: []
@@ -273,26 +258,18 @@ else:
         root.pendingDestOption = destOption || ""
         root.pendingTargetDevice = targetDevice || ""
 
-        let pyScript = `import sys, subprocess; subprocess.run(sys.argv[1], shell=True)`
-        transformProc.command = ["python3", "-c", pyScript, cmd]
+        transformProc.command = ["bash", "-c", cmd]
         transformProc.running = true
     }
 
-    // --- Action Handlers ---
+    // ── Transformation Handlers ──
 
     function convertImage(filePath, targetFormat, destOption, targetDevice) {
         let dir = getFileDir(filePath)
         let nameWithoutExt = getFileName(filePath).replace(/\.[^/.]+$/, "")
         let outPath = dir + "/" + nameWithoutExt + "_converted." + targetFormat.toLowerCase()
-
         let cmd = `magick "${filePath}" "${outPath}"`
-        Quickshell.execDetached(["bash", "-c", cmd])
-
-        if (destOption === "kdeconnect") {
-            let dev = targetDevice || defaultKdeDevice
-            let sendCmd = `sleep 1`
-            runTransformationCmd(`magick "${filePath}" "${outPath}"`, null, [outPath], "kdeconnect", dev)
-        }
+        runTransformationCmd(cmd, [filePath], [outPath], destOption, targetDevice)
         return outPath
     }
 
@@ -300,30 +277,18 @@ else:
         let dir = getFileDir(filePath)
         let nameWithoutExt = getFileName(filePath).replace(/\.[^/.]+$/, "")
         let outPath = dir + "/" + nameWithoutExt + "_converted." + targetFormat.toLowerCase()
-
         let cmd = `ffmpeg -y -i "${filePath}" "${outPath}"`
-        Quickshell.execDetached(["bash", "-c", cmd])
-
-        if (destOption === "kdeconnect") {
-            let dev = targetDevice || defaultKdeDevice
-            runTransformationCmd(`ffmpeg -y -i "${filePath}" "${outPath}"`, null, [outPath], "kdeconnect", dev)
-        }
+        runTransformationCmd(cmd, [filePath], [outPath], destOption, targetDevice)
         return outPath
     }
 
     function cleanExif(filePath, destOption, targetDevice) {
         let dir = getFileDir(filePath)
-        let ext = getFileExt(getFileName(filePath))
+        let ext = getFileExt(filePath)
         let nameWithoutExt = getFileName(filePath).replace(/\.[^/.]+$/, "")
         let outPath = dir + "/" + nameWithoutExt + "_clean." + ext
-
         let cmd = `magick "${filePath}" -strip "${outPath}"`
-        Quickshell.execDetached(["bash", "-c", cmd])
-
-        if (destOption === "kdeconnect") {
-            let dev = targetDevice || defaultKdeDevice
-            runTransformationCmd(`magick "${filePath}" -strip "${outPath}"`, null, [outPath], "kdeconnect", dev)
-        }
+        runTransformationCmd(cmd, [filePath], [outPath], destOption, targetDevice)
         return outPath
     }
 
@@ -332,18 +297,11 @@ else:
         let firstDir = getFileDir(filePaths[0])
         let ext = archiveType === "tar.gz" ? "tar.gz" : "zip"
         let outPath = firstDir + "/isla_archive." + ext
-
         let pathsStr = filePaths.map(p => `"${p}"`).join(" ")
         let cmd = archiveType === "tar.gz"
             ? `tar -czvf "${outPath}" ${pathsStr}`
             : `zip -j "${outPath}" ${pathsStr}`
-
-        Quickshell.execDetached(["bash", "-c", cmd])
-
-        if (destOption === "kdeconnect") {
-            let dev = targetDevice || defaultKdeDevice
-            runTransformationCmd(cmd, null, [outPath], "kdeconnect", dev)
-        }
+        runTransformationCmd(cmd, filePaths, [outPath], destOption, targetDevice)
         return outPath
     }
 
@@ -351,22 +309,13 @@ else:
         let dir = getFileDir(archivePath)
         let nameWithoutExt = getFileName(archivePath).replace(/\.[^/.]+$/, "").replace(/\.tar$/, "")
         let outDir = dir + "/" + nameWithoutExt + "_extracted"
-
         let ext = getFileExt(archivePath)
         let cmd = (ext === "zip")
             ? `mkdir -p "${outDir}" && unzip -o "${archivePath}" -d "${outDir}"`
             : `mkdir -p "${outDir}" && tar -xzvf "${archivePath}" -C "${outDir}"`
-
-        Quickshell.execDetached(["bash", "-c", cmd])
-
-        if (destOption === "kdeconnect") {
-            let dev = targetDevice || defaultKdeDevice
-            runTransformationCmd(cmd, null, [outDir], "kdeconnect", dev)
-        }
+        runTransformationCmd(cmd, [archivePath], [outDir], destOption, targetDevice)
         return outDir
     }
-
-
 
     function refreshKdeDevices() {
         kdeDevicesProcess.running = true

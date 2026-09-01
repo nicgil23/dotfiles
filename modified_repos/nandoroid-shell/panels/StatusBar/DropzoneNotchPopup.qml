@@ -8,7 +8,7 @@ import "../../widgets"
 
 /**
  * Dropzone Notch Popup HUD Content.
- * Displays stashed files, quick batch actions (Grab All 75% width - text only, Clear All, Transformations, Send to Mobile),
+ * Displays stashed files, quick batch actions (Grab All, Clear All, Transformations, Send to Mobile),
  * and expandable transformation options with animated open/close transitions and output destination selection.
  */
 ColumnLayout {
@@ -35,6 +35,32 @@ ColumnLayout {
         }
     }
 
+    // ── Helper Utilities ──
+
+    function getFileIcon(fileData) {
+        if (!fileData) return ""
+        if (fileData.isImage) return "file://" + fileData.path
+        if (fileData.isDir) return Quickshell.iconPath("folder", "inode-directory")
+        if (fileData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
+        if (fileData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
+        if (fileData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
+        return Quickshell.iconPath("text-x-generic", "document")
+    }
+
+    function getFileSymbol(fileData) {
+        if (!fileData) return "description"
+        if (fileData.isDir) return "folder"
+        if (fileData.isImage) return "image"
+        if (fileData.isVideo) return "movie"
+        if (fileData.isAudio) return "audiotrack"
+        if (fileData.isArchive) return "folder_zip"
+        return "description"
+    }
+
+    function escapePath(path) {
+        return '"' + String(path).replace(/(["\\$])/g, "\\$1") + '"'
+    }
+
     readonly property var categorizedTransforms: {
         let list = []
         if (hasImage) {
@@ -44,6 +70,7 @@ ColumnLayout {
                     { id: "png", label: "PNG" },
                     { id: "jpg", label: "JPG" },
                     { id: "webp", label: "WEBP" },
+                    { id: "resize", label: "Resize 50%" },
                     { id: "svg", label: "SVG" },
                     { id: "exif", label: "Clean EXIF" }
                 ]
@@ -89,78 +116,74 @@ ColumnLayout {
     function executeTransform(transformId, dest) {
         if (!DropzoneService.hasFiles) return
 
-        let count = 0
         let pathsToRemove = []
         let outPathsToAdd = []
         let cmds = []
 
         if (transformId === "png" || transformId === "jpg" || transformId === "webp") {
             let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
-            count = imgs.length
             pathsToRemove = imgs.map(f => f.path)
             for (let i = 0; i < imgs.length; i++) {
-                let dir = DropzoneService.getFileDir(imgs[i].path)
-                let nameWithoutExt = DropzoneService.getFileName(imgs[i].path).replace(/\.[^/.]+$/, "")
-                let outPath = dir + "/" + nameWithoutExt + "_converted." + transformId.toLowerCase()
-                cmds.push(`magick "${imgs[i].path}" "${outPath}"`)
+                let nameWithoutExt = imgs[i].name.replace(/\.[^/.]+$/, "")
+                let outPath = imgs[i].dir + "/" + nameWithoutExt + "_converted." + transformId.toLowerCase()
+                cmds.push(`magick ${escapePath(imgs[i].path)} ${escapePath(outPath)}`)
+                outPathsToAdd.push(outPath)
+            }
+        } else if (transformId === "resize") {
+            let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
+            pathsToRemove = imgs.map(f => f.path)
+            for (let i = 0; i < imgs.length; i++) {
+                let nameWithoutExt = imgs[i].name.replace(/\.[^/.]+$/, "")
+                let outPath = imgs[i].dir + "/" + nameWithoutExt + "_resized." + imgs[i].ext
+                cmds.push(`magick ${escapePath(imgs[i].path)} -resize 50% ${escapePath(outPath)}`)
                 outPathsToAdd.push(outPath)
             }
         } else if (transformId === "svg") {
             let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
-            count = imgs.length
             pathsToRemove = imgs.map(f => f.path)
             for (let i = 0; i < imgs.length; i++) {
-                let dir = DropzoneService.getFileDir(imgs[i].path)
-                let nameWithoutExt = DropzoneService.getFileName(imgs[i].path).replace(/\.[^/.]+$/, "")
-                let outPath = dir + "/" + nameWithoutExt + "_vector." + transformId.toLowerCase()
-                cmds.push(`magick "${imgs[i].path}" pnm:- | potrace -s -o "${outPath}"`)
+                let nameWithoutExt = imgs[i].name.replace(/\.[^/.]+$/, "")
+                let outPath = imgs[i].dir + "/" + nameWithoutExt + "_vector.svg"
+                cmds.push(`magick ${escapePath(imgs[i].path)} pnm:- | potrace -s -o ${escapePath(outPath)}`)
                 outPathsToAdd.push(outPath)
             }
         } else if (transformId === "exif") {
             let imgs = DropzoneService.stashedFiles.filter(f => f.isImage)
-            count = imgs.length
             pathsToRemove = imgs.map(f => f.path)
             for (let i = 0; i < imgs.length; i++) {
-                let dir = DropzoneService.getFileDir(imgs[i].path)
-                let ext = DropzoneService.getFileExt(DropzoneService.getFileName(imgs[i].path))
-                let nameWithoutExt = DropzoneService.getFileName(imgs[i].path).replace(/\.[^/.]+$/, "")
-                let outPath = dir + "/" + nameWithoutExt + "_clean." + ext
-                cmds.push(`magick "${imgs[i].path}" -strip "${outPath}"`)
+                let nameWithoutExt = imgs[i].name.replace(/\.[^/.]+$/, "")
+                let outPath = imgs[i].dir + "/" + nameWithoutExt + "_clean." + imgs[i].ext
+                cmds.push(`magick ${escapePath(imgs[i].path)} -strip ${escapePath(outPath)}`)
                 outPathsToAdd.push(outPath)
             }
         } else if (transformId === "gif" || transformId === "mp3" || transformId === "webm") {
             let vids = DropzoneService.stashedFiles.filter(f => f.isVideo)
-            count = vids.length
             pathsToRemove = vids.map(f => f.path)
             for (let i = 0; i < vids.length; i++) {
-                let dir = DropzoneService.getFileDir(vids[i].path)
-                let nameWithoutExt = DropzoneService.getFileName(vids[i].path).replace(/\.[^/.]+$/, "")
-                let outPath = dir + "/" + nameWithoutExt + "_converted." + transformId.toLowerCase()
-                cmds.push(`ffmpeg -y -i "${vids[i].path}" "${outPath}"`)
+                let nameWithoutExt = vids[i].name.replace(/\.[^/.]+$/, "")
+                let outPath = vids[i].dir + "/" + nameWithoutExt + "_converted." + transformId.toLowerCase()
+                cmds.push(`ffmpeg -y -i ${escapePath(vids[i].path)} ${escapePath(outPath)}`)
                 outPathsToAdd.push(outPath)
             }
         } else if (transformId === "zip" || transformId === "targz" || transformId === "7z") {
             let paths = DropzoneService.stashedFiles.map(f => f.path)
-            count = paths.length
             pathsToRemove = paths
             let firstDir = DropzoneService.getFileDir(paths[0])
             let ext = transformId === "targz" ? "tar.gz" : transformId
             let outPath = firstDir + "/isla_archive." + ext
-            let pathsStr = paths.map(p => `"${p}"`).join(" ")
+            let pathsStr = paths.map(p => escapePath(p)).join(" ")
             let zipCmd = transformId === "targz"
-                ? `tar -czvf "${outPath}" ${pathsStr}`
-                : (transformId === "7z" ? `7z a "${outPath}" ${pathsStr}` : `zip -j "${outPath}" ${pathsStr}`)
+                ? `tar -czvf ${escapePath(outPath)} ${pathsStr}`
+                : (transformId === "7z" ? `7z a ${escapePath(outPath)} ${pathsStr}` : `zip -j ${escapePath(outPath)} ${pathsStr}`)
             cmds.push(zipCmd)
             outPathsToAdd.push(outPath)
         } else if (transformId === "extract") {
             let archs = DropzoneService.stashedFiles.filter(f => f.isArchive)
-            count = archs.length
             pathsToRemove = archs.map(f => f.path)
             for (let i = 0; i < archs.length; i++) {
-                let dir = DropzoneService.getFileDir(archs[i].path)
-                let nameWithoutExt = DropzoneService.getFileName(archs[i].path).replace(/\.[^/.]+$/, "").replace(/\.tar$/, "")
-                let outDir = dir + "/" + nameWithoutExt + "_extracted"
-                let extCmd = `mkdir -p "${outDir}" && 7z x "${archs[i].path}" -o"${outDir}" -y`
+                let nameWithoutExt = archs[i].name.replace(/\.[^/.]+$/, "").replace(/\.tar$/, "")
+                let outDir = archs[i].dir + "/" + nameWithoutExt + "_extracted"
+                let extCmd = `mkdir -p ${escapePath(outDir)} && 7z x ${escapePath(archs[i].path)} -o${escapePath(outDir)} -y`
                 cmds.push(extCmd)
                 outPathsToAdd.push(outDir)
             }
@@ -210,11 +233,18 @@ ColumnLayout {
             width: 24 * Appearance.effectiveScale
             height: 24 * Appearance.effectiveScale
 
+            Rectangle {
+                anchors.fill: parent
+                radius: 12 * Appearance.effectiveScale
+                color: closeHover.hovered ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
+                HoverHandler { id: closeHover }
+            }
+
             MaterialSymbol {
                 anchors.centerIn: parent
                 text: "close"
                 iconSize: 18 * Appearance.effectiveScale
-                color: Appearance.colors.colNotchText
+                color: closeHover.hovered ? "#FFFFFF" : Appearance.colors.colNotchText
             }
 
             MouseArea {
@@ -228,7 +258,10 @@ ColumnLayout {
     // ── 2. FILE GRID / STASH VIEW ──
     Item {
         Layout.fillWidth: true
-        Layout.preferredHeight: DropzoneService.hasFiles ? Math.min(220 * Appearance.effectiveScale, Math.max(90 * Appearance.effectiveScale, Math.ceil(DropzoneService.stashedFiles.length / 3) * 75 * Appearance.effectiveScale)) : 80 * Appearance.effectiveScale
+        readonly property real contentHeight: Math.ceil(DropzoneService.stashedFiles.length / 3) * 75 * Appearance.effectiveScale
+        Layout.preferredHeight: DropzoneService.hasFiles
+            ? Math.min(220 * Appearance.effectiveScale, Math.max(90 * Appearance.effectiveScale, contentHeight))
+            : 80 * Appearance.effectiveScale
 
         // Empty state message
         ColumnLayout {
@@ -293,6 +326,7 @@ ColumnLayout {
                         HoverHandler { id: itemHover }
                         property bool wasItemDragging: false
 
+                        // Off-screen preview container to generate a scaled-down 48x48 thumbnail for drag operations
                         Item {
                             id: dragPreviewContainer
                             x: -9999
@@ -304,14 +338,7 @@ ColumnLayout {
                             Image {
                                 id: dragPreviewImg
                                 anchors.fill: parent
-                                source: {
-                                    if (modelData.isImage) return "file://" + modelData.path
-                                    if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
-                                    if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
-                                    if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
-                                    if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
-                                    return Quickshell.iconPath("text-x-generic", "document")
-                                }
+                                source: root.getFileIcon(modelData)
                                 fillMode: modelData.isImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
                                 mipmap: true
                                 onStatusChanged: {
@@ -333,14 +360,7 @@ ColumnLayout {
                             Drag.mimeData: {
                                 "text/uri-list": "file://" + modelData.path
                             }
-                            Drag.imageSource: {
-                                if (modelData.isImage) return "file://" + modelData.path
-                                if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
-                                if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
-                                if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
-                                if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
-                                return Quickshell.iconPath("text-x-generic", "document")
-                            }
+                            Drag.imageSource: root.getFileIcon(modelData)
                             Drag.hotSpot.x: Math.round(24 * Appearance.effectiveScale)
                             Drag.hotSpot.y: Math.round(24 * Appearance.effectiveScale)
                             Drag.onDragFinished: (dropAction) => {
@@ -407,14 +427,7 @@ ColumnLayout {
                                     id: themeIcon
                                     anchors.fill: parent
                                     anchors.margins: 2 * Appearance.effectiveScale
-                                    source: {
-                                        if (modelData.isImage) return ""
-                                        if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
-                                        if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
-                                        if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
-                                        if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
-                                        return Quickshell.iconPath("text-x-generic", "document")
-                                    }
+                                    source: modelData.isImage ? "" : root.getFileIcon(modelData)
                                     fillMode: Image.PreserveAspectFit
                                     visible: !modelData.isImage && status === Image.Ready
                                     mipmap: true
@@ -422,10 +435,10 @@ ColumnLayout {
 
                                 MaterialSymbol {
                                     anchors.centerIn: parent
-                                    text: modelData.isDir ? "folder" : (modelData.isImage ? "image" : (modelData.isVideo ? "movie" : (modelData.isAudio ? "audiotrack" : (modelData.isArchive ? "folder_zip" : "description"))))
+                                    text: root.getFileSymbol(modelData)
                                     iconSize: 20 * Appearance.effectiveScale
                                     color: Qt.rgba(1, 1, 1, 0.85)
-                                    visible: !modelData.isImage ? (themeIcon.status !== Image.Ready) : (imgThumb.status !== Image.Ready)
+                                    visible: modelData.isImage ? (imgThumb.status !== Image.Ready) : (themeIcon.status !== Image.Ready)
                                 }
                             }
 
@@ -462,12 +475,12 @@ ColumnLayout {
         visible: DropzoneService.hasFiles
         spacing: 8 * Appearance.effectiveScale
 
-        // ── ROW 1: BATCH ACTIONS BAR (Agarrar Todos 75% + 3 Icon Buttons) ──
+        // ── ROW 1: BATCH ACTIONS BAR ──
         RowLayout {
             Layout.fillWidth: true
             spacing: 8 * Appearance.effectiveScale
 
-            // 1. "Agarrar Todos (N)" Unified Textured Bar
+            // 1. "Grab All (N)" Unified Textured Bar
             Rectangle {
                 id: grabAllCard
                 Layout.fillWidth: true
@@ -507,14 +520,7 @@ ColumnLayout {
 
                             Image {
                                 anchors.fill: parent
-                                source: {
-                                    if (modelData.isImage) return "file://" + modelData.path
-                                    if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
-                                    if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
-                                    if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
-                                    if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
-                                    return Quickshell.iconPath("text-x-generic", "document")
-                                }
+                                source: root.getFileIcon(modelData)
                                 fillMode: modelData.isImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
                                 mipmap: true
                             }
@@ -582,28 +588,18 @@ ColumnLayout {
                 }
             }
 
-            // 2. Clear All (Trash icon with original pop & shake animation)
+            // 2. Clear All (Trash icon with animated pop & color response)
             MaterialSymbol {
                 id: trashIcon
                 text: "delete"
                 iconSize: 20 * Appearance.effectiveScale
                 color: root.trashAnimActive ? "#ff4d4d" : (clearHover.hovered ? "#ff6b6b" : Qt.rgba(1, 1, 1, 0.5))
-                scale: root.trashAnimActive ? 1.35 : 1.0
-                rotation: root.trashAnimActive ? -25 : 0
+                scale: root.trashAnimActive ? 1.3 : 1.0
 
                 Behavior on scale {
                     NumberAnimation {
                         duration: 180
                         easing.type: Easing.OutBack
-                    }
-                }
-
-                Behavior on rotation {
-                    SequentialAnimation {
-                        NumberAnimation { to: -20; duration: 60 }
-                        NumberAnimation { to: 20; duration: 60 }
-                        NumberAnimation { to: -10; duration: 50 }
-                        NumberAnimation { to: 0; duration: 70 }
                     }
                 }
 
@@ -626,7 +622,7 @@ ColumnLayout {
                 }
             }
 
-            // 3. Transformations Toggle (Tune icon with rotation animation)
+            // 3. Transformations Toggle (Tune icon with 180° rotation)
             MaterialSymbol {
                 id: tuneIcon
                 text: root.transformationsOpen ? "close" : "tune"
@@ -682,7 +678,7 @@ ColumnLayout {
             }
         }
 
-        // ── ROW 2: UNIFIED TRANSFORMATIONS BAR (Clean Container without Individual Capsules) ──
+        // ── ROW 2: UNIFIED TRANSFORMATIONS BAR ──
         Item {
             id: transformationsContainer
             Layout.fillWidth: true
@@ -712,7 +708,7 @@ ColumnLayout {
                 width: parent.width
                 spacing: 6 * Appearance.effectiveScale
 
-                // Categorized Options (Floating layout without outer big capsule container)
+                // Categorized Options
                 ColumnLayout {
                     id: catColumn
                     Layout.fillWidth: true
@@ -728,22 +724,22 @@ ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 10 * Appearance.effectiveScale
 
-                            // Category Label (e.g. IMÁGENES, VÍDEO, ARCHIVOS)
+                            // Category Label (IMAGES, VIDEO, FILES)
                             StyledText {
-                                text: categoryData.title
+                                text: catRow.categoryData.title
                                 font.pixelSize: Math.round(9 * Appearance.effectiveScale)
                                 font.weight: Font.Bold
                                 color: Qt.rgba(1, 1, 1, 0.35)
                                 Layout.preferredWidth: 68 * Appearance.effectiveScale
                             }
 
-                            // Actions text list
+                            // Actions list
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: 6 * Appearance.effectiveScale
 
                                 Repeater {
-                                    model: categoryData.items
+                                    model: catRow.categoryData.items
                                     delegate: RowLayout {
                                         spacing: 6 * Appearance.effectiveScale
 
@@ -787,7 +783,7 @@ ColumnLayout {
                     }
                 }
 
-                // Destination Selection (Save to:)
+                // Destination Selection (SAVE TO)
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.topMargin: 4 * Appearance.effectiveScale
