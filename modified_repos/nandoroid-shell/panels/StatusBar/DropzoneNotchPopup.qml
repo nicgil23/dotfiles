@@ -294,6 +294,37 @@ ColumnLayout {
                         property bool wasItemDragging: false
 
                         Item {
+                            id: dragPreviewContainer
+                            x: -9999
+                            y: -9999
+                            width: Math.round(48 * Appearance.effectiveScale)
+                            height: Math.round(48 * Appearance.effectiveScale)
+                            visible: true
+
+                            Image {
+                                id: dragPreviewImg
+                                anchors.fill: parent
+                                source: {
+                                    if (modelData.isImage) return "file://" + modelData.path
+                                    if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
+                                    if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
+                                    if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
+                                    if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
+                                    return Quickshell.iconPath("text-x-generic", "document")
+                                }
+                                fillMode: modelData.isImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+                                mipmap: true
+                                onStatusChanged: {
+                                    if (status === Image.Ready) {
+                                        dragPreviewContainer.grabToImage(function(result) {
+                                            dragTarget.Drag.imageSource = result.url
+                                        })
+                                    }
+                                }
+                            }
+                        }
+
+                        Item {
                             id: dragTarget
                             anchors.fill: parent
                             Drag.active: itemMouseArea.drag.active
@@ -303,11 +334,15 @@ ColumnLayout {
                                 "text/uri-list": "file://" + modelData.path
                             }
                             Drag.imageSource: {
-                                if (modelData.thumbPath && modelData.thumbPath !== "") return "file://" + modelData.thumbPath
-                                return DropzoneService.getFallbackThumb(modelData)
+                                if (modelData.isImage) return "file://" + modelData.path
+                                if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
+                                if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
+                                if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
+                                if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
+                                return Quickshell.iconPath("text-x-generic", "document")
                             }
-                            Drag.hotSpot.x: 16 * Appearance.effectiveScale
-                            Drag.hotSpot.y: 16 * Appearance.effectiveScale
+                            Drag.hotSpot.x: Math.round(24 * Appearance.effectiveScale)
+                            Drag.hotSpot.y: Math.round(24 * Appearance.effectiveScale)
                             Drag.onDragFinished: (dropAction) => {
                                 DropzoneService.removeFile(index)
                             }
@@ -322,6 +357,9 @@ ColumnLayout {
                             drag.onActiveChanged: {
                                 if (drag.active) {
                                     wasItemDragging = true
+                                    dragPreviewContainer.grabToImage(function(result) {
+                                        dragTarget.Drag.imageSource = result.url
+                                    })
                                 } else if (wasItemDragging) {
                                     wasItemDragging = false
                                     dragTarget.x = 0
@@ -371,7 +409,6 @@ ColumnLayout {
                                     anchors.margins: 2 * Appearance.effectiveScale
                                     source: {
                                         if (modelData.isImage) return ""
-                                        if (modelData.thumbPath && modelData.thumbPath !== "") return "file://" + modelData.thumbPath
                                         if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
                                         if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
                                         if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
@@ -444,6 +481,48 @@ ColumnLayout {
                 HoverHandler { id: grabAllHover }
 
                 Item {
+                    id: grabAllPreviewContainer
+                    x: -9999
+                    y: -9999
+                    width: Math.round(72 * Appearance.effectiveScale)
+                    height: Math.round(72 * Appearance.effectiveScale)
+                    visible: true
+
+                    Repeater {
+                        model: DropzoneService.stashedFiles
+                        delegate: Item {
+                            width: Math.round(32 * Appearance.effectiveScale)
+                            height: Math.round(32 * Appearance.effectiveScale)
+
+                            property real centerX: 20 * Appearance.effectiveScale
+                            property real centerY: 20 * Appearance.effectiveScale
+                            property real scatterRadius: Math.min(18, 4 + index * 2.5) * Appearance.effectiveScale
+                            property real angle: index * 2.39996
+                            property real rotAngle: ((index * 29) % 36) - 18
+
+                            x: Math.round(centerX + Math.cos(angle) * scatterRadius)
+                            y: Math.round(centerY + Math.sin(angle) * scatterRadius)
+                            rotation: rotAngle
+                            z: index
+
+                            Image {
+                                anchors.fill: parent
+                                source: {
+                                    if (modelData.isImage) return "file://" + modelData.path
+                                    if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
+                                    if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
+                                    if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
+                                    if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
+                                    return Quickshell.iconPath("text-x-generic", "document")
+                                }
+                                fillMode: modelData.isImage ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+                                mipmap: true
+                            }
+                        }
+                    }
+                }
+
+                Item {
                     id: grabAllDragTarget
                     anchors.fill: parent
                     Drag.active: grabAllMouseArea.drag.active
@@ -452,14 +531,8 @@ ColumnLayout {
                     Drag.mimeData: {
                         "text/uri-list": DropzoneService.stashedFiles.map(f => "file://" + f.path).join("\r\n")
                     }
-                    Drag.imageSource: {
-                        if (DropzoneService.grabAllThumbPath && DropzoneService.grabAllThumbPath !== "") {
-                            return "file://" + DropzoneService.grabAllThumbPath
-                        }
-                        return DropzoneService.getFallbackThumb({ isDir: true })
-                    }
-                    Drag.hotSpot.x: 64 * Appearance.effectiveScale
-                    Drag.hotSpot.y: 64 * Appearance.effectiveScale
+                    Drag.hotSpot.x: Math.round(36 * Appearance.effectiveScale)
+                    Drag.hotSpot.y: Math.round(36 * Appearance.effectiveScale)
                     Drag.onDragFinished: (dropAction) => {
                         DropzoneService.clearAll()
                     }
@@ -472,9 +545,17 @@ ColumnLayout {
                     anchors.fill: parent
                     cursorShape: Qt.OpenHandCursor
                     drag.target: grabAllDragTarget
+                    onPressed: {
+                        grabAllPreviewContainer.grabToImage(function(result) {
+                            grabAllDragTarget.Drag.imageSource = result.url
+                        })
+                    }
                     drag.onActiveChanged: {
                         if (drag.active) {
                             wasGrabAllDragging = true
+                            grabAllPreviewContainer.grabToImage(function(result) {
+                                grabAllDragTarget.Drag.imageSource = result.url
+                            })
                         } else if (wasGrabAllDragging) {
                             wasGrabAllDragging = false
                             grabAllDragTarget.x = 0

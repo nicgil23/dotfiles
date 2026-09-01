@@ -21,62 +21,6 @@ Singleton {
 
     signal filesUpdated()
 
-    Component.onCompleted: {
-        initDefaultIcons()
-    }
-
-    Process {
-        id: initIconsProcess
-    }
-
-    function initDefaultIcons() {
-        let iconMap = {
-            "folder": Quickshell.iconPath("folder", "inode-directory"),
-            "image": Quickshell.iconPath("image-x-generic", "image"),
-            "video": Quickshell.iconPath("video-x-generic", "video"),
-            "audio": Quickshell.iconPath("audio-x-generic", "audio"),
-            "archive": Quickshell.iconPath("package-x-generic", "folder-zip"),
-            "text": Quickshell.iconPath("text-x-generic", "document")
-        }
-
-        let pyScript = `import sys, os, subprocess, json
-from PIL import Image
-
-data = json.loads(sys.argv[1])
-out_dir = "/tmp/dz_thumbs"
-os.makedirs(out_dir, exist_ok=True)
-
-for key, src in data.items():
-    if not src: continue
-    if src.startswith("file://"): src = src[7:]
-    if not os.path.exists(src): continue
-    out = os.path.join(out_dir, f"def_{key}.png")
-    if not os.path.exists(out):
-        if src.endswith(".png"):
-            try:
-                with Image.open(src) as img:
-                    img.thumbnail((48, 48))
-                    if img.mode != "RGBA": img = img.convert("RGBA")
-                    img.save(out, "PNG")
-                    continue
-            except Exception: pass
-        cmd = f'magick -background transparent "{src}" -resize 48x48 "{out}"'
-        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-`
-        initIconsProcess.command = ["python3", "-c", pyScript, JSON.stringify(iconMap)]
-        initIconsProcess.running = true
-    }
-
-    function getFallbackThumb(item) {
-        if (!item) return "file:///tmp/dz_thumbs/def_text.png"
-        if (item.isDir) return "file:///tmp/dz_thumbs/def_folder.png"
-        if (item.isImage) return "file:///tmp/dz_thumbs/def_image.png"
-        if (item.isVideo) return "file:///tmp/dz_thumbs/def_video.png"
-        if (item.isAudio) return "file:///tmp/dz_thumbs/def_audio.png"
-        if (item.isArchive) return "file:///tmp/dz_thumbs/def_archive.png"
-        return "file:///tmp/dz_thumbs/def_text.png"
-    }
-
     Process {
         id: checkDirsProcess
         stdout: StdioCollector {
@@ -119,121 +63,6 @@ for key, src in data.items():
         return idx !== -1 ? name.substring(idx + 1).toLowerCase() : ""
     }
 
-    property string grabAllThumbPath: ""
-
-    Process {
-        id: makeThumbsProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (!text) return
-                try {
-                    let map = JSON.parse(text)
-                    if (map["__grabAll"]) {
-                        root.grabAllThumbPath = map["__grabAll"]
-                    }
-                    let current = Array.from(root.stashedFiles)
-                    for (let i = 0; i < current.length; i++) {
-                        let p = current[i].path
-                        if (map[p]) {
-                            current[i].thumbPath = map[p]
-                        }
-                    }
-                    root.stashedFiles = current
-                } catch(e) {}
-            }
-        }
-    }
-
-    function generateThumbnails(files) {
-        if (!files || files.length === 0) return
-        let pyScript = `import sys, os, hashlib, json, subprocess, random
-from PIL import Image
-
-data = json.loads(sys.argv[1])
-out_dir = "/tmp/dz_thumbs"
-os.makedirs(out_dir, exist_ok=True)
-res = {}
-
-for item in data:
-    path = item.get("path", "")
-    if not path: continue
-    is_img = item.get("isImage")
-    icon_src = item.get("iconSrc", "")
-    if icon_src.startswith("file://"): icon_src = icon_src[7:]
-
-    h = hashlib.md5((path + ("_img" if is_img else "_icon")).encode("utf-8")).hexdigest()
-    out_path = os.path.join(out_dir, f"thumb_{h}.png")
-
-    if not os.path.exists(out_path):
-        if is_img:
-            try:
-                with Image.open(path) as img:
-                    img.thumbnail((48, 48))
-                    if img.mode != "RGBA": img = img.convert("RGBA")
-                    img.save(out_path, "PNG")
-            except Exception: pass
-        elif icon_src and os.path.exists(icon_src):
-            if icon_src.endswith(".png"):
-                try:
-                    with Image.open(icon_src) as img:
-                        img.thumbnail((48, 48))
-                        if img.mode != "RGBA": img = img.convert("RGBA")
-                        img.save(out_path, "PNG")
-                except Exception: pass
-            if not os.path.exists(out_path):
-                cmd = f'magick -background transparent "{icon_src}" -resize 48x48 "{out_path}"'
-                subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    if os.path.exists(out_path):
-        res[path] = out_path
-
-try:
-    canvas_size = (128, 128)
-    canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-    center_x, center_y = 64, 64
-    items_to_stack = data[:6]
-    seed_str = "".join([item.get("path", "") for item in items_to_stack])
-    rng = random.Random(seed_str)
-
-    for item in items_to_stack:
-        p = item.get("path", "")
-        tpath = res.get(p)
-        item_img = None
-        if tpath and os.path.exists(tpath):
-            try:
-                item_img = Image.open(tpath).convert("RGBA")
-                item_img = item_img.resize((72, 72), Image.Resampling.LANCZOS)
-            except Exception: pass
-        if item_img:
-            try:
-                angle = rng.uniform(-25, 25)
-                rotated = item_img.rotate(angle, resample=Image.BICUBIC, expand=True)
-                dx = rng.randint(-30, 30)
-                dy = rng.randint(-28, 28)
-                pos_x = max(0, min(canvas_size[0] - rotated.width, center_x - rotated.width // 2 + dx))
-                pos_y = max(0, min(canvas_size[1] - rotated.height, center_y - rotated.height // 2 + dy))
-                canvas.alpha_composite(rotated, (pos_x, pos_y))
-            except Exception: pass
-
-    stack_out = os.path.join(out_dir, f"grab_all_{hashlib.md5(seed_str.encode()).hexdigest()}.png")
-    canvas.save(stack_out, "PNG")
-    res["__grabAll"] = stack_out
-except Exception: pass
-
-print(json.dumps(res))`
-
-        let payload = JSON.stringify(files.map(f => {
-            let iconName = f.isDir ? ["folder", "inode-directory"] : (f.isVideo ? ["video-x-generic", "video"] : (f.isAudio ? ["audio-x-generic", "audio"] : (f.isArchive ? ["package-x-generic", "folder-zip"] : ["text-x-generic", "document"])))
-            return {
-                path: f.path,
-                isImage: f.isImage,
-                iconSrc: Quickshell.iconPath(iconName[0], iconName[1])
-            }
-        }))
-        makeThumbsProcess.command = ["python3", "-c", pyScript, payload]
-        makeThumbsProcess.running = true
-    }
-
     function addFiles(paths) {
         if (!paths) return
         if (typeof paths === "string") paths = [paths]
@@ -269,8 +98,7 @@ print(json.dumps(res))`
                 isImage: isImg,
                 isVideo: isVid,
                 isAudio: isAud,
-                isArchive: isArch,
-                thumbPath: ""
+                isArchive: isArch
             }
 
             current.push(itemObj)
@@ -286,10 +114,6 @@ print(json.dumps(res))`
             checkDirsProcess.command = ["python3", "-c", "import sys, os, json; print(json.dumps({p: os.path.isdir(p) for p in sys.argv[1:]}))"].concat(pathsToCheck)
             checkDirsProcess.running = true
         }
-
-        if (root.stashedFiles.length > 0) {
-            generateThumbnails(root.stashedFiles)
-        }
     }
 
     function removeFile(index) {
@@ -300,16 +124,12 @@ print(json.dumps(res))`
             root.filesUpdated()
             if (current.length === 0) {
                 GlobalStates.dropzoneNotchOpen = false
-                root.grabAllThumbPath = ""
-            } else {
-                generateThumbnails(current)
             }
         }
     }
 
     function clearAll() {
         root.stashedFiles = []
-        root.grabAllThumbPath = ""
         root.filesUpdated()
         GlobalStates.dropzoneNotchOpen = false
     }
@@ -319,9 +139,6 @@ print(json.dumps(res))`
         let current = Array.from(root.stashedFiles).filter(f => !pathsToRemove.includes(f.path))
         root.stashedFiles = current
         root.filesUpdated()
-        if (current.length === 0) {
-            root.grabAllThumbPath = ""
-        }
         if (outPathsToAdd && outPathsToAdd.length > 0) {
             addFiles(outPathsToAdd)
         }
@@ -329,7 +146,8 @@ print(json.dumps(res))`
 
     function openFile(path, isDir) {
         if (!path) return
-        let checkIsDir = (isDir !== undefined) ? isDir : (root.stashedFiles.find(f => f.path === path)?.isDir ?? false)
+        let itemFound = root.stashedFiles.find(f => f.path === path)
+        let checkIsDir = (isDir !== undefined) ? isDir : (itemFound ? itemFound.isDir : false)
         if (checkIsDir) {
             let cmd = `kitty -e yazi "${path}"`
             Quickshell.execDetached(["bash", "-c", cmd])
