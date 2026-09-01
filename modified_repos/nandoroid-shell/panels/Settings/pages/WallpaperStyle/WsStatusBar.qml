@@ -1235,6 +1235,46 @@ ColumnLayout {
                         }
                     }
 
+                    // ── Workspace Transition Orientation ──
+                    SegmentedWrapper {
+                        Layout.fillWidth: true
+                        implicitHeight: wsTransitionRow.implicitHeight + (36 * Appearance.effectiveScale)
+                        orientation: Qt.Vertical
+                        maxRadius: 20 * Appearance.effectiveScale
+                        color: Appearance.m3colors.m3surfaceContainerHigh
+                        RowLayout {
+                            id: wsTransitionRow
+                            anchors.fill: parent
+                            anchors.margins: 16 * Appearance.effectiveScale
+                            spacing: 16 * Appearance.effectiveScale
+                            MaterialSymbol { text: "swap_calls"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                            StyledText { text: "Transition Direction"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                            RowLayout {
+                                spacing: 2 * Appearance.effectiveScale
+                                Repeater {
+                                    model: [
+                                        { id: "slide", label: "Horizontal" },
+                                        { id: "slidevert", label: "Vertical" }
+                                    ]
+                                    delegate: SegmentedButton {
+                                        required property var modelData
+                                        buttonText: modelData.label
+                                        isHighlighted: Config.ready && Config.options.workspaces
+                                            ? (Config.options.workspaces.transitionStyle ?? "slide") === modelData.id
+                                            : modelData.id === "slide"
+                                        colActive: Appearance.m3colors.m3primary
+                                        colActiveText: Appearance.m3colors.m3onPrimary
+                                        colInactive: Appearance.m3colors.m3surfaceContainerLow
+                                        onClicked: if (Config.ready && Config.options.workspaces) {
+                                            Config.options.workspaces.transitionStyle = modelData.id
+                                            HyprlandData.setWorkspaceTransition(modelData.id)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // ── Island Style ──
                     SegmentedWrapper {
                         visible: !sbSettingsCol.parent.isM3Style

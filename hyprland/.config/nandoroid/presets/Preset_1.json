@@ -277,9 +277,10 @@
     "monochromeIcons": false,
     "pinnedApps": [
       "kitty",
-      "obsidian",
-      "com.github.flxzt.rnote",
-      "vesktop"
+      "helium",
+      "vesktop",
+      "spotify",
+      "anki"
     ],
     "pinnedOnStartup": false,
     "scale": 0.95,
@@ -579,6 +580,7 @@
   "workspaces": {
     "indicatorLabel": "japanese",
     "indicatorStyle": "pill",
-    "max_shown": 5
+    "max_shown": 5,
+    "transitionStyle": "slide"
   }
 }

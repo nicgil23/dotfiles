@@ -64,8 +64,13 @@ ShellRoot {
     Connections {
         target: Config
         function onReadyChanged() {
-            if (Config.ready && !Config.options.system.onboardingCompleted) {
-                GlobalStates.onboardingOpen = true;
+            if (Config.ready) {
+                if (!Config.options.system.onboardingCompleted) {
+                    GlobalStates.onboardingOpen = true;
+                }
+                if (Config.options.workspaces && Config.options.workspaces.transitionStyle) {
+                    HyprlandData.setWorkspaceTransition(Config.options.workspaces.transitionStyle);
+                }
             }
         }
     }

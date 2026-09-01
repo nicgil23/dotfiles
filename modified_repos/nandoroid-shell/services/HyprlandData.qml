@@ -109,6 +109,39 @@ Singleton {
         workspaceUpdateTimer.restart(); // Refresh data with a small delay
     }
 
+    function setWorkspaceTransition(style) {
+        if (!style) return;
+        const validStyle = (style === "slidevert" || style === "vertical") ? "slidevert" : "slide";
+        Quickshell.execDetached(HyprlandCompat.keyword("animation", "workspaces", `"1,5,wind,${validStyle}"`));
+
+        if (HyprlandCompat.isLua) {
+            const luaBlock = `-- WS_ANIM_START\n` +
+                             `hl.config({\n` +
+                             `    animations = {\n` +
+                             `        animation = "workspaces, 1, 5, wind, ${validStyle}"\n` +
+                             `    }\n` +
+                             `})\n` +
+                             `-- WS_ANIM_END`
+            const pyCmd = `import sys, re; path = sys.argv[1]; new_block = sys.argv[2]\n` +
+                          `try:\n` +
+                          `    content = open(path).read()\n` +
+                          `except Exception:\n` +
+                          `    content = ""\n` +
+                          `pattern = r"-- WS_ANIM_START.*?-- WS_ANIM_END\\s*"\n` +
+                          `content = re.sub(pattern, "", content, flags=re.DOTALL)\n` +
+                          `content = content.strip()\n` +
+                          `if content:\n` +
+                          `    content += chr(10) + chr(10)\n` +
+                          `content += new_block + chr(10)\n` +
+                          `open(path, "w").write(content)`
+            const realPath = root.persistencePath.replace(/^~/, Directories.home.replace("file://", ""));
+            Quickshell.execDetached(["python3", "-c", pyCmd, realPath, luaBlock]);
+        } else {
+            const cmd = `sed -i '/animation = workspaces/d' ${root.persistencePath} 2>/dev/null || true; echo "animation = workspaces, 1, 5, wind, ${validStyle}" >> ${root.persistencePath}`;
+            Quickshell.execDetached(["bash", "-c", cmd]);
+        }
+    }
+
     function cycleLayout(forward = true) {
         const layouts = ["dwindle", "master", "scrolling"];
         const current = root.activeWorkspace?.tiledLayout || GlobalStates.hyprlandLayout || "dwindle";

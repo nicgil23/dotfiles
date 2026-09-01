@@ -363,6 +363,7 @@ Singleton {
                 property int max_shown: 5
                 property string indicatorStyle: "pill" 
                 property string indicatorLabel: "none" 
+                property string transitionStyle: "slide"
             }
 
             // --- Bar ---
