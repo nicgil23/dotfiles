@@ -21,6 +21,62 @@ Singleton {
 
     signal filesUpdated()
 
+    Component.onCompleted: {
+        initDefaultIcons()
+    }
+
+    Process {
+        id: initIconsProcess
+    }
+
+    function initDefaultIcons() {
+        let iconMap = {
+            "folder": Quickshell.iconPath("folder", "inode-directory"),
+            "image": Quickshell.iconPath("image-x-generic", "image"),
+            "video": Quickshell.iconPath("video-x-generic", "video"),
+            "audio": Quickshell.iconPath("audio-x-generic", "audio"),
+            "archive": Quickshell.iconPath("package-x-generic", "folder-zip"),
+            "text": Quickshell.iconPath("text-x-generic", "document")
+        }
+
+        let pyScript = `import sys, os, subprocess, json
+from PIL import Image
+
+data = json.loads(sys.argv[1])
+out_dir = "/tmp/dz_thumbs"
+os.makedirs(out_dir, exist_ok=True)
+
+for key, src in data.items():
+    if not src: continue
+    if src.startswith("file://"): src = src[7:]
+    if not os.path.exists(src): continue
+    out = os.path.join(out_dir, f"def_{key}.png")
+    if not os.path.exists(out):
+        if src.endswith(".png"):
+            try:
+                with Image.open(src) as img:
+                    img.thumbnail((48, 48))
+                    if img.mode != "RGBA": img = img.convert("RGBA")
+                    img.save(out, "PNG")
+                    continue
+            except Exception: pass
+        cmd = f'magick -background transparent "{src}" -resize 48x48 "{out}"'
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+`
+        initIconsProcess.command = ["python3", "-c", pyScript, JSON.stringify(iconMap)]
+        initIconsProcess.running = true
+    }
+
+    function getFallbackThumb(item) {
+        if (!item) return "file:///tmp/dz_thumbs/def_text.png"
+        if (item.isDir) return "file:///tmp/dz_thumbs/def_folder.png"
+        if (item.isImage) return "file:///tmp/dz_thumbs/def_image.png"
+        if (item.isVideo) return "file:///tmp/dz_thumbs/def_video.png"
+        if (item.isAudio) return "file:///tmp/dz_thumbs/def_audio.png"
+        if (item.isArchive) return "file:///tmp/dz_thumbs/def_archive.png"
+        return "file:///tmp/dz_thumbs/def_text.png"
+    }
+
     Process {
         id: checkDirsProcess
         stdout: StdioCollector {
@@ -90,7 +146,7 @@ Singleton {
 
     function generateThumbnails(files) {
         if (!files || files.length === 0) return
-        let pyScript = `import sys, os, glob, hashlib, json, subprocess, random
+        let pyScript = `import sys, os, hashlib, json, subprocess, random
 from PIL import Image
 
 data = json.loads(sys.argv[1])
@@ -98,107 +154,82 @@ out_dir = "/tmp/dz_thumbs"
 os.makedirs(out_dir, exist_ok=True)
 res = {}
 
-search_dirs = [
-    os.path.expanduser("~/.local/share/icons"),
-    os.path.expanduser("~/.icons"),
-    "/usr/share/icons"
-]
-
-def find_system_icon(icon_names):
-    for name in icon_names:
-        for sdir in search_dirs:
-            if not os.path.exists(sdir): continue
-            matches = glob.glob(f"{sdir}/**/{name}.svg", recursive=True) or glob.glob(f"{sdir}/**/{name}.png", recursive=True)
-            if matches:
-                return matches[0]
-    return ""
-
-def resolve_src(item):
-    if item.get("isImage"):
-        return item.get("path", "")
-    if item.get("isDir"):
-        return find_system_icon(["folder", "inode-directory", "folder-blue"])
-    if item.get("isVideo"):
-        return find_system_icon(["video-x-generic", "video"])
-    if item.get("isAudio"):
-        return find_system_icon(["audio-x-generic", "audio"])
-    if item.get("isArchive"):
-        return find_system_icon(["package-x-generic", "folder-zip", "application-zip"])
-    return find_system_icon(["text-x-generic", "document", "text-plain"])
-
 for item in data:
-    try:
-        path = item.get("path", "")
-        if not path: continue
-        src = resolve_src(item)
-        if not src: continue
-        if src.startswith("file://"):
-            src = src[7:]
-        h = hashlib.md5((path + ("_img" if item.get("isImage") else "_icon")).encode("utf-8")).hexdigest()
-        out_path = os.path.join(out_dir, f"thumb_{h}.png")
+    path = item.get("path", "")
+    if not path: continue
+    is_img = item.get("isImage")
+    icon_src = item.get("iconSrc", "")
+    if icon_src.startswith("file://"): icon_src = icon_src[7:]
 
-        if not os.path.exists(out_path):
-            if item.get("isImage"):
+    h = hashlib.md5((path + ("_img" if is_img else "_icon")).encode("utf-8")).hexdigest()
+    out_path = os.path.join(out_dir, f"thumb_{h}.png")
+
+    if not os.path.exists(out_path):
+        if is_img:
+            try:
+                with Image.open(path) as img:
+                    img.thumbnail((48, 48))
+                    if img.mode != "RGBA": img = img.convert("RGBA")
+                    img.save(out_path, "PNG")
+            except Exception: pass
+        elif icon_src and os.path.exists(icon_src):
+            if icon_src.endswith(".png"):
                 try:
-                    with Image.open(src) as img:
-                        img.thumbnail((40, 40))
-                        if img.mode != "RGBA":
-                            img = img.convert("RGBA")
+                    with Image.open(icon_src) as img:
+                        img.thumbnail((48, 48))
+                        if img.mode != "RGBA": img = img.convert("RGBA")
                         img.save(out_path, "PNG")
-                except Exception:
-                    cmd = f'magick -background transparent "{src}" -resize 40x40 "{out_path}"'
-                    subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            else:
-                cmd = f'magick -background transparent "{src}" -resize 40x40 "{out_path}"'
+                except Exception: pass
+            if not os.path.exists(out_path):
+                cmd = f'magick -background transparent "{icon_src}" -resize 48x48 "{out_path}"'
                 subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        if os.path.exists(out_path):
-            res[path] = out_path
-    except Exception:
-        pass
+    if os.path.exists(out_path):
+        res[path] = out_path
 
 try:
-    canvas_size = (85, 85)
+    canvas_size = (128, 128)
     canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-    center_x, center_y = canvas_size[0] // 2, canvas_size[1] // 2
-
-    items_to_stack = data[:10]
+    center_x, center_y = 64, 64
+    items_to_stack = data[:6]
     seed_str = "".join([item.get("path", "") for item in items_to_stack])
     rng = random.Random(seed_str)
 
     for item in items_to_stack:
         p = item.get("path", "")
         tpath = res.get(p)
-        if not tpath or not os.path.exists(tpath): continue
-        try:
-            item_img = Image.open(tpath).convert("RGBA")
-            angle = rng.uniform(-25, 25)
-            rotated = item_img.rotate(angle, resample=Image.BICUBIC, expand=True)
-            dx = rng.randint(-12, 12)
-            dy = rng.randint(-12, 12)
-            pos_x = center_x - rotated.width // 2 + dx
-            pos_y = center_y - rotated.height // 2 + dy
-            pos_x = max(0, min(canvas_size[0] - rotated.width, pos_x))
-            pos_y = max(0, min(canvas_size[1] - rotated.height, pos_y))
-            canvas.alpha_composite(rotated, (pos_x, pos_y))
-        except Exception:
-            pass
+        item_img = None
+        if tpath and os.path.exists(tpath):
+            try:
+                item_img = Image.open(tpath).convert("RGBA")
+                item_img = item_img.resize((72, 72), Image.Resampling.LANCZOS)
+            except Exception: pass
+        if item_img:
+            try:
+                angle = rng.uniform(-25, 25)
+                rotated = item_img.rotate(angle, resample=Image.BICUBIC, expand=True)
+                dx = rng.randint(-30, 30)
+                dy = rng.randint(-28, 28)
+                pos_x = max(0, min(canvas_size[0] - rotated.width, center_x - rotated.width // 2 + dx))
+                pos_y = max(0, min(canvas_size[1] - rotated.height, center_y - rotated.height // 2 + dy))
+                canvas.alpha_composite(rotated, (pos_x, pos_y))
+            except Exception: pass
 
     stack_out = os.path.join(out_dir, f"grab_all_{hashlib.md5(seed_str.encode()).hexdigest()}.png")
     canvas.save(stack_out, "PNG")
     res["__grabAll"] = stack_out
-except Exception:
-    pass
+except Exception: pass
 
 print(json.dumps(res))`
-        let payload = JSON.stringify(files.map(f => ({
-            path: f.path,
-            isImage: f.isImage,
-            isDir: f.isDir,
-            isVideo: f.isVideo,
-            isAudio: f.isAudio,
-            isArchive: f.isArchive
-        })))
+
+        let payload = JSON.stringify(files.map(f => {
+            let iconName = f.isDir ? ["folder", "inode-directory"] : (f.isVideo ? ["video-x-generic", "video"] : (f.isAudio ? ["audio-x-generic", "audio"] : (f.isArchive ? ["package-x-generic", "folder-zip"] : ["text-x-generic", "document"])))
+            return {
+                path: f.path,
+                isImage: f.isImage,
+                iconSrc: Quickshell.iconPath(iconName[0], iconName[1])
+            }
+        }))
         makeThumbsProcess.command = ["python3", "-c", pyScript, payload]
         makeThumbsProcess.running = true
     }
@@ -376,10 +407,10 @@ print(json.dumps(res))`
         let cmd = `magick "${filePath}" "${outPath}"`
         Quickshell.execDetached(["bash", "-c", cmd])
 
-        let dev = targetDevice || defaultKdeDevice
-        if (destOption === "kdeconnect" && dev) {
-            let sendCmd = `sleep 1 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", sendCmd])
+        if (destOption === "kdeconnect") {
+            let dev = targetDevice || defaultKdeDevice
+            let sendCmd = `sleep 1`
+            runTransformationCmd(`magick "${filePath}" "${outPath}"`, null, [outPath], "kdeconnect", dev)
         }
         return outPath
     }
@@ -392,10 +423,9 @@ print(json.dumps(res))`
         let cmd = `ffmpeg -y -i "${filePath}" "${outPath}"`
         Quickshell.execDetached(["bash", "-c", cmd])
 
-        let dev = targetDevice || defaultKdeDevice
-        if (destOption === "kdeconnect" && dev) {
-            let sendCmd = `sleep 2 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", sendCmd])
+        if (destOption === "kdeconnect") {
+            let dev = targetDevice || defaultKdeDevice
+            runTransformationCmd(`ffmpeg -y -i "${filePath}" "${outPath}"`, null, [outPath], "kdeconnect", dev)
         }
         return outPath
     }
@@ -409,10 +439,9 @@ print(json.dumps(res))`
         let cmd = `magick "${filePath}" -strip "${outPath}"`
         Quickshell.execDetached(["bash", "-c", cmd])
 
-        let dev = targetDevice || defaultKdeDevice
-        if (destOption === "kdeconnect" && dev) {
-            let sendCmd = `sleep 1 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", sendCmd])
+        if (destOption === "kdeconnect") {
+            let dev = targetDevice || defaultKdeDevice
+            runTransformationCmd(`magick "${filePath}" -strip "${outPath}"`, null, [outPath], "kdeconnect", dev)
         }
         return outPath
     }
@@ -430,10 +459,9 @@ print(json.dumps(res))`
 
         Quickshell.execDetached(["bash", "-c", cmd])
 
-        let dev = targetDevice || defaultKdeDevice
-        if (destOption === "kdeconnect" && dev) {
-            let sendCmd = `sleep 1.5 && kdeconnect-cli --device "${dev}" --share "${outPath}"`
-            Quickshell.execDetached(["bash", "-c", sendCmd])
+        if (destOption === "kdeconnect") {
+            let dev = targetDevice || defaultKdeDevice
+            runTransformationCmd(cmd, null, [outPath], "kdeconnect", dev)
         }
         return outPath
     }
@@ -450,19 +478,54 @@ print(json.dumps(res))`
 
         Quickshell.execDetached(["bash", "-c", cmd])
 
-        let dev = targetDevice || defaultKdeDevice
-        if (destOption === "kdeconnect" && dev) {
-            let sendCmd = `sleep 2 && kdeconnect-cli --device "${dev}" --share "${outDir}"`
-            Quickshell.execDetached(["bash", "-c", sendCmd])
+        if (destOption === "kdeconnect") {
+            let dev = targetDevice || defaultKdeDevice
+            runTransformationCmd(cmd, null, [outDir], "kdeconnect", dev)
         }
         return outDir
     }
 
-    function sendToKdeConnect(filePath, deviceId) {
-        if (!filePath) return
+    function sendToKdeConnect(files, deviceId) {
+        if (!files) return
+        let fileList = Array.isArray(files) ? files : [files]
+        if (fileList.length === 0) return
+
         let dev = deviceId || defaultKdeDevice
-        if (!dev) return
-        Quickshell.execDetached(["kdeconnect-cli", "--device", dev, "--share", filePath])
+
+        let pyScript = `import sys, os, subprocess, json, time
+
+dev = sys.argv[1]
+files = json.loads(sys.argv[2])
+count = len(files)
+label = "1 archivo" if count == 1 else f"{count} archivos"
+
+if not dev:
+    cmd = 'notify-send -a "KDE Connect" -u critical "KDE Connect" "Error: no hay ningún móvil conectado"'
+    subprocess.run(cmd, shell=True)
+    sys.exit(1)
+
+args = ["kdeconnect-cli", "--device", dev]
+for f in files:
+    if f.startswith("file://"): f = f[7:]
+    args.extend(["--share", f])
+
+res = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+err = (res.returncode != 0)
+
+if err and count > 1:
+    err = False
+    for f in files:
+        if f.startswith("file://"): f = f[7:]
+        r = subprocess.run(["kdeconnect-cli", "--device", dev, "--share", f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if r.returncode != 0: err = True
+        time.sleep(0.5)
+
+if err:
+    cmd = f'notify-send -a "KDE Connect" -u critical "KDE Connect" "Ha habido un error al enviar {label} al móvil"'
+    subprocess.run(cmd, shell=True)
+`
+        let cmd = ["python3", "-c", pyScript, dev || "", JSON.stringify(fileList)]
+        Quickshell.execDetached(cmd)
     }
 
     function refreshKdeDevices() {

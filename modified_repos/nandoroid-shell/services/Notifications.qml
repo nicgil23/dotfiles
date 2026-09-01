@@ -234,7 +234,12 @@ Singleton {
             // Add to list and handle popup state
             root.list = [...root.list, newNotif];
 
-            if (!root.silent) {
+            // Check if this is a KDE Connect file transfer popup notification
+            const isKdeTransferNotif = (appNameLower.includes("kdeconnect") || appNameLower.includes("kde connect") || appNameLower.includes("org.kde.kdeconnect")) &&
+                (summaryLower.includes("envi") || summaryLower.includes("send") || summaryLower.includes("share") || summaryLower.includes("transfer") || summaryLower.includes("archivo") || summaryLower.includes("imagen") ||
+                 bodyLower.includes("envi") || bodyLower.includes("send") || bodyLower.includes("share") || bodyLower.includes("transfer") || bodyLower.includes("archivo") || bodyLower.includes("imagen"));
+
+            if (!root.silent && !isKdeTransferNotif) {
                 newNotif.popup = true;
                 root.activePopup = newNotif;
                 if (notification.expireTimeout !== 0) {

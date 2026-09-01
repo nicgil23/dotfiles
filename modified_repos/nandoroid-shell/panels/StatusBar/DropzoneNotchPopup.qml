@@ -175,10 +175,8 @@ ColumnLayout {
             DropzoneService.runTransformationCmd(fullCmd, pathsToRemove, outPathsToAdd, dest)
         }
 
-        if (dest === "kdeconnect" && count > 0) {
+        if (dest === "kdeconnect") {
             GlobalStates.dropzoneNotchOpen = false
-            let notifCmd = `sleep 0.75 && notify-send -a "KDE Connect" "KDE Connect" "Has subido ${count} ${count === 1 ? "archivo" : "archivos"}"`
-            Quickshell.execDetached(["bash", "-c", notifCmd])
         }
     }
 
@@ -305,13 +303,8 @@ ColumnLayout {
                                 "text/uri-list": "file://" + modelData.path
                             }
                             Drag.imageSource: {
-                                if (modelData.thumbPath) return "file://" + modelData.thumbPath
-                                if (modelData.isImage) return "file://" + modelData.path
-                                if (modelData.isDir) return Quickshell.iconPath("folder", "inode-directory")
-                                if (modelData.isVideo) return Quickshell.iconPath("video-x-generic", "video")
-                                if (modelData.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
-                                if (modelData.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
-                                return Quickshell.iconPath("text-x-generic", "document")
+                                if (modelData.thumbPath && modelData.thumbPath !== "") return "file://" + modelData.thumbPath
+                                return DropzoneService.getFallbackThumb(modelData)
                             }
                             Drag.hotSpot.x: 16 * Appearance.effectiveScale
                             Drag.hotSpot.y: 16 * Appearance.effectiveScale
@@ -463,20 +456,10 @@ ColumnLayout {
                         if (DropzoneService.grabAllThumbPath && DropzoneService.grabAllThumbPath !== "") {
                             return "file://" + DropzoneService.grabAllThumbPath
                         }
-                        if (DropzoneService.stashedFiles.length > 0) {
-                            let first = DropzoneService.stashedFiles[0]
-                            if (first.thumbPath && first.thumbPath !== "") return "file://" + first.thumbPath
-                            if (first.isImage) return "file://" + first.path
-                            if (first.isDir) return Quickshell.iconPath("folder", "inode-directory")
-                            if (first.isVideo) return Quickshell.iconPath("video-x-generic", "video")
-                            if (first.isAudio) return Quickshell.iconPath("audio-x-generic", "audio")
-                            if (first.isArchive) return Quickshell.iconPath("package-x-generic", "folder-zip")
-                            return Quickshell.iconPath("text-x-generic", "document")
-                        }
-                        return ""
+                        return DropzoneService.getFallbackThumb({ isDir: true })
                     }
-                    Drag.hotSpot.x: 42.5 * Appearance.effectiveScale
-                    Drag.hotSpot.y: 42.5 * Appearance.effectiveScale
+                    Drag.hotSpot.x: 64 * Appearance.effectiveScale
+                    Drag.hotSpot.y: 64 * Appearance.effectiveScale
                     Drag.onDragFinished: (dropAction) => {
                         DropzoneService.clearAll()
                     }
@@ -609,11 +592,9 @@ ColumnLayout {
                     HoverHandler { id: mobileHover }
                     onClicked: {
                         if (DropzoneService.stashedFiles.length > 0) {
-                            let count = DropzoneService.stashedFiles.length
-                            DropzoneService.sendToKdeConnect(DropzoneService.stashedFiles[0].path)
+                            let paths = DropzoneService.stashedFiles.map(f => f.path)
+                            DropzoneService.sendToKdeConnect(paths)
                             GlobalStates.dropzoneNotchOpen = false
-                            let notifCmd = `sleep 0.75 && notify-send -a "KDE Connect" "KDE Connect" "Uploaded ${count} ${count === 1 ? "file" : "files"} to Mobile"`
-                            Quickshell.execDetached(["bash", "-c", notifCmd])
                         }
                     }
                 }
