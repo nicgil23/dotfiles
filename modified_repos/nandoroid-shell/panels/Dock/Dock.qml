@@ -72,7 +72,6 @@ Scope {
                 readonly property real dockHeight: 56 * Appearance.effectiveScale
                 readonly property real dockScale: (Config.ready && Config.options.dock ? Config.options.dock.scale : 1.0) * Appearance.effectiveScale
                 readonly property int bgStyle: Config.ready && Config.options.dock ? Config.options.dock.backgroundStyle : 1
-                
                 implicitWidth: modelData.width
                 // Provide enough height for popups and shadows without pushing them too far up
                 implicitHeight: 500 * Appearance.effectiveScale
@@ -158,150 +157,140 @@ Scope {
                         }
                         Behavior on opacity { NumberAnimation { duration: Appearance.animation.elementMoveFast.duration } }
 
-                        // --- Visual Content Wrapper ---
-                        Item {
-                            id: shadowWrapper
+                        // --- Visual Content Container ---
+                        Rectangle {
+                            id: dockVisualRect
                             anchors.fill: parent
+                            readonly property real customRadius: Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Config.options.dock.cornerRadius * Appearance.effectiveScale : (Appearance.rounding.normal + 6)
+                            radius: dockWindow.bgStyle === 1 ? customRadius : (dockWindow.bgStyle === 2 ? 0 : height / 2)
+                            topLeftRadius: (dockWindow.bgStyle === 2) ? (Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Config.options.dock.cornerRadius * Appearance.effectiveScale : 24 * Appearance.effectiveScale) : radius
+                            topRightRadius: (dockWindow.bgStyle === 2) ? (Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Config.options.dock.cornerRadius * Appearance.effectiveScale : 24 * Appearance.effectiveScale) : radius
+                            bottomLeftRadius: (dockWindow.bgStyle === 2) ? 0 : radius
+                            bottomRightRadius: (dockWindow.bgStyle === 2) ? 0 : radius
+                            color: Functions.ColorUtils.applyAlpha(Appearance.colors.colLayer0, Config.ready && Config.options.dock ? (Config.options.dock.bgOpacity ?? 1.0) : 1.0)
+                            opacity: dockWindow.bgStyle === 0 ? 0 : 1.0
 
-                            // Actual Visual Content
-                            Item {
-                                anchors.centerIn: parent
-                                width: visualContainer.width
-                                height: visualContainer.height
+                            // MD3 Outline Style
+                            border.width: dockWindow.bgStyle !== 0 ? Math.max(1, 1 * Appearance.effectiveScale) : 0
+                            border.color: Appearance.colors.colLayer0Border ?? Functions.ColorUtils.applyAlpha(Appearance.colors.colOnLayer0, 0.12)
 
-                                Rectangle {
-                                    id: dockVisualRect; anchors.fill: parent
-                                    readonly property real customRadius: Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Config.options.dock.cornerRadius * Appearance.effectiveScale : (Appearance.rounding.normal + 6)
-                                    radius: dockWindow.bgStyle === 1 ? customRadius : (dockWindow.bgStyle === 2 ? 0 : height / 2)
-                                    topLeftRadius: (dockWindow.bgStyle === 2) ? (Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Config.options.dock.cornerRadius * Appearance.effectiveScale : 24 * Appearance.effectiveScale) : radius
-                                    topRightRadius: (dockWindow.bgStyle === 2) ? (Config.ready && Config.options.dock && (Config.options.dock.cornerRadius ?? -1) >= 0 ? Config.options.dock.cornerRadius * Appearance.effectiveScale : 24 * Appearance.effectiveScale) : radius
-                                    bottomLeftRadius: (dockWindow.bgStyle === 2) ? 0 : radius
-                                    bottomRightRadius: (dockWindow.bgStyle === 2) ? 0 : radius
-                                    color: Functions.ColorUtils.applyAlpha(Appearance.colors.colLayer0, Config.ready && Config.options.dock ? (Config.options.dock.bgOpacity ?? 1.0) : 1.0); opacity: dockWindow.bgStyle === 0 ? 0 : 1.0; 
-                                    
-                                    // MD3 Outline Style
-                                    border.width: dockWindow.bgStyle !== 0 ? Math.max(1, 1 * Appearance.effectiveScale) : 0
-                                    border.color: Appearance.colors.colLayer0Border ?? Functions.ColorUtils.applyAlpha(Appearance.colors.colOnLayer0, 0.12)
+                            StyledRectangularShadow {
+                                target: dockVisualRect
+                                visible: Config.ready && Config.options.dock ? (Config.options.dock.showShadow ?? false) : false
+                                opacity: 0.3
+                                z: -1
+                            }
+
+                            RowLayout {
+                                id: mainRowContainer
+                                anchors.fill: parent
+                                anchors.leftMargin: 8 * Appearance.effectiveScale
+                                anchors.rightMargin: 8 * Appearance.effectiveScale
+                                anchors.topMargin: 4 * Appearance.effectiveScale
+                                anchors.bottomMargin: 4 * Appearance.effectiveScale
+                                spacing: 6 * Appearance.effectiveScale
+                                
+                                // Pin/Keep Button (Leftmost, end4-style)
+                                DockButton {
+                                    id: pinButton
+                                    visible: Config.ready && (Config.options.dock.showPinButton ?? true)
+                                    pointingHandCursor: true
+                                    onClicked: root.pinned = !root.pinned
+                                    toggled: root.pinned
+                                    colBackgroundToggled: Appearance.colors.colPrimary
+                                    contentItem: Item {
+                                        anchors.fill: parent
+                                        scale: pinButton.down ? 0.92 : (pinButton.hovered ? 1.05 : 1.0)
+                                        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                                        MaterialSymbol {
+                                            anchors.centerIn: parent
+                                            text: "keep"
+                                            iconSize: 20 * Appearance.effectiveScale
+                                            color: root.pinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
+                                        }
+                                    }
                                 }
 
-                                StyledRectangularShadow {
-                                    target: dockVisualRect
-                                    visible: Config.ready && Config.options.dock ? (Config.options.dock.showShadow ?? false) : false
-                                    opacity: 0.3
-                                    z: -1
+                                DockSeparator {
+                                    visible: pinButton.visible
                                 }
 
-                                RowLayout {
-                                    id: mainRowContainer
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 8 * Appearance.effectiveScale
-                                    anchors.rightMargin: 8 * Appearance.effectiveScale
-                                    anchors.topMargin: 4 * Appearance.effectiveScale
-                                    anchors.bottomMargin: 4 * Appearance.effectiveScale
-                                    spacing: 6 * Appearance.effectiveScale
-                                    
-                                    // Pin/Keep Button (Leftmost, end4-style)
-                                    DockButton {
-                                        id: pinButton
-                                        visible: Config.ready && (Config.options.dock.showPinButton ?? true)
-                                        pointingHandCursor: true
-                                        onClicked: root.pinned = !root.pinned
-                                        toggled: root.pinned
-                                        colBackgroundToggled: Appearance.colors.colPrimary
-                                        contentItem: Item {
-                                            anchors.fill: parent
-                                            scale: pinButton.down ? 0.92 : (pinButton.hovered ? 1.05 : 1.0)
-                                            Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                                            MaterialSymbol {
-                                                anchors.centerIn: parent
-                                                text: "keep"
-                                                iconSize: 20 * Appearance.effectiveScale
-                                                color: root.pinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
+                                DockApps {
+                                    id: dockApps; buttonPadding: 2 * Appearance.effectiveScale; spacing: 6 * Appearance.effectiveScale; height: parent.height
+                                    backgroundStyle: dockWindow.bgStyle
+                                    onRequestContextMenu: (appData, x, y) => {
+                                        dockContextMenu.openAt(x, (dockWindow.screenY + (y * (dockWindow.dockScale / Appearance.effectiveScale))), appData);
+                                    }
+                                    onButtonHoverChanged: (button, appData, hovered) => {
+                                        if (hovered) {
+                                            dockApps.lastHoveredAppData = appData;
+                                            if (!hoverGuardTimer.running && dockWindow.reveal) {
+                                                dockPreview.show(button, appData);
                                             }
+                                        } else {
+                                            dockPreview.requestHide();
                                         }
                                     }
+                                }
 
-                                    DockSeparator {
-                                        visible: pinButton.visible
+                                DockSeparator {
+                                    visible: dockMedia.visible
+                                }
+
+                                DockMedia {
+                                    id: dockMedia
+                                    height: parent.height
+                                }
+
+                                DockSeparator {
+                                    visible: overviewButton.visible || launcherButton.visible
+                                }
+
+                                DockButton {
+                                    id: overviewButton
+                                    visible: Config.ready && (Config.options.dock.showOverview ?? true)
+                                    pointingHandCursor: true
+                                    onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
+                                    toggled: GlobalStates.overviewOpen
+                                    colBackgroundToggled: "transparent"
+                                    colBackgroundToggledHover: "transparent"
+                                    background: Item {
+                                        anchors.fill: parent
+                                        Rectangle { anchors.fill: parent; radius: Appearance.rounding.button; color: overviewButton.baseColor; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
+                                        MaterialShape { anchors.fill: parent; anchors.margins: 2 * Appearance.effectiveScale; visible: Config.ready && Config.options.dock.monochromeIcons; shapeString: Config.ready && Config.options.search ? Config.options.search.iconShape : "Circle"; color: overviewButton.down ? Appearance.colors.colPrimary : Appearance.colors.colPrimaryContainer }
                                     }
-
-                                    DockApps {
-                                        id: dockApps; buttonPadding: 2 * Appearance.effectiveScale; spacing: 6 * Appearance.effectiveScale; height: parent.height
-                                        backgroundStyle: dockWindow.bgStyle
-                                        onRequestContextMenu: (appData, x, y) => {
-                                            dockContextMenu.openAt(x, (dockWindow.screenY + (y * (dockWindow.dockScale / Appearance.effectiveScale))), appData);
-                                        }
-                                        onButtonHoverChanged: (button, appData, hovered) => {
-                                            if (hovered) {
-                                                dockApps.lastHoveredAppData = appData;
-                                                if (!hoverGuardTimer.running && dockWindow.reveal) {
-                                                    dockPreview.show(button, appData);
-                                                }
-                                            } else {
-                                                dockPreview.requestHide();
-                                            }
-                                        }
+                                    contentItem: Item {
+                                        anchors.fill: parent
+                                        scale: overviewButton.down ? 0.92 : (overviewButton.hovered ? 1.05 : 1.0)
+                                        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                                        MaterialSymbol { id: overviewIcon; anchors.centerIn: parent; text: "grid_view"; iconSize: (Config.ready && Config.options.dock.monochromeIcons ? 22 : 26) * Appearance.effectiveScale; color: overviewButton.toggled ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
+                                        ColorOverlay { anchors.fill: overviewIcon; source: overviewIcon; color: Appearance.colors.colOnPrimaryContainer; visible: Config.ready && Config.options.dock.monochromeIcons }
                                     }
+                                }
 
-                                    DockSeparator {
-                                        visible: dockMedia.visible
+                                DockButton {
+                                    id: launcherButton
+                                    visible: Config.ready && (Config.options.dock.showLauncher ?? true)
+                                    pointingHandCursor: true
+                                    onClicked: GlobalStates.launcherOpen = !GlobalStates.launcherOpen
+                                    toggled: GlobalStates.launcherOpen
+                                    colBackgroundToggled: "transparent"
+                                    colBackgroundToggledHover: "transparent"
+                                    altAction: (event) => {
+                                        const pos = launcherButton.mapToItem(null, event.x, event.y);
+                                        dockContextMenu.openAt(pos.x, dockWindow.screenY + pos.y);
                                     }
-
-                                    DockMedia {
-                                        id: dockMedia
-                                        height: parent.height
+                                    background: Item {
+                                        anchors.fill: parent
+                                        Rectangle { anchors.fill: parent; radius: Appearance.rounding.button; color: launcherButton.baseColor; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
+                                        MaterialShape { anchors.fill: parent; anchors.margins: 2 * Appearance.effectiveScale; visible: Config.ready && Config.options.dock.monochromeIcons; shapeString: Config.ready && Config.options.search ? Config.options.search.iconShape : "Circle"; color: launcherButton.down ? Appearance.colors.colPrimary : Appearance.colors.colPrimaryContainer }
                                     }
-
-                                    DockSeparator {
-                                        visible: overviewButton.visible || launcherButton.visible
-                                    }
-
-                                    DockButton {
-                                        id: overviewButton
-                                        visible: Config.ready && (Config.options.dock.showOverview ?? true)
-                                        pointingHandCursor: true
-                                        onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
-                                        toggled: GlobalStates.overviewOpen
-                                        colBackgroundToggled: "transparent"
-                                        colBackgroundToggledHover: "transparent"
-                                        background: Item {
-                                            anchors.fill: parent
-                                            Rectangle { anchors.fill: parent; radius: Appearance.rounding.button; color: overviewButton.baseColor; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
-                                            MaterialShape { anchors.fill: parent; anchors.margins: 2 * Appearance.effectiveScale; visible: Config.ready && Config.options.dock.monochromeIcons; shapeString: Config.ready && Config.options.search ? Config.options.search.iconShape : "Circle"; color: overviewButton.down ? Appearance.colors.colPrimary : Appearance.colors.colPrimaryContainer }
-                                        }
-                                        contentItem: Item {
-                                            anchors.fill: parent
-                                            scale: overviewButton.down ? 0.92 : (overviewButton.hovered ? 1.05 : 1.0)
-                                            Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                                            MaterialSymbol { id: overviewIcon; anchors.centerIn: parent; text: "grid_view"; iconSize: (Config.ready && Config.options.dock.monochromeIcons ? 22 : 26) * Appearance.effectiveScale; color: overviewButton.toggled ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
-                                            ColorOverlay { anchors.fill: overviewIcon; source: overviewIcon; color: Appearance.colors.colOnPrimaryContainer; visible: Config.ready && Config.options.dock.monochromeIcons }
-                                        }
-                                    }
-
-                                    DockButton {
-                                        id: launcherButton
-                                        visible: Config.ready && (Config.options.dock.showLauncher ?? true)
-                                        pointingHandCursor: true
-                                        onClicked: GlobalStates.launcherOpen = !GlobalStates.launcherOpen
-                                        toggled: GlobalStates.launcherOpen
-                                        colBackgroundToggled: "transparent"
-                                        colBackgroundToggledHover: "transparent"
-                                        altAction: (event) => {
-                                            const pos = launcherButton.mapToItem(null, event.x, event.y);
-                                            dockContextMenu.openAt(pos.x, dockWindow.screenY + pos.y);
-                                        }
-                                        background: Item {
-                                            anchors.fill: parent
-                                            Rectangle { anchors.fill: parent; radius: Appearance.rounding.button; color: launcherButton.baseColor; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
-                                            MaterialShape { anchors.fill: parent; anchors.margins: 2 * Appearance.effectiveScale; visible: Config.ready && Config.options.dock.monochromeIcons; shapeString: Config.ready && Config.options.search ? Config.options.search.iconShape : "Circle"; color: launcherButton.down ? Appearance.colors.colPrimary : Appearance.colors.colPrimaryContainer }
-                                        }
-                                        contentItem: Item {
-                                            anchors.fill: parent
-                                            scale: launcherButton.down ? 0.92 : (launcherButton.hovered ? 1.05 : 1.0)
-                                            Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                                            MaterialSymbol { id: launcherIcon; anchors.centerIn: parent; text: "apps"; iconSize: (Config.ready && Config.options.dock.monochromeIcons ? 22 : 26) * Appearance.effectiveScale; color: launcherButton.toggled ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
-                                            ColorOverlay { anchors.fill: launcherIcon; source: launcherIcon; color: Appearance.colors.colOnPrimaryContainer; visible: Config.ready && Config.options.dock.monochromeIcons }
-                                        }
+                                    contentItem: Item {
+                                        anchors.fill: parent
+                                        scale: launcherButton.down ? 0.92 : (launcherButton.hovered ? 1.05 : 1.0)
+                                        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                                        MaterialSymbol { id: launcherIcon; anchors.centerIn: parent; text: "apps"; iconSize: (Config.ready && Config.options.dock.monochromeIcons ? 22 : 26) * Appearance.effectiveScale; color: launcherButton.toggled ? Appearance.colors.colPrimary : Appearance.colors.colOnLayer0; visible: !(Config.ready && Config.options.dock.monochromeIcons) }
+                                        ColorOverlay { anchors.fill: launcherIcon; source: launcherIcon; color: Appearance.colors.colOnPrimaryContainer; visible: Config.ready && Config.options.dock.monochromeIcons }
                                     }
                                 }
                             }

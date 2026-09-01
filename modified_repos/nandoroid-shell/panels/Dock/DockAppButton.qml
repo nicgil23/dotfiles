@@ -112,8 +112,9 @@ DockButton {
             anchors { bottom: parent.bottom; bottomMargin: 2 * Appearance.effectiveScale; horizontalCenter: parent.horizontalCenter }
             visible: appToplevel && appToplevel.toplevels && appToplevel.toplevels.length > 0
             Repeater {
-                model: (appToplevel && appToplevel.toplevels) ? Math.min(appToplevel.toplevels.length, 3) : 0
+                model: appToplevel ? Math.min(appToplevel.toplevels.length, 3) : 0
                 delegate: Rectangle {
+                    required property int index
                     radius: Appearance.rounding.full
                     width: (appToplevel.toplevels.length <= 3) ? 10 * Appearance.effectiveScale : 4 * Appearance.effectiveScale
                     height: 4 * Appearance.effectiveScale
