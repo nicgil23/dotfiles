@@ -9,36 +9,46 @@ import "../core/functions" as Functions
 Item {
     id: root
 
+    // --- Core Properties ---
     property var model: []
     property Component delegate: null
 
+    // --- Sizing & Ratios ---
     property real largeItemWidthRatio: 0.55
     property real mediumItemWidthRatio: 0.32
     property real smallItemWidthRatio: 0.12
     property real baseItemWidth: 0
     property real activeBonusWidth: 0
     property real itemSpacing: 6 * Appearance.effectiveScale
-    property alias currentIndex: listView.currentIndex
 
+    // --- Navigation & State ---
+    property alias currentIndex: listView.currentIndex
     property bool fitMode: false
     property int hoveredIndex: -1
     readonly property int focusedIndex: {
         if (hoveredIndex >= 0) return hoveredIndex
-        var idx = listView.currentIndex
-        return idx >= 0 ? idx : 0
+        return listView.currentIndex >= 0 ? listView.currentIndex : 0
     }
 
     property bool hoverSelectsIndex: false
     property bool wheelEnabled: true
     property bool dragEnabled: true
 
+    // --- Visual & Feature Flags ---
     property real clipRadius: Appearance.rounding.extraLarge - (10 * Appearance.effectiveScale)
     property bool showCurrentIndicator: true
     property bool showFooter: false
     property bool isOpen: true
 
+    // --- Signals ---
+    signal wallpaperSelected(string path)
+    signal openMoreWallpapers()
+    signal itemSelected(int index)
+
+    implicitHeight: 160 * Appearance.effectiveScale
+
     Component.onCompleted: {
-        if (model && model.length > 0) {
+        if (model && model.length > 0 && listView.currentIndex < 0) {
             listView.currentIndex = 0
         }
     }
@@ -49,16 +59,10 @@ Item {
         }
     }
 
-    signal wallpaperSelected(string path)
-    signal openMoreWallpapers()
-    signal itemSelected(int index)
-
-    implicitHeight: 160 * Appearance.effectiveScale
-
+    // --- Helper Functions ---
     function widthForOffset(offset) {
         if (baseItemWidth > 0) {
-            if (offset === 0) return baseItemWidth + activeBonusWidth
-            return baseItemWidth
+            return offset === 0 ? (baseItemWidth + activeBonusWidth) : baseItemWidth
         }
         if (offset === 0) return width * largeItemWidthRatio
         if (Math.abs(offset) === 1) return width * mediumItemWidthRatio
@@ -67,17 +71,18 @@ Item {
 
     function footerWidthForOffset(offset) {
         if (offset <= 0) return width
-        
+
         var consumedWidth = 0
         for (var i = 0; i < offset; i++) {
             consumedWidth += widthForOffset(i)
             if (i > 0) consumedWidth += root.itemSpacing
         }
-        
+
         var remaining = width - consumedWidth
         return Math.max(width * smallItemWidthRatio, remaining)
     }
 
+    // --- Fit Layout (Non-scrolling grid/row) ---
     Row {
         id: fitRow
         visible: root.fitMode
@@ -102,6 +107,7 @@ Item {
         }
     }
 
+    // --- Scrolling Carousel View ---
     ListView {
         id: listView
         anchors.fill: parent
@@ -159,7 +165,7 @@ Item {
         footer: Item {
             id: footerRoot
             visible: root.showFooter
-            
+
             property int offsetFromCurrent: listView.count - root.focusedIndex
             width: root.footerWidthForOffset(offsetFromCurrent)
             height: listView.height
@@ -167,21 +173,21 @@ Item {
             Behavior on width {
                 animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(footerRoot)
             }
-            
+
             Rectangle {
                 anchors.fill: parent
                 anchors.leftMargin: root.itemSpacing
                 radius: Appearance.rounding.large
                 color: Appearance.colors.colLayer3
-                
+
                 RippleButton {
                     anchors.fill: parent
                     buttonRadius: Appearance.rounding.large
                     colBackground: "transparent"
                     colBackgroundHover: Appearance.colors.colLayer2
-                    
+
                     onClicked: root.openMoreWallpapers()
-                    
+
                     contentItem: Item {
                         MaterialSymbol {
                             anchors.centerIn: parent
@@ -197,6 +203,7 @@ Item {
         }
     }
 
+    // --- Carousel Item Delegate ---
     Component {
         id: carouselDelegate
 
@@ -291,8 +298,10 @@ Item {
                         root.hoveredIndex = itemRoot.index
                         if (root.hoverSelectsIndex) root.currentIndex = itemRoot.index
                     }
-                    onExited: if (root.hoveredIndex === itemRoot.index)
-                                root.hoveredIndex = -1
+                    onExited: {
+                        if (root.hoveredIndex === itemRoot.index)
+                            root.hoveredIndex = -1
+                    }
                     onClicked: {
                         root.currentIndex = itemRoot.index
                         root.wallpaperSelected(itemRoot.modelData)
@@ -303,13 +312,15 @@ Item {
         }
     }
 
+    // --- Default Image Sub-Delegate ---
     Component {
         id: defaultImageDelegate
+
         StyledImage {
             id: img
             property real fixedWidth: parent?.fixedWidth ?? width
             property real fixedHeight: parent?.fixedHeight ?? height
-            
+
             opacity: (status === Image.Ready) ? 1 : 0
             Behavior on opacity {
                 animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(img)

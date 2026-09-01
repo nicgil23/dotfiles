@@ -155,26 +155,13 @@ Variants {
 
                 property string widgetArg: ""
                 property string targetWallName: ""
-                property bool initialFocusSet: false
-                property int visibleItemCount: -1
-                property int scrollAccum: 0
-                property real scrollThreshold: 300 * Appearance.effectiveScale
-
                 property string currentFilter: "All"
-                property string _lastFilter: "All"
                 property string searchQuery: ""
-                property bool isOnlineSearch: false
-                property bool isSearchPaused: false
-                property bool hasSearched: false
-                property var colorMap: ({})
-                property int cacheVersion: 0 
 
                 property bool isDownloadingWallpaper: false
                 property string currentDownloadName: ""
 
                 property bool isApplying: false
-                property bool isMonitorSelectorOpen: false
-                property bool allowAddAnimation: false
 
                 Timer {
                     id: applyUnlockTimer
@@ -182,30 +169,15 @@ Variants {
                     onTriggered: pickerContent.isApplying = false
                 }
 
-                property bool isStartup: localFolderModel.status === FolderListModel.Loading || srcModel.status === FolderListModel.Loading
-                property bool isReady: localFolderModel.status === FolderListModel.Ready
-                property bool isSearchActive: pickerContent.currentFilter === "Search" && pickerContent.hasSearched && searchFolderModel.status === FolderListModel.Loading
+                readonly property string thumbDir: Directories.genericCache + "/nandoroid/wallpaper_picker/thumbs"
+                readonly property string searchDir: Directories.genericCache + "/nandoroid/wallpaper_picker/search_thumbs"
+                readonly property string srcDir: Functions.FileUtils.trimFileProtocol(Wallpapers.directory)
 
-                property string lastSearchName: ""
-                property bool isModelChanging: false
-                property bool searchIndexRestored: false
-
-                property bool isScrollingBlocked: pickerContent.currentFilter === "Search" && pickerContent.hasSearched && pickerContent.isSearchActive && !pickerContent.isSearchPaused
-                property bool jumpToLastOnFilterChange: false
-
-                readonly property var filterData: [
-                    { name: "All", hex: "", label: "All" },
-                    { name: "Video", hex: "", label: "Vid" },
-                    { name: "Red", hex: "#FF4500", label: "" },
-                    { name: "Orange", hex: "#FFA500", label: "" },
-                    { name: "Yellow", hex: "#FFD700", label: "" },
-                    { name: "Green", hex: "#32CD32", label: "" },
-                    { name: "Blue", hex: "#1E90FF", label: "" },
-                    { name: "Purple", hex: "#8A2BE2", label: "" },
-                    { name: "Pink", hex: "#FF69B4", label: "" },
-                    { name: "Monochrome", hex: "#A9A9A9", label: "" },
-                    { name: "Search", hex: "", label: "Search" } 
-                ]
+                readonly property real itemWidth: 400 * Appearance.effectiveScale
+                readonly property real itemHeight: 420 * Appearance.effectiveScale
+                readonly property real borderWidth: 3 * Appearance.effectiveScale
+                readonly property real spacing: 10 * Appearance.effectiveScale
+                readonly property real skewFactor: -0.35
 
                 ListModel { id: monitorModel }
 
@@ -312,79 +284,9 @@ Variants {
                     Wallpapers.select(originalFile);
                 }
 
-                readonly property string thumbDir: Directories.genericCache + "/nandoroid/wallpaper_picker/thumbs"
-                readonly property string searchDir: Directories.genericCache + "/nandoroid/wallpaper_picker/search_thumbs"
-                readonly property string srcDir: Functions.FileUtils.trimFileProtocol(Wallpapers.directory)
-
-                readonly property real itemWidth: 400 * Appearance.effectiveScale
-                readonly property real itemHeight: 420 * Appearance.effectiveScale
-                readonly property real borderWidth: 3 * Appearance.effectiveScale
-                readonly property real spacing: 10 * Appearance.effectiveScale
-                readonly property real skewFactor: -0.35
-
                 Timer {
                     id: scrollThrottle
                     interval: 150
-                }
-
-                property bool isFilterAnimating: false
-                Timer {
-                    id: filterAnimationTimer
-                    interval: 800
-                    onTriggered: pickerContent.isFilterAnimating = false
-                }
-
-                property bool isItemAnimating: false
-                Timer {
-                    id: itemAnimationTimer
-                    interval: 500
-                    onTriggered: pickerContent.isItemAnimating = false
-                }
-
-                function getHexBucket(hexStr) {
-                    if (!hexStr) return "Monochrome";
-                    hexStr = String(hexStr).trim().replace(/#/g, '');
-                    if (hexStr.length > 6) hexStr = hexStr.substring(0, 6);
-                    if (hexStr.length !== 6) return "Monochrome";
-
-                    let r = parseInt(hexStr.substring(0,2), 16) / 255;
-                    let g = parseInt(hexStr.substring(2,4), 16) / 255;
-                    let b = parseInt(hexStr.substring(4,6), 16) / 255;
-
-                    if (isNaN(r) || isNaN(g) || isNaN(b)) return "Monochrome";
-
-                    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                    let d = max - min;
-                    let h = 0;
-                    let s = max === 0 ? 0 : d / max;
-                    let v = max;
-
-                    if (max !== min) {
-                        if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
-                        else if (max === g) h = (b - r) / d + 2;
-                        else h = (r - g) / d + 4;
-                        h /= 6;
-                    }
-                    h = h * 360;
-
-                    if (s < 0.05 || v < 0.08) return "Monochrome";
-                    if (h >= 345 || h < 15) return "Red";
-                    if (h >= 15 && h < 45) return "Orange";
-                    if (h >= 45 && h < 75) return "Yellow";
-                    if (h >= 75 && h < 165) return "Green";
-                    if (h >= 165 && h < 260) return "Blue";
-                    if (h >= 260 && h < 315) return "Purple";
-                    if (h >= 315 && h < 345) return "Pink";
-
-                    return "Monochrome";
-                }
-
-                function checkItemMatchesFilter(fileName, isVid, cv, filter) {
-                    if (filter === "Search" || filter === "All") return true;
-                    if (filter === "Video") return isVid;
-                    let hexColor = pickerContent.colorMap[String(fileName)];
-                    if (!hexColor) return filter === "Monochrome";
-                    return pickerContent.getHexBucket(hexColor) === filter;
                 }
 
                 function getCleanName(name) {
@@ -695,7 +597,7 @@ Variants {
                             Rectangle {
                                 anchors.fill: parent
                                 color: Appearance.colors.colLayer1
-                                radius: 16 * Appearance.effectiveScale
+                                radius: 0
                                 border.color: delegateRoot.isCurrent ? Appearance.m3colors.m3primary : Appearance.colors.colOutlineVariant
                                 border.width: delegateRoot.isCurrent ? (3 * Appearance.effectiveScale) : 1
                                 clip: true
