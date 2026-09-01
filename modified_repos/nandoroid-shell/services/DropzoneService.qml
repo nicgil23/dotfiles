@@ -20,7 +20,66 @@ Singleton {
     readonly property string defaultKdeDevice: kdeConnectDevices.length > 0 ? kdeConnectDevices[0] : ""
 
     signal filesUpdated()
-    signal kdeConnectSent(int count)
+    signal kdeConnectSent(int count, bool isError)
+
+    Process {
+        id: kdeSendProc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!text) return
+                try {
+                    let res = JSON.parse(text.trim())
+                    let isError = !res.success
+                    let count = isError ? res.total : res.sent
+                    root.kdeConnectSent(count, isError)
+                } catch(e) {
+                    root.kdeConnectSent(0, true)
+                }
+            }
+        }
+    }
+
+    function sendToKdeConnect(files, deviceId) {
+        if (!files) return
+        let fileList = Array.isArray(files) ? files : [files]
+        if (fileList.length === 0) return
+
+        root.clearAll()
+
+        let dev = deviceId || defaultKdeDevice
+
+        let pyScript = `import sys, os, subprocess, json, time
+
+dev = sys.argv[1]
+files = json.loads(sys.argv[2])
+count = len(files)
+
+if not dev:
+    print(json.dumps({"success": False, "sent": 0, "total": count, "error": "no_device"}))
+    sys.exit(0)
+
+err_count = 0
+for f in files:
+    if f.startswith("file://"): f = f[7:]
+    r = subprocess.run(["kdeconnect-cli", "--device", dev, "--share", f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if r.returncode != 0:
+        err_count += 1
+    time.sleep(0.2)
+
+label = "1 archivo" if count == 1 else f"{count} archivos"
+
+if err_count == count:
+    print(json.dumps({"success": False, "sent": 0, "total": count, "error": "all_failed"}))
+elif err_count > 0:
+    print(json.dumps({"success": False, "sent": count - err_count, "total": count, "error": "partial_failed"}))
+else:
+    print(json.dumps({"success": True, "sent": count, "total": count}))
+    cmd = f'notify-send -i org.kde.kdeconnect.app -a "KDE Connect" -u normal "KDE Connect" "Enviados {label} al móvil correctamente"'
+    subprocess.run(cmd, shell=True)
+`
+        kdeSendProc.command = ["python3", "-c", pyScript, dev || "", JSON.stringify(fileList)]
+        kdeSendProc.running = true
+    }
 
     Process {
         id: checkDirsProcess
@@ -307,48 +366,7 @@ Singleton {
         return outDir
     }
 
-    function sendToKdeConnect(files, deviceId) {
-        if (!files) return
-        let fileList = Array.isArray(files) ? files : [files]
-        if (fileList.length === 0) return
 
-        root.kdeConnectSent(fileList.length)
-
-        let dev = deviceId || defaultKdeDevice
-
-        let pyScript = `import sys, os, subprocess, json, time
-
-dev = sys.argv[1]
-files = json.loads(sys.argv[2])
-count = len(files)
-label = "1 archivo" if count == 1 else f"{count} archivos"
-
-if not dev:
-    cmd = 'notify-send -a "KDE Connect" -u critical "KDE Connect" "Error: no hay ningún móvil conectado"'
-    subprocess.run(cmd, shell=True)
-    sys.exit(1)
-
-err_count = 0
-for f in files:
-    if f.startswith("file://"): f = f[7:]
-    r = subprocess.run(["kdeconnect-cli", "--device", dev, "--share", f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if r.returncode != 0:
-        err_count += 1
-    time.sleep(0.2)
-
-if err_count == count:
-    cmd = f'notify-send -a "KDE Connect" -u critical "KDE Connect" "Ha habido un error al enviar {label} al móvil"'
-    subprocess.run(cmd, shell=True)
-elif err_count > 0:
-    cmd = f'notify-send -a "KDE Connect" -u normal "KDE Connect" "Se han enviado {count - err_count} de {count} archivos al móvil"'
-    subprocess.run(cmd, shell=True)
-else:
-    cmd = f'notify-send -a "KDE Connect" -u normal "KDE Connect" "Enviados {label} al móvil correctamente"'
-    subprocess.run(cmd, shell=True)
-`
-        let cmd = ["python3", "-c", pyScript, dev || "", JSON.stringify(fileList)]
-        Quickshell.execDetached(cmd)
-    }
 
     function refreshKdeDevices() {
         kdeDevicesProcess.running = true

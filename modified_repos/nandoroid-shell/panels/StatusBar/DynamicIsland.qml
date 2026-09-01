@@ -55,6 +55,7 @@ Item {
     // KDE Connect Notch Status
     property bool kdeConnectShowing: false
     property string kdeConnectText: ""
+    property bool kdeConnectIsError: false
 
     Timer {
         id: kdeConnectHideTimer
@@ -64,7 +65,7 @@ Item {
 
     Timer {
         id: kdeConnectStartTimer
-        interval: 800
+        interval: 300
         onTriggered: {
             root.kdeConnectShowing = true
             kdeConnectHideTimer.restart()
@@ -73,8 +74,13 @@ Item {
 
     Connections {
         target: DropzoneService
-        function onKdeConnectSent(count) {
-            root.kdeConnectText = (count === 1) ? "1 file sent" : (count + " files sent")
+        function onKdeConnectSent(count, isError) {
+            root.kdeConnectIsError = !!isError
+            if (isError) {
+                root.kdeConnectText = (count === 1) ? "Error sending file" : "Error sending files"
+            } else {
+                root.kdeConnectText = (count === 1) ? "1 file sent" : (count + " files sent")
+            }
             kdeConnectStartTimer.restart()
         }
     }
@@ -124,7 +130,7 @@ Item {
     readonly property real leftNaturalWidth: {
         if (islandState === "kdeconnect") {
             let w = 0
-            if (kdeConnectIcon.visible) w += (18 * Appearance.effectiveScale) + (6 * Appearance.effectiveScale)
+            if (kdeConnectIcon.visible || kdeConnectAppImg.visible) w += (18 * Appearance.effectiveScale) + (6 * Appearance.effectiveScale)
             if (kdeConnectAppLabel.visible) w += kdeConnectAppLabel.implicitWidth + (4 * Appearance.effectiveScale)
             return w > 0 ? w + (4 * Appearance.effectiveScale) : 0
         }
@@ -290,12 +296,24 @@ Item {
             anchors.centerIn: parent
             visible: islandState === "kdeconnect"
             spacing: 6 * Appearance.effectiveScale
+            IconImage {
+                id: kdeConnectAppImg
+                width: 18 * Appearance.effectiveScale
+                height: 18 * Appearance.effectiveScale
+                source: {
+                    let iconName = AppSearch.guessIcon("org.kde.kdeconnect.app", "kdeconnect", "KDE Connect")
+                    return iconName ? Quickshell.iconPath(iconName, "kdeconnect") : Quickshell.iconPath("kdeconnect", "")
+                }
+                visible: islandState === "kdeconnect" && !root.kdeConnectIsError && status === Image.Ready
+                opacity: parent.parent.width > (18 * Appearance.effectiveScale) ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+            }
             MaterialSymbol {
                 id: kdeConnectIcon
-                text: "phonelink"
+                text: root.kdeConnectIsError ? "phonelink_erase" : "phonelink"
                 iconSize: 18 * Appearance.effectiveScale
-                color: Appearance.colors.colNotchText
-                visible: islandState === "kdeconnect"
+                color: root.kdeConnectIsError ? Appearance.m3colors.m3error : Appearance.colors.colNotchText
+                visible: islandState === "kdeconnect" && (root.kdeConnectIsError || kdeConnectAppImg.status !== Image.Ready)
                 opacity: parent.parent.width > (18 * Appearance.effectiveScale) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
             }
@@ -307,7 +325,7 @@ Item {
                 Behavior on opacity { NumberAnimation { duration: 200 } }
                 font.pixelSize: Math.round(12 * Appearance.effectiveScale)
                 font.weight: Font.Medium
-                color: Appearance.colors.colNotchText
+                color: root.kdeConnectIsError ? Appearance.m3colors.m3error : Appearance.colors.colNotchText
                 verticalAlignment: Text.AlignVCenter
             }
         }
@@ -348,7 +366,7 @@ Item {
             Behavior on opacity { NumberAnimation { duration: 200 } }
             font.pixelSize: Math.round(12 * Appearance.effectiveScale)
             font.weight: Font.DemiBold
-            color: Appearance.colors.colNotchText
+            color: root.kdeConnectIsError ? Appearance.m3colors.m3error : Appearance.colors.colNotchText
             width: Math.min(implicitWidth, root.currentEarMaxWidth - (8 * Appearance.effectiveScale))
             elide: Text.ElideRight
         }
