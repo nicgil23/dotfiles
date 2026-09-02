@@ -196,7 +196,13 @@ Scope {
                                     id: pinButton
                                     visible: Config.ready && (Config.options.dock.showPinButton ?? true)
                                     pointingHandCursor: true
-                                    onClicked: root.pinned = !root.pinned
+                                    onClicked: {
+                                        if (Config.ready && Config.options.dock) {
+                                            Config.options.dock.pinnedOnStartup = !root.pinned;
+                                        } else {
+                                            root.pinned = !root.pinned;
+                                        }
+                                    }
                                     toggled: root.pinned
                                     colBackgroundToggled: Appearance.colors.colPrimary
                                     contentItem: Item {

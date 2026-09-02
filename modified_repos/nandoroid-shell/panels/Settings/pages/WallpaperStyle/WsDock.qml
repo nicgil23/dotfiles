@@ -340,6 +340,29 @@ ColumnLayout {
                 }
             }
 
+            // ── Pin Dock on Startup ──────────────
+            SegmentedWrapper {
+                Layout.fillWidth: true
+                implicitHeight: pinStartupRow.implicitHeight + (36 * Appearance.effectiveScale)
+                orientation: Qt.Vertical
+                maxRadius: 20 * Appearance.effectiveScale
+                color: Appearance.m3colors.m3surfaceContainerHigh
+                enabled: Config.ready && Config.options.dock && Config.options.dock.enable
+                opacity: enabled ? 1 : 0.5
+                RowLayout {
+                    id: pinStartupRow
+                    anchors.fill: parent; anchors.margins: 16 * Appearance.effectiveScale
+                    spacing: 16 * Appearance.effectiveScale
+                    MaterialSymbol { text: "push_pin"; iconSize: 24 * Appearance.effectiveScale; color: Appearance.colors.colPrimary }
+                    StyledText { text: "Pin Dock on Startup"; Layout.fillWidth: true; color: Appearance.colors.colOnLayer1 }
+                    AndroidToggle {
+                        checked: Config.ready && Config.options.dock ? (Config.options.dock.pinnedOnStartup ?? false) : false
+                        onToggled: if (Config.ready && Config.options.dock)
+                            Config.options.dock.pinnedOnStartup = !Config.options.dock.pinnedOnStartup
+                    }
+                }
+            }
+
             // ── Show Media Card ──────────────
             SegmentedWrapper {
                 Layout.fillWidth: true
