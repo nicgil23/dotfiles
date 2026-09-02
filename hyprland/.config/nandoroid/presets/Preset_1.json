@@ -264,7 +264,7 @@
     "low": 20
   },
   "dock": {
-    "autoHide": false,
+    "autoHide": true,
     "autoHideMode": 0,
     "backgroundStyle": 1,
     "bgOpacity": 0.5,
@@ -282,10 +282,10 @@
       "spotify",
       "anki"
     ],
-    "pinnedOnStartup": false,
+    "pinnedOnStartup": true,
     "scale": 1,
     "showLauncher": true,
-    "showMedia": false,
+    "showMedia": true,
     "showOnlyInDesktop": false,
     "showOverview": true,
     "showPinButton": true,

@@ -37,10 +37,11 @@ Scope {
                 
                 exclusiveZone: {
                     if (!Config.ready || !visible) return 0;
-                    const scale = (Config.options.dock.scale ?? 1.0) * Appearance.effectiveScale;
-                    // Only reserve space if NOT auto-hiding and NOT showOnlyInDesktop
+                    // Reserve exact visual height of dock so window gap equals standard Hyprland gaps
                     if (!Config.options.dock.showOnlyInDesktop && !Config.options.dock.autoHide) {
-                        return 70 * scale + (dockWindow.bgStyle === 2 ? 0 : Appearance.sizes.elevationMargin / 2);
+                        const bMargin = (dockWindow.bgStyle === 2 ? 0 : Appearance.sizes.elevationMargin / 2);
+                        const visualTop = dockWindow.dockHeight * (dockWindow.dockScale / Appearance.effectiveScale) + bMargin;
+                        return Math.ceil(visualTop);
                     }
                     return 0;
                 }
@@ -73,8 +74,8 @@ Scope {
                 readonly property real dockScale: (Config.ready && Config.options.dock ? Config.options.dock.scale : 1.0) * Appearance.effectiveScale
                 readonly property int bgStyle: Config.ready && Config.options.dock ? Config.options.dock.backgroundStyle : 1
                 implicitWidth: modelData.width
-                // Provide enough height for popups and shadows without pushing them too far up
-                implicitHeight: 500 * Appearance.effectiveScale
+                // Provide exact height for the dock container and its shadow margin
+                implicitHeight: Math.ceil((dockHeight * (dockScale / Appearance.effectiveScale)) + 24 * Appearance.effectiveScale)
                 readonly property real screenY: modelData.height - height
 
                 readonly property bool hasActiveWindows: {
