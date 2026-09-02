@@ -80,8 +80,8 @@ post_hook = "pkill -USR1 cava"
 input_path = '~/.config/matugen/templates/btop.theme'
 output_path = '~/.config/btop/themes/matugen.theme'
 
-[templates.obsidian]
-input_path = '~/.config/matugen/templates/obsidian_matugen.css'
+# [templates.obsidian]
+# input_path = '~/.config/matugen/templates/obsidian_matugen.css'
 # output_path = '~/Documents/Obsidian-Vault/.obsidian/snippets/matugen.css' # Example: path to your obsidian vault snippet
 
 [templates.terminal]

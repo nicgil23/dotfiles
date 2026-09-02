@@ -1,88 +1,102 @@
-# Path to your Oh My Zsh installation.
+# ===== ENVIRONMENT AND PATH =====
 export ZSH="$HOME/.config/ohmyzsh"
-export PATH="$HOME/go/bin:$PATH"
 
-# Themes
+# Centralized PATH definition (without duplicates)
+export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
+
+# Icon and Desktop app recognition for QuickShell and other launchers (Flatpak)
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share"
+
+
+# ===== OH-MY-ZSH CONFIGURATION =====
 ZSH_THEME="robbyrussell"
-
-# Plugins
 plugins=(git)
 
-# Oh My ZSH loader
-source $ZSH/oh-my-zsh.sh
+# Load Oh My ZSH if the entry script exists
+if [ -f "$ZSH/oh-my-zsh.sh" ]; then
+    source "$ZSH/oh-my-zsh.sh"
+fi
 
-# Alias
-alias ls="exa -l"
-alias obsidian-sync='~/dotfiles/hyprland/.config/hypr/scripts/obsidian-sync.sh'
-alias ff='fastfetch'
 
-# Funciones
+# ===== ALIASES =====
+# Use exa/eza for `ls` if available
+if command -v exa &>/dev/null; then
+    alias ls="eza -l"
+elif command -v eza &>/dev/null; then
+    alias ls="exa -l"
+else
+    alias ls="ls -l"
+fi
+
+alias obsidian-sync="$HOME/dotfiles/hyprland/.config/hypr/scripts/obsidian-sync.sh"
+alias ff="fastfetch"
+
+
+# ===== KEYBINDINGS =====
+bindkey '^H' backward-kill-word # Ctrl + Backspace: delete word backward
+bindkey '^[[3;5~' kill-word     # Ctrl + Delete: delete word forward
+
+
+# ===== FUNCTIONS =====
+
+# Load environment variables from a .env file if present in current directory
 load-env() {
-  if [ -f .env ]; then
-    source .env
-    echo "Variables de entorno cargadas desde .env"
-  else
-    echo "Error: No se ha encontrado el archivo .env en este directorio."
-  fi
+    if [ -f .env ]; then
+        source .env
+        echo "Environment variables loaded from .env"
+    else
+        echo "Error: .env file not found in this directory." >&2
+        return 1
+    fi
 }
 
+# Package backup function (Pacman, AUR, Flatpak)
 backup_pkgs() {
     local backup_dir="$HOME/dotfiles/pkgs"
-    mkdir -p "$backup_dir"
+    mkdir -p "$backup_dir" || return 1
 
-    # 1. Lista de paquetes de repositorios oficiales (Pacman)
-    # -Qn lista paquetes instalados de bases de datos locales
-    pacman -Qnq > "$backup_dir/lista_pacman.txt"
+    # Official repository package list (Pacman)
+    pacman -Qnq > "$backup_dir/lista_pacman.txt" 2>/dev/null
 
-    # 2. Lista de paquetes de AUR (vía yay o pacman -Qm)
-    # -Qm lista paquetes que no están en los repositorios oficiales
-    pacman -Qmq > "$backup_dir/lista_aur.txt"
+    # AUR package list
+    pacman -Qmq > "$backup_dir/lista_aur.txt" 2>/dev/null
 
-    # 3. Lista de aplicaciones Flatpak
-    # --columns=application solo extrae el ID de la aplicación
-    flatpak list --app --columns=application > "$backup_dir/lista_flatpak.txt"
+    # Flatpak application list
+    if command -v flatpak &>/dev/null; then
+        flatpak list --app --columns=application > "$backup_dir/lista_flatpak.txt"
+    fi
 
-    echo "Respaldo completado en $backup_dir"
+    echo "Backup completed in $backup_dir"
 }
 
-# Función de yazi
-function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	yazi "$@" --cwd-file="$tmp"
-	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		cd -- "$cwd"
-	fi
-	rm -f -- "$tmp"
+# Yazi file manager wrapper (changes directory on exit)
+y() {
+    local tmp
+    tmp="$(mktemp -t "yazi-cwd.XXXXXX")" || return 1
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+        cd -- "$cwd"
+    fi
+    rm -f -- "$tmp"
 }
 
+# Custom workspace layout for AutoTask project
 clubed() {
-	local autotask_dir="/home/hypr/workspace/AutoTask"
-	local target_dir="/home/hypr/workspace/AutoTask/frontend"
-	local chrome_cmd="google-chrome-stable"
-	command -v google-chrome &>/dev/null && chrome_cmd="google-chrome"
+    local autotask_dir="$HOME/workspace/AutoTask"
+    local target_dir="$HOME/workspace/AutoTask/frontend"
+    local chrome_cmd="google-chrome-stable"
+    
+    command -v google-chrome &>/dev/null && chrome_cmd="google-chrome"
 
-	kitty --directory "$autotask_dir" &>/dev/null &
+    kitty --directory "$autotask_dir" &>/dev/null &
 
-	if command -v hyprctl &>/dev/null; then
-		hyprctl dispatch exec "[workspace 3] kitty --directory $autotask_dir agy" &>/dev/null
-		hyprctl dispatch exec "[workspace 5] $chrome_cmd http://localhost:3000/" &>/dev/null
-	else
-		kitty --directory "$autotask_dir" agy &>/dev/null &
-		"$chrome_cmd" http://localhost:3000/ &>/dev/null &
-	fi
+    if command -v hyprctl &>/dev/null; then
+        hyprctl dispatch exec "[workspace 3] kitty --directory $autotask_dir agy" &>/dev/null
+        hyprctl dispatch exec "[workspace 5] $chrome_cmd http://localhost:3000/" &>/dev/null
+    else
+        kitty --directory "$autotask_dir" agy &>/dev/null &
+        "$chrome_cmd" http://localhost:3000/ &>/dev/null &
+    fi
 
-	cd "$target_dir" && npm run dev
+    cd "$target_dir" && npm run dev
 }
-
-# Linea para que el laucher de quichshell reconozca los iconos de las APPs de flatpak
-export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share
-
-# Vontroles escritura por consola
-bindkey '^H' backward-kill-word # Ctrl + Retroceso para borrar la palabra hacia atrás
-bindkey '^[[3;5~' kill-word # Ctrl + Suprimir para borrar la palabra hacia adelante
-
-# Created by `pipx` on 2026-06-07 01:33:26
-export PATH="$PATH:/home/hypr/.local/bin"
-
-# Added by Antigravity CLI installer
-export PATH="/home/hypr/.local/bin:$PATH"
