@@ -1,0 +1,48 @@
+# Zathura Material 3 Theme (Matugen v4)
+
+# General / Background & Foreground
+set default-bg                  "{{colors.surface.default.hex}}"
+set default-fg                  "{{colors.on_surface.default.hex}}"
+
+# Statusbar
+set statusbar-bg                "{{colors.surface_container.default.hex}}"
+set statusbar-fg                "{{colors.on_surface.default.hex}}"
+
+# Inputbar
+set inputbar-bg                 "{{colors.surface_container_high.default.hex}}"
+set inputbar-fg                 "{{colors.primary.default.hex}}"
+
+# Notifications
+set notification-bg             "{{colors.surface_container_high.default.hex}}"
+set notification-fg             "{{colors.on_surface.default.hex}}"
+
+set notification-error-bg       "{{colors.error_container.default.hex}}"
+set notification-error-fg       "{{colors.on_error_container.default.hex}}"
+
+set notification-warning-bg     "{{colors.tertiary_container.default.hex}}"
+set notification-warning-fg     "{{colors.on_tertiary_container.default.hex}}"
+
+# Highlights (Search & Active Selection)
+set highlight-color             "{{colors.secondary_container.default.hex}}"
+set highlight-active-color      "{{colors.primary_container.default.hex}}"
+
+# Completion Menu
+set completion-bg               "{{colors.surface_container_low.default.hex}}"
+set completion-fg               "{{colors.on_surface.default.hex}}"
+
+set completion-highlight-bg     "{{colors.primary_container.default.hex}}"
+set completion-highlight-fg     "{{colors.on_primary_container.default.hex}}"
+
+# Index Mode (Table of Contents)
+set index-bg                    "{{colors.surface.default.hex}}"
+set index-fg                    "{{colors.on_surface.default.hex}}"
+set index-active-bg             "{{colors.primary_container.default.hex}}"
+set index-active-fg             "{{colors.on_primary_container.default.hex}}"
+
+# Render Loading
+set render-loading-bg           "{{colors.surface.default.hex}}"
+set render-loading-fg           "{{colors.on_surface.default.hex}}"
+
+# Recolor (PDF Dark Mode Recoloring toggled with 'R')
+set recolor-lightcolor          "{{colors.surface.default.hex}}"
+set recolor-darkcolor           "{{colors.on_surface.default.hex}}"

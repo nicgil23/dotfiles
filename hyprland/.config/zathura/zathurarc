@@ -13,34 +13,6 @@ set zoom-step 10
 # Ajustar a la anchura de la ventana por defecto
 set adjust-open "width"
 
-# Colores Catppuccin Mocha
-set default-bg                  "#1e1e2e" # base
-set default-fg                  "#cdd6f4" # text
-
-set statusbar-fg                "#cdd6f4" # text
-set statusbar-bg                "#313244" # surface1
-
-set inputbar-bg                 "#313244" # surface1
-set inputbar-fg                 "#f5c2e7" # flamingo
-
-set notification-bg             "#313244" # surface1
-set notification-fg             "#f5c2e7" # flamingo
-
-set notification-error-bg       "#313244" # surface1
-set notification-error-fg       "#f38ba8" # red
-
-set notification-warning-bg     "#313244" # surface1
-set notification-warning-fg     "#f9e2af" # yellow
-
-set highlight-color             "#f9e2af" # yellow (transparencia manejada por zathura)
-set highlight-active-color      "#fab387" # peach
-
-set completion-bg               "#313244" # surface1
-set completion-fg               "#cdd6f4" # text
-
-set completion-highlight-fg     "#11111b" # crust
-set completion-highlight-bg     "#cba6f7" # mauve
-
-set recolor-lightcolor          "#1e1e2e" # base
-set recolor-darkcolor           "#cdd6f4" # text
+# Integración de Tema Matugen
+include zathurarc-matugen
 
