@@ -87,6 +87,7 @@ ShellRoot {
     StatusBar {}
     StatusBarTrayOverflow { id: trayOverflow }
     MediaNotchPopup {}
+    DropzoneFloatingPopup {}
 
     // ── Phase 3: Popups ──
     NotificationPopup {}

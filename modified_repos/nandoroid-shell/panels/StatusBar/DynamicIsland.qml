@@ -416,7 +416,7 @@ Item {
     RoundCorner {
         anchors.right: backgroundPill.left; anchors.top: backgroundPill.top
         implicitSize: 14 * Appearance.effectiveScale; color: "black"; corner: RoundCorner.CornerEnum.TopRight
-        visible: isWaterdrop || (GlobalStates.dropzoneNotchOpen && backgroundPill.pillWidth > backgroundPill.normalWidth + 10)
+        visible: !isM3 && (isWaterdrop || (GlobalStates.dropzoneNotchOpen && backgroundPill.pillWidth > backgroundPill.normalWidth + 10))
         opacity: visible ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 200 } }
         z: 10
@@ -425,7 +425,7 @@ Item {
     RoundCorner {
         anchors.left: backgroundPill.right; anchors.top: backgroundPill.top
         implicitSize: 14 * Appearance.effectiveScale; color: "black"; corner: RoundCorner.CornerEnum.TopLeft
-        visible: isWaterdrop || (GlobalStates.dropzoneNotchOpen && backgroundPill.pillWidth > backgroundPill.normalWidth + 10)
+        visible: !isM3 && (isWaterdrop || (GlobalStates.dropzoneNotchOpen && backgroundPill.pillWidth > backgroundPill.normalWidth + 10))
         opacity: visible ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 200 } }
         z: 10
@@ -435,7 +435,7 @@ Item {
     Rectangle {
         id: backgroundPill
         color: "black"
-        clip: GlobalStates.dropzoneNotchOpen
+        clip: GlobalStates.dropzoneNotchOpen && !isM3
 
         readonly property real margin: isM3 ? 8 * Appearance.effectiveScale : (isWaterdrop && root.indicatorStyle === "unified" ? 10 : root.indicatorStyle === "unified" ? 4 : 10) * Appearance.effectiveScale
         readonly property real normalHeight: isWaterdrop ? 34 * Appearance.effectiveScale : (isM3 ? 32 * Appearance.effectiveScale : 28 * Appearance.effectiveScale)
@@ -451,7 +451,7 @@ Item {
         height: pillHeight
         width: pillWidth
         x: pillX
-        radius: Math.min(Appearance.rounding.button, pillHeight / 2)
+        radius: isM3 ? (height / 2) : Math.min(Appearance.rounding.button, pillHeight / 2)
         
         z: -1
 
@@ -466,7 +466,7 @@ Item {
             },
             State {
                 name: "open"
-                when: GlobalStates.dropzoneNotchOpen
+                when: GlobalStates.dropzoneNotchOpen && !root.isM3
                 PropertyChanges { target: backgroundPill; pillWidth: backgroundPill.targetDropzoneWidth }
                 PropertyChanges { target: backgroundPill; pillHeight: Math.min(500 * Appearance.effectiveScale, dropzoneLayout.implicitHeight + (24 * Appearance.effectiveScale)) }
                 PropertyChanges { target: backgroundPill; pillX: -backgroundPill.targetDropzoneWidth / 2 }
@@ -477,15 +477,15 @@ Item {
             Transition {
                 from: "closed"; to: "open"
                 SequentialAnimation {
-                    // Stage 1: Expand Width & X horizontally first with smooth OutCubic easing
+                    // Stage 1: Expand Width & X horizontally first with smooth OutBack easing
                     ParallelAnimation {
-                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 180; easing.type: Easing.OutCubic }
-                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 180; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
+                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
                     }
                     // Stage 2: Expand Height vertically & fade in content smoothly
                     ParallelAnimation {
-                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 150; easing.type: Easing.OutCubic }
-                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 1; duration: 130; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 180; easing.type: Easing.OutQuint }
+                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 1; duration: 160; easing.type: Easing.OutQuint }
                     }
                 }
             },
@@ -494,13 +494,13 @@ Item {
                 SequentialAnimation {
                     // Stage 1: Fade out content & shrink Height vertically first
                     ParallelAnimation {
-                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 0; duration: 100; easing.type: Easing.OutCubic }
-                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 140; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: dropzoneLayout; property: "opacity"; to: 0; duration: 120; easing.type: Easing.OutQuint }
+                        NumberAnimation { target: backgroundPill; property: "pillHeight"; duration: 150; easing.type: Easing.OutQuint }
                     }
                     // Stage 2: Shrink Width & X horizontally back to normal
                     ParallelAnimation {
-                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 170; easing.type: Easing.OutCubic }
-                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 170; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: backgroundPill; property: "pillWidth"; duration: 180; easing.type: Easing.OutQuint }
+                        NumberAnimation { target: backgroundPill; property: "pillX"; duration: 180; easing.type: Easing.OutQuint }
                     }
                 }
             }
@@ -511,7 +511,7 @@ Item {
             anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
             height: parent.radius
             color: "black"
-            visible: isWaterdrop || GlobalStates.dropzoneNotchOpen
+            visible: !isM3 && (isWaterdrop || GlobalStates.dropzoneNotchOpen)
         }
         
         // Accept external drag-and-drop files onto the notch
@@ -560,7 +560,7 @@ Item {
             anchors.topMargin: (isWaterdrop ? 6 : (isM3 ? 6 : 4)) * Appearance.effectiveScale
             anchors.bottomMargin: 12 * Appearance.effectiveScale
             spacing: 8 * Appearance.effectiveScale
-            visible: opacity > 0
+            visible: opacity > 0 && !root.isM3
             opacity: 0
         }
     }
