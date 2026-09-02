@@ -30,7 +30,7 @@
       "liveWallpaperPath": "",
       "matugen": true,
       "matugenCustomColor": "",
-      "matugenScheme": "scheme-tonal-spot",
+      "matugenScheme": "scheme-neutral",
       "matugenSource": "desktop",
       "matugenThemeFile": "",
       "randomTransitionPool": [
@@ -100,10 +100,10 @@
         "valueColorStyle": "primary"
       },
       "desktopCenterX": 192,
-      "desktopCenterY": 883.5,
+      "desktopCenterY": 907.5,
       "desktopRightX": 318,
       "desktopX": 66,
-      "desktopY": 828,
+      "desktopY": 852,
       "digital": {
         "alignment": "center",
         "colorStyle": "primary",
@@ -264,10 +264,10 @@
     "low": 20
   },
   "dock": {
-    "autoHide": true,
+    "autoHide": false,
     "autoHideMode": 0,
     "backgroundStyle": 1,
-    "bgOpacity": 0.7000000000000001,
+    "bgOpacity": 0.5,
     "cornerRadius": 10,
     "enable": true,
     "hoverRegionHeight": 5,
@@ -283,12 +283,12 @@
       "anki"
     ],
     "pinnedOnStartup": false,
-    "scale": 0.95,
+    "scale": 1,
     "showLauncher": true,
     "showMedia": false,
     "showOnlyInDesktop": false,
     "showOverview": true,
-    "showPinButton": false,
+    "showPinButton": true,
     "showShadow": true
   },
   "gameModeState": {
@@ -312,7 +312,7 @@
   },
   "lock": {
     "cavaOpacity": 0.15,
-    "fgPreferencesJson": "{\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png\":true}",
+    "fgPreferencesJson": "{\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/Frieren-4.png\":true}",
     "foregroundPath": "",
     "launchOnStartup": false,
     "security": {
@@ -447,6 +447,10 @@
       },
       {
         "size": 1,
+        "type": "autoHideBar"
+      },
+      {
+        "size": 1,
         "type": "windowLayout"
       }
     ]
@@ -535,7 +539,7 @@
     "bluetoothEnabled": true,
     "dndActive": false,
     "easyeffectsEnabled": false,
-    "lastUpdateCheckDate": "2026-09-01",
+    "lastUpdateCheckDate": "2026-09-02",
     "monitoredDisks": [
       {
         "alias": "System",

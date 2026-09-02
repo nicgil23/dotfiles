@@ -7,13 +7,32 @@ import "../core"
 
 /**
  * TaskbarApps Service
- * Fixed: Ensured new apps are immediately detected and added to the model.
+ * Maintains a persistent ListModel for the dock to prevent flickering of unchanged items.
  */
 Singleton {
     id: root
 
     readonly property var _entryCache: ({})
     property list<string> unpinnedOrder: []
+
+    ListModel {
+        id: appsModel
+        dynamicRoles: true
+    }
+
+    readonly property alias apps: appsModel
+    readonly property alias appsModel: appsModel
+
+    property var pool: []
+
+    Component {
+        id: appEntryComp
+        QtObject {
+            property string appId: ""
+            property list<var> toplevels: []
+            property bool pinned: false
+        }
+    }
 
     function getDesktopEntry(appId) {
         if (!appId) return null;
@@ -53,6 +72,7 @@ Singleton {
             pinned.push(appId);
         }
         Config.options.dock.pinnedApps = pinned;
+        updateApps();
     }
 
     function moveApp(appId, direction) {
@@ -67,6 +87,7 @@ Singleton {
                 const item = pinnedApps.splice(idx, 1)[0];
                 pinnedApps.splice(newTarget, 0, item);
                 Config.options.dock.pinnedApps = pinnedApps;
+                updateApps();
             }
         } else {
             const unpinned = Array.from(root.unpinnedOrder);
@@ -77,16 +98,25 @@ Singleton {
                 const item = unpinned.splice(unpinnedIdx, 1)[0];
                 unpinned.splice(newTarget, 0, item);
                 root.unpinnedOrder = unpinned;
+                updateApps();
             }
         }
     }
 
-    // Main Model Binding
-    property list<var> apps: {
-        if (!Config.ready) return [];
-        
-        // FORCED TRIGGERS: Ensure any change in toplevels triggers a rebuild
-        const _count = ToplevelManager.toplevels.values.length; 
+    function _getOrCreateWrapper(id) {
+        for (let i = 0; i < pool.length; i++) {
+            if (pool[i] && pool[i].appId === id) {
+                return pool[i];
+            }
+        }
+        const wrapper = appEntryComp.createObject(root, { appId: id });
+        pool.push(wrapper);
+        return wrapper;
+    }
+
+    function updateApps() {
+        if (!Config.ready) return;
+
         const _toplevels = ToplevelManager.toplevels.values;
         const pinnedApps = Config.options.dock.pinnedApps ?? [];
         const ignoredRegexStrings = Config.options.dock.ignoredAppRegexes ?? [];
@@ -115,7 +145,6 @@ Singleton {
                 map.set(id, { appId: id, pinned: false, toplevels: [] });
             }
             
-            // Add toplevel if not already present in the list for this appId
             const existingToplevels = map.get(id).toplevels;
             if (!existingToplevels.includes(toplevel)) {
                 existingToplevels.push(toplevel);
@@ -124,20 +153,17 @@ Singleton {
 
         // 3. Sync unpinnedOrder
         let updatedUnpinnedOrder = root.unpinnedOrder.filter(id => {
-            // Keep if still running and not pinned
             return currentRunningIds.includes(id) && !pinnedApps.map(p => p.toLowerCase()).includes(id);
         });
 
-        // Add any NEWLY opened apps to the end of the unpinned order
         for (const id of currentRunningIds) {
             if (!pinnedApps.map(p => p.toLowerCase()).includes(id) && !updatedUnpinnedOrder.includes(id)) {
                 updatedUnpinnedOrder.push(id);
             }
         }
 
-        // Apply unpinned order update if it changed
         if (JSON.stringify(updatedUnpinnedOrder) !== JSON.stringify(root.unpinnedOrder)) {
-            Qt.callLater(() => { root.unpinnedOrder = updatedUnpinnedOrder; });
+            root.unpinnedOrder = updatedUnpinnedOrder;
         }
 
         // 4. Final Ordered List of IDs
@@ -147,51 +173,65 @@ Singleton {
             if (!orderedIds.includes(id)) orderedIds.push(id);
         }
 
-        // 5. Map to persistent Pool Objects
-        let finalResult = [];
+        // 5. Update wrapper data & sync appsModel incrementally
         for (const id of orderedIds) {
             const data = map.get(id);
             if (!data) continue;
+            const wrapper = _getOrCreateWrapper(id);
+            wrapper.toplevels = data.toplevels;
+            wrapper.pinned = data.pinned;
+        }
 
-            let wrapper = null;
-            for (let i = 0; i < pool.length; i++) {
-                if (pool[i] && pool[i].appId === id) {
-                    wrapper = pool[i];
+        // Remove items from appsModel that are no longer in orderedIds
+        for (let i = appsModel.count - 1; i >= 0; i--) {
+            const itemAppId = appsModel.get(i).appId;
+            if (!orderedIds.includes(itemAppId)) {
+                appsModel.remove(i);
+            }
+        }
+
+        // Insert or move items in appsModel to match orderedIds exact order
+        for (let targetIdx = 0; targetIdx < orderedIds.length; targetIdx++) {
+            const id = orderedIds[targetIdx];
+            let currentIdx = -1;
+            for (let j = 0; j < appsModel.count; j++) {
+                if (appsModel.get(j).appId === id) {
+                    currentIdx = j;
                     break;
                 }
             }
 
-            if (!wrapper) {
-                wrapper = appEntryComp.createObject(root, { appId: id });
-                pool.push(wrapper);
-            }
+            const wrapper = _getOrCreateWrapper(id);
 
-            wrapper.toplevels = data.toplevels;
-            wrapper.pinned = data.pinned;
-            finalResult.push(wrapper);
+            if (currentIdx === -1) {
+                appsModel.insert(targetIdx, {
+                    "appId": id,
+                    "appData": wrapper
+                });
+            } else if (currentIdx !== targetIdx) {
+                appsModel.move(currentIdx, targetIdx, 1);
+            }
         }
 
-        // 6. Cleanup Pool (Deferred)
-        Qt.callLater(() => {
-            for (let i = pool.length - 1; i >= 0; i--) {
-                if (pool[i] && !finalResult.includes(pool[i])) {
-                    const old = pool.splice(i, 1)[0];
-                    if (old) old.destroy();
-                }
+        // Cleanup pool objects no longer in orderedIds
+        for (let i = pool.length - 1; i >= 0; i--) {
+            if (pool[i] && !orderedIds.includes(pool[i].appId)) {
+                const old = pool.splice(i, 1)[0];
+                if (old) old.destroy();
             }
-        });
-
-        return finalResult;
-    }
-
-    property var pool: []
-
-    Component {
-        id: appEntryComp
-        QtObject {
-            property string appId: ""
-            property list<var> toplevels: []
-            property bool pinned: false
         }
     }
+
+    Connections {
+        target: ToplevelManager.toplevels
+        function onValuesChanged() { root.updateApps(); }
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() { root.updateApps(); }
+    }
+
+    Component.onCompleted: root.updateApps()
 }
+

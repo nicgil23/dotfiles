@@ -25,6 +25,9 @@ Item {
     readonly property real maxWidth: screenWidth * 0.8 // Standard dock maximum width
     
     implicitWidth: Math.min(listView.contentWidth, maxWidth)
+    Behavior on implicitWidth {
+        NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
+    }
     
     signal requestContextMenu(var appData, real x, real y)
     signal buttonHoverChanged(Item button, var appData, bool hovered)
@@ -65,15 +68,32 @@ Item {
             }
         }
         
-        displaced: Transition { NumberAnimation { properties: "x,y"; duration: 250; easing.type: Easing.OutCubic } }
+        add: Transition {
+            NumberAnimation { properties: "opacity,scale"; from: 0; to: 1; duration: 250; easing.type: Easing.OutBack; easing.overshoot: 1.15 }
+        }
+        addDisplaced: Transition {
+            NumberAnimation { properties: "x,y"; duration: 250; easing.type: Easing.OutCubic }
+        }
+        populate: Transition {
+            NumberAnimation { properties: "opacity,scale"; from: 0; to: 1; duration: 200; easing.type: Easing.OutCubic }
+        }
+        remove: Transition {
+            NumberAnimation { properties: "opacity,scale"; to: 0; duration: 200; easing.type: Easing.OutCubic }
+        }
+        removeDisplaced: Transition {
+            NumberAnimation { properties: "x,y"; duration: 250; easing.type: Easing.OutCubic }
+        }
+        displaced: Transition {
+            NumberAnimation { properties: "x,y"; duration: 250; easing.type: Easing.OutCubic }
+        }
         Behavior on implicitWidth { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this) }
 
         model: TaskbarApps.apps
         delegate: DockAppButton {
             id: appButton
-            required property var modelData
+            required property var appData
             required property int index
-            appToplevel: modelData
+            appToplevel: appData
             appListRoot: root
             pointingHandCursor: true
             index: index
@@ -82,7 +102,7 @@ Item {
             height: parent.height
             altAction: (event) => {
                 const pos = appButton.mapToItem(null, event.x, event.y);
-                root.requestContextMenu(modelData, pos.x, pos.y);
+                root.requestContextMenu(appData, pos.x, pos.y);
             }
         }
     }

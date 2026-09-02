@@ -15,6 +15,7 @@ import "../../widgets"
  */
 DockButton {
     id: root
+    transformOrigin: Item.Center
     property var appToplevel
     property var appListRoot
     property int index: -1

@@ -50,6 +50,12 @@ Item {
         anchors.rightMargin:  4 * Appearance.effectiveScale
         radius: Appearance.rounding.normal
         color:  "transparent"
+        opacity: root.hasTrack ? 1 : 0
+        scale: root.hasTrack ? 1 : 0.85
+        transformOrigin: Item.Center
+
+        Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
 
         layer.enabled: true
         layer.effect: OpacityMask {
