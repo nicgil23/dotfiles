@@ -55,9 +55,9 @@ Scope {
                     item: dockMouseArea
                 }
                 
-                // SIMPLIFIED VISIBILITY: Toggle the whole window for 'Show Only In Desktop'
+                // SIMPLIFIED VISIBILITY: Toggle the whole window for 'Show Only In Desktop' and force hidden in Game Mode
                 visible: {
-                    if (!Config.ready || GlobalStates.screenLocked || !Config.options.dock.enable) return false;
+                    if (!Config.ready || GlobalStates.screenLocked || !Config.options.dock.enable || GameMode.active) return false;
                     
                     // If 'Show Only In Desktop' is ON, only show if no active windows on this monitor
                     if (Config.options.dock.showOnlyInDesktop) {
