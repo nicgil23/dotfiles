@@ -183,7 +183,7 @@ Item {
         if (GlobalStates.dashboardOpen) root.forceActiveFocus()
     }
 
-    // ── Visual Container for Shadow ──
+    // ── Visual Container ──
     Item {
         id: visualContainer
         width: parent.width
@@ -191,14 +191,48 @@ Item {
         y: 0
         opacity: panelBg.opacity
 
-        layer.enabled: root.showShoulders
-        layer.effect: DropShadow {
-            horizontalOffset: 0
-            verticalOffset: 2 * Appearance.effectiveScale
-            radius: 24 * Appearance.effectiveScale
-            samples: 32
-            color: Functions.ColorUtils.applyAlpha(Appearance.colors.colShadow, 0.12)
-            transparentBorder: true
+        // ── Drop Shadow for Background + Shoulders (Background shape only, preventing UI content blur) ──
+        Item {
+            id: shadowLayer
+            anchors.fill: parent
+            visible: root.showShoulders
+            layer.enabled: root.showShoulders
+            layer.effect: DropShadow {
+                horizontalOffset: 0
+                verticalOffset: 2 * Appearance.effectiveScale
+                radius: 24 * Appearance.effectiveScale
+                samples: 32
+                color: Functions.ColorUtils.applyAlpha(Appearance.colors.colShadow, 0.12)
+                transparentBorder: true
+            }
+
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: panelBg.y
+                width: root.panelWidth
+                height: root.panelHeight
+                topLeftRadius: 0
+                topRightRadius: 0
+                bottomLeftRadius: Appearance.rounding.panel
+                bottomRightRadius: Appearance.rounding.panel
+                color: Appearance.m3colors.m3surfaceContainerLow
+            }
+            RoundCorner {
+                anchors.right: clipRect.left
+                y: panelBg.y
+                implicitSize: root.shoulderRadius
+                corner: RoundCorner.CornerEnum.TopRight
+                color: Appearance.colors.colStatusBarSolid
+                opacity: rightShoulder.opacity
+            }
+            RoundCorner {
+                anchors.left: clipRect.right
+                y: panelBg.y
+                implicitSize: root.shoulderRadius
+                corner: RoundCorner.CornerEnum.TopLeft
+                color: Appearance.colors.colStatusBarSolid
+                opacity: leftShoulder.opacity
+            }
         }
 
         // ── Main Panel Rectangle ──
