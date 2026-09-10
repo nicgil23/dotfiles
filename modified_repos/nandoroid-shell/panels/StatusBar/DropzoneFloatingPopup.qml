@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../../core"
+import "../../core/functions" as Functions
 import "../../services"
 import "../../widgets"
 

@@ -207,6 +207,7 @@ Item {
             }
 
             Rectangle {
+                id: centerShadowBg
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: panelBg.y
                 width: root.panelWidth
@@ -218,7 +219,7 @@ Item {
                 color: Appearance.m3colors.m3surfaceContainerLow
             }
             RoundCorner {
-                anchors.right: clipRect.left
+                anchors.right: centerShadowBg.left
                 y: panelBg.y
                 implicitSize: root.shoulderRadius
                 corner: RoundCorner.CornerEnum.TopRight
@@ -226,7 +227,7 @@ Item {
                 opacity: rightShoulder.opacity
             }
             RoundCorner {
-                anchors.left: clipRect.right
+                anchors.left: centerShadowBg.right
                 y: panelBg.y
                 implicitSize: root.shoulderRadius
                 corner: RoundCorner.CornerEnum.TopLeft

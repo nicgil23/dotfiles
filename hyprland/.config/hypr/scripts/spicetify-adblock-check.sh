@@ -35,12 +35,14 @@ if command -v spicetify &>/dev/null; then
     # 4. Si se requiere (re)aplicar Spicetify
     if [ "$NEED_APPLY" -eq 1 ]; then
         echo "[Spicetify Check] Re-aplicando Spicetify y activando adblock..."
-        
+
         # Corregir permisos de /opt/spotify si pacman los cambió a root
         if [ ! -w /opt/spotify ] || [ ! -w /opt/spotify/Apps ]; then
             echo "[Spicetify Check] Solicitando permisos para escribir en /opt/spotify..."
             pkexec chown -R "$USER:$USER" /opt/spotify 2>/dev/null || sudo chown -R "$USER:$USER" /opt/spotify 2>/dev/null
         fi
+
+        sleep 1
 
         pkill -x spotify 2>/dev/null
         spicetify apply || spicetify backup apply || spicetify restore backup apply

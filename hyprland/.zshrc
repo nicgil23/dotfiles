@@ -100,3 +100,8 @@ clubed() {
 
     cd "$target_dir" && npm run dev
 }
+
+# Open Virtual Box
+vb() {
+    QT_QPA_PLATFORM=xcb VirtualBoxVM --startvm "SSOO"
+}
