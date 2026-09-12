@@ -187,3 +187,11 @@ Este proyecto ha sido desarrollado e integrado por **nicgil23**, y es posible gr
 * **ilyamiro**: Creador del diseño original y concepto del selector de fondos de pantalla en formato carrusel 3D ([serpantinum](https://github.com/ilyamiro/serpantinum)).
 
 *Agradecimientos especiales también a los desarrolladores de **Quickshell**, **Hyprland**, **Matugen**, y la comunidad del tema **Catppuccin** por proveer herramientas de personalización de software libre excepcionales.*
+
+---
+
+## Licencia
+
+El contenido de este repositorio está distribuido bajo la licencia **MIT**, con la siguiente excepción:
+
+* **`nandoroid_shell/`**: Este componente contiene código modificado derivado de su repositorio base y está licenciado bajo la **GNU Affero General Public License v3.0 (AGPLv3)**. Consulta el archivo de licencia correspondiente dentro de su propio directorio para más detalles.
