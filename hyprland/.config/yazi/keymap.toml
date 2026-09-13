@@ -127,8 +127,28 @@ keymap = [
 	{ on = [ "g", "h" ],       run = "cd ~",             desc = "Go home" },
 	{ on = [ "g", "c" ],       run = "cd ~/.config",     desc = "Go ~/.config" },
 	{ on = [ "g", "d" ],       run = "cd ~/Downloads",   desc = "Go ~/Downloads" },
+	{ on = [ "g", "m" ],       run = "cd ~/Music",       desc = "Go ~/Music" },
+	{ on = [ "g", "a" ],       run = "cd ~/Music/Apolo", desc = "Go ~/Music/Apolo" },
 	{ on = [ "g", "<Space>" ], run = "cd --interactive", desc = "Jump interactively" },
 	{ on = [ "g", "f" ],       run = "follow",           desc = "Follow hovered symlink" },
+
+	# Apolo Music Suite
+	{ on = [ "A", "t" ], run = 'shell --block "apolo process \"$@\"; echo \"Press enter to exit\"; read _"', desc = "Process & tag files" },
+	{ on = [ "A", "T" ], run = 'shell --block "apolo process -i \"$@\"; echo \"Press enter to exit\"; read _"', desc = "Interactive tagging" },
+	{ on = [ "A", "m" ], run = 'shell --block "apolo info \"$@\"; echo \"Press enter to exit\"; read _"', desc = "Inspect metadata" },
+	{ on = [ "A", "d" ], run = 'shell --block --interactive "apolo download "', desc = "Download from URL" },
+	{ on = [ "A", "s" ], run = 'shell --block --interactive "apolo import "', desc = "Streaming importer" },
+	{ on = [ "A", "i" ], run = 'shell --block "apolo inbox; echo \"Press enter to exit\"; read _"', desc = "Process inbox" },
+	{ on = [ "A", "r" ], run = 'shell --block "apolo reorganize \"$@\"; echo \"Press enter to exit\"; read _"', desc = "Reorganize library" },
+	{ on = [ "A", "g" ], run = 'shell --block "apolo gain \"$@\"; echo \"Press enter to exit\"; read _"', desc = "ReplayGain normalizer" },
+	{ on = [ "A", "f" ], run = 'shell --block "apolo identify \"$@\"; echo \"Press enter to exit\"; read _"', desc = "Identify (AcoustID)" },
+	{ on = [ "A", "D" ], run = 'shell --block "apolo doctor; echo \"Press enter to exit\"; read _"', desc = "Doctor (Diagnostics)" },
+	{ on = [ "A", "c" ], run = 'shell --block "apolo cover extract \"$@\"; echo \"Press enter to exit\"; read _"', desc = "Extract cover art" },
+	{ on = [ "A", "C" ], run = 'shell --block --interactive "apolo cover embed \"$@\" --cover "', desc = "Embed custom cover" },
+	{ on = [ "A", "e" ], run = 'shell --block --interactive "apolo edit \"$@\" "', desc = "Batch edit tags" },
+	{ on = [ "A", "p" ], run = 'shell --block --interactive "apolo playlist "', desc = "Smart playlists" },
+	{ on = [ "A", "w" ], run = 'shell --block "apolo watch; echo \"Press enter to exit\"; read _"', desc = "Watch inbox daemon" },
+	{ on = [ "A", "h" ], run = 'shell --block "apolo config; echo \"Press enter to exit\"; read _"', desc = "Show configuration" },
 
 	# Tabs
 	{ on = "t", run = "tab_create --current", desc = "Create a new tab with CWD" },

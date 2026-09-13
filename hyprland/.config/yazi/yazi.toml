@@ -35,12 +35,12 @@ edit = [
 	{ run = "code -w %s",       desc = "code (block)", for = "windows", block = true },
 ]
 play = [
-	{ run = "xdg-open %s1",    desc = "Play", for = "linux", orphan = true },
+	{ run = 'mpv --force-window=no "$@"', desc = "Play (mpv)", for = "unix", orphan = true },
+	{ run = "xdg-open %s1",    desc = "Play (default)", for = "linux", orphan = true },
 	{ run = "open %s",         desc = "Play", for = "macos" },
 	{ run = 'start "" %s1',    desc = "Play", for = "windows", orphan = true },
 	{ run = "termux-open %s1", desc = "Play", for = "android" },
-	{ run = "mediainfo %s1; echo 'Press enter to exit'; read _", block = true, desc = "Show media info", for = "unix" },
-	{ run = "mediainfo %s1 & pause", block = true, desc = "Show media info", for = "windows" },
+	{ run = 'apolo info "$@"; echo "Press enter to exit"; read _', block = true, desc = "Show media info", for = "unix" },
 ]
 open = [
 	{ run = "xdg-open %s1",    desc = "Open", for = "linux" },
@@ -53,7 +53,7 @@ reveal = [
 	{ run = "open -R %s1",          desc = "Reveal", for = "macos" },
 	{ run = "explorer /select,%s1", desc = "Reveal", for = "windows", orphan = true },
 	{ run = "termux-open %d1",      desc = "Reveal", for = "android" },
-	{ run = "clear; exiftool %s1; echo 'Press enter to exit'; read _", desc = "Show EXIF", for = "unix", block = true },
+	{ run = "clear; apolo info \"$@\"; echo 'Press enter to exit'; read _", desc = "Show metadata", for = "unix", block = true },
 ]
 extract = [
 	{ run = "ya pub extract --list %s", desc = "Extract here" },
@@ -71,6 +71,9 @@ nds = [
 3ds = [
 	{ run = 'azahar "$@"', orphan = true, desc = "Azahar" }
 ]
+apolo = [
+	{ run = 'apolo process "$@"', block = true, desc = "Tag & organize with Apolo" },
+]
 
 [open]
 rules = [
@@ -81,7 +84,7 @@ rules = [
 	# Image
 	{ mime = "image/*", use = [ "open", "reveal" ] },
 	# Media
-	{ mime = "{audio,video}/*", use = [ "play", "reveal" ] },
+	{ mime = "{audio,video}/*", use = [ "play", "apolo", "reveal" ] },
 	# Archive
 	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [ "extract", "reveal" ] },
 	# JSON

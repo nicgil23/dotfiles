@@ -1,0 +1,25 @@
+[directories]
+library_dir = "~/Music/Apolo"
+inbox_dir = "~/Music/Inbox"
+temp_dir = "~/.cache/apolo/temp"
+
+[organization]
+path_template = "{artist}/{album} ({date})/{track:02d} - {title}.opus"
+save_lrc_file = true
+embed_cover_art = true
+max_cover_size = 1400
+multi_disc_folder = true
+various_artists_folder = true
+group_singles = true
+collision_strategy = "skip"
+
+[downloader]
+audio_format = "opus"
+audio_quality = "0"
+concurrent_downloads = 3
+
+[providers]
+prefer_deezer = true
+prefer_itunes = true
+prefer_musicbrainz = true
+synced_lyrics_only = true

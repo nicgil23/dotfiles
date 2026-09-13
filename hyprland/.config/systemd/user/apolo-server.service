@@ -1,0 +1,14 @@
+[Unit]
+Description=Apolo Local REST API Server Daemon
+After=network.target sound.target
+
+[Service]
+Type=simple
+ExecStart=/home/hypr/.local/bin/apolo serve
+Restart=on-failure
+RestartSec=5
+Environment="PATH=/home/hypr/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=default.target
