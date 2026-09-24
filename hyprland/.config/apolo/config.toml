@@ -23,3 +23,53 @@ prefer_deezer = true
 prefer_itunes = true
 prefer_musicbrainz = true
 synced_lyrics_only = true
+
+[doctor]
+show_controlled_anomalies = false
+show_missing_lyrics = false
+controlled_anomalies = [
+    "Albany, Rojuu & Clutchill - XXX",
+    "Alejo - EL NIÑO DE LOS CORAZONES",
+    "Arcaea - Arcaea Sound Collection - Memories of Realms",
+    "Bardero$ - PURE DRUG",
+    "Beat Saber & Camellia - Beat Saber (Original Game Soundtrack), Vol IV - EP",
+    "C.R.O - C.R.O - Rock",
+    "C.R.O - Leyendas de la Noche",
+    "C.R.O - Malos Cantores",
+    "C.R.O - Rock and Roll",
+    "Camellia - Crystallized",
+    "Camellia - Cyphisonia - EP",
+    "Camellia - Planet / / Shaper",
+    "Camellia - Planet ／ ／ Shaper",
+    "Camellia - Tera I / O",
+    "Camellia - Tera I ／ O",
+    "Clutchill - ANGELIKA (Deluxe)",
+    "Crystal Castles - (III)",
+    "Crystal Castles - Amnesty (I)",
+    "Crystal Castles - Crystal Castles",
+    "Crystal Castles - Crystal Castles (II)",
+    "Cráneo - Dalsy",
+    "Cráneo - Música para Lagartos",
+    "Cráneo - Picnic",
+    "Culto - Unreleased #1",
+    "GoodBooks - Control Freaks (The Remixes)",
+    "HARDCORE TANO*C - MEGATON KICK 7",
+    "HARDCORE TANO*C - WACCA COMPLETE ALBUM",
+    "Kidd Manny - SOLO X MOLESTAR",
+    "ORO600 - Casi Angeles",
+    "Raito - Under Night in - Birth Exe: Late (Original Soundtrack)",
+    "Rojuu - Los Sueños De Nube",
+    "Trap Capos - Trap Capos II",
+    "Various Artists - SOUND VOLTEX PERFECT ULTIMATE COMPLETE TRACKS 〜Legend of KAC with Ω〜",
+    "C.H.S (t+pazolite) - FAKE CIRCUS",
+    "HARDCORE TANO*C - FACE feat. 山手響子(CV: 愛美)",
+    "HARDCORE TANO*C - HARDCORE SYNDROME 17",
+    "HARDCORE TANO*C - HARDCORE SYNDROME 18",
+    "HARDCORE TANO*C - IRREGULAR NATION 10",
+    "HARDCORE TANO*C - MEGATON KICK 5",
+    "HARDCORE TANO*C - HYPER DUO 2",
+    "Various Artists - MEGATON KICK 6",
+    "LE SSERAFIM - CRAZY",
+    "tn-shi - CHUNITHM X-VERSE / X-VERSE-X ORIGINAL SOUND TRACK",
+    "Various Artists - CHUNITHM X-VERSE ORIGINAL SOUND TRACK"
+]

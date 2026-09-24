@@ -101,15 +101,26 @@ Scope {
 
             // Define clickable area mask
             mask: Region {
-                item: maskItem
+                item: barMaskItem
+                Region {
+                    item: dropzoneMaskItem
+                }
             }
 
             Item {
-                id: maskItem
+                id: barMaskItem
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
-                height: (autoHide && !mustShow) ? 3 * Appearance.effectiveScale : (dropzoneWindowExpanded ? Math.max(actualStatusBarHeight + 500 * Appearance.effectiveScale, modelData.height * 0.6) : (actualStatusBarHeight + (showBackground ? cornerRadius : 0)))
+                height: (autoHide && !mustShow) ? 3 * Appearance.effectiveScale : (actualStatusBarHeight + (showBackground ? cornerRadius : 0))
+            }
+
+            Item {
+                id: dropzoneMaskItem
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                width: dropzoneWindowExpanded ? Math.min(560 * Appearance.effectiveScale, parent.width * 0.95) : 0
+                height: dropzoneWindowExpanded ? Math.min(540 * Appearance.effectiveScale, parent.height) : 0
             }
 
             // ── Hover Detection Infrastructure ──────────────────

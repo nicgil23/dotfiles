@@ -295,12 +295,32 @@ Singleton {
     function compressArchive(filePaths, archiveType, destOption, targetDevice) {
         if (!filePaths || filePaths.length === 0) return ""
         let firstDir = getFileDir(filePaths[0])
-        let ext = archiveType === "tar.gz" ? "tar.gz" : "zip"
-        let outPath = firstDir + "/isla_archive." + ext
-        let pathsStr = filePaths.map(p => `"${p}"`).join(" ")
+        let ext = archiveType === "tar.gz" ? "tar.gz" : (archiveType === "7z" ? "7z" : "zip")
+        let archiveBaseName = "isla_archive"
+        if (filePaths.length === 1) {
+            let singleItem = root.stashedFiles.find(f => f.path === filePaths[0])
+            let name = singleItem ? singleItem.name : getFileName(filePaths[0])
+            let isDir = singleItem ? singleItem.isDir : false
+            if (name) {
+                if (isDir) {
+                    archiveBaseName = name
+                } else {
+                    let lastDot = name.lastIndexOf(".")
+                    archiveBaseName = lastDot > 0 ? name.substring(0, lastDot) : name
+                }
+            }
+        }
+        let outPath = firstDir + "/" + archiveBaseName + "." + ext
+        let relPaths = filePaths.map(p => {
+            if (p.startsWith(firstDir + "/")) {
+                return p.substring(firstDir.length + 1)
+            }
+            return p
+        })
+        let relPathsStr = relPaths.map(p => `"${p}"`).join(" ")
         let cmd = archiveType === "tar.gz"
-            ? `tar -czvf "${outPath}" ${pathsStr}`
-            : `zip -j "${outPath}" ${pathsStr}`
+            ? `tar -C "${firstDir}" -czvf "${outPath}" ${relPathsStr}`
+            : (archiveType === "7z" ? `(cd "${firstDir}" && 7z a "${outPath}" ${relPathsStr})` : `(cd "${firstDir}" && zip -r "${outPath}" ${relPathsStr})`)
         runTransformationCmd(cmd, filePaths, [outPath], destOption, targetDevice)
         return outPath
     }

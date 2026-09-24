@@ -170,11 +170,29 @@ ColumnLayout {
             pathsToRemove = paths
             let firstDir = DropzoneService.getFileDir(paths[0])
             let ext = transformId === "targz" ? "tar.gz" : transformId
-            let outPath = firstDir + "/isla_archive." + ext
-            let pathsStr = paths.map(p => escapePath(p)).join(" ")
+            let archiveBaseName = "isla_archive"
+            if (paths.length === 1 && DropzoneService.stashedFiles.length === 1) {
+                let singleItem = DropzoneService.stashedFiles[0]
+                if (singleItem && singleItem.name) {
+                    if (singleItem.isDir) {
+                        archiveBaseName = singleItem.name
+                    } else {
+                        let lastDot = singleItem.name.lastIndexOf(".")
+                        archiveBaseName = lastDot > 0 ? singleItem.name.substring(0, lastDot) : singleItem.name
+                    }
+                }
+            }
+            let outPath = firstDir + "/" + archiveBaseName + "." + ext
+            let relPaths = paths.map(p => {
+                if (p.startsWith(firstDir + "/")) {
+                    return p.substring(firstDir.length + 1)
+                }
+                return p
+            })
+            let relPathsStr = relPaths.map(p => escapePath(p)).join(" ")
             let zipCmd = transformId === "targz"
-                ? `tar -czvf ${escapePath(outPath)} ${pathsStr}`
-                : (transformId === "7z" ? `7z a ${escapePath(outPath)} ${pathsStr}` : `zip -j ${escapePath(outPath)} ${pathsStr}`)
+                ? `tar -C ${escapePath(firstDir)} -czvf ${escapePath(outPath)} ${relPathsStr}`
+                : (transformId === "7z" ? `(cd ${escapePath(firstDir)} && 7z a ${escapePath(outPath)} ${relPathsStr})` : `(cd ${escapePath(firstDir)} && zip -r ${escapePath(outPath)} ${relPathsStr})`)
             cmds.push(zipCmd)
             outPathsToAdd.push(outPath)
         } else if (transformId === "extract") {
