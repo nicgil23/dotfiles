@@ -78,3 +78,9 @@ vim.keymap.set({ "n", "t" }, "<C-l>", nav_right, { noremap = true, silent = true
 -- Window navigation with Shift+h / Shift+l (left / right split window)
 vim.keymap.set("n", "H", "<C-w>h", { noremap = true, silent = true, desc = "Go to Left Window" })
 vim.keymap.set("n", "L", "<C-w>l", { noremap = true, silent = true, desc = "Go to Right Window" })
+
+-- Desactivar apertura accidental de la ventana de historial de comandos y búsquedas (q:, q/, q?)
+vim.keymap.set("n", "q:", "<nop>", { noremap = true, silent = true, desc = "Desactivar ventana de comandos accidental" })
+vim.keymap.set("n", "q/", "<nop>", { noremap = true, silent = true, desc = "Desactivar ventana de búsqueda accidental" })
+vim.keymap.set("n", "q?", "<nop>", { noremap = true, silent = true, desc = "Desactivar ventana de búsqueda accidental" })
+
