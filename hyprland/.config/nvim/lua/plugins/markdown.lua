@@ -75,6 +75,12 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function(ev)
     local opts = { buffer = ev.buf, silent = true }
 
+    -- Configuración de indentación a 4 espacios para Markdown
+    vim.opt_local.tabstop = 4
+    vim.opt_local.shiftwidth = 4
+    vim.opt_local.softtabstop = 4
+    vim.opt_local.expandtab = true
+
     -- Ctrl + b: Negrita (Insert, Visual y Normal)
     vim.keymap.set("i", "<C-b>", "****<Left><Left>", vim.tbl_extend("force", opts, { desc = "Insertar negrita" }))
     vim.keymap.set("x", "<C-b>", function()
@@ -104,6 +110,61 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 return {
+  {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters = {
+        ["markdown_fast"] = {
+          meta = {
+            description = "Formateador ultrarrápido nativo en Lua para Markdown",
+          },
+          format = function(self, ctx, lines, callback)
+            local out = {}
+            local in_code_block = false
+
+            for i, line in ipairs(lines) do
+              -- Detectar bloques de código ```
+              if line:match("^%s*```") then
+                in_code_block = not in_code_block
+                table.insert(out, line)
+              elseif in_code_block then
+                table.insert(out, line)
+              else
+                -- 1. Regla MD022: Asegurar línea en blanco antes de encabezados (#) si no es la primera línea
+                if line:match("^#+%s") and #out > 0 then
+                  local prev = out[#out]
+                  if prev ~= "" and not prev:match("^%-%-%-%s*$") then
+                    table.insert(out, "")
+                  end
+                end
+
+                -- 2. Regla MD007: Ajustar indentación de sublistas a múltiplos de 4 espacios
+                local spaces, marker, rest = line:match("^(%s*)([%-%*%+]%s+)(.*)$")
+                if not spaces then
+                  spaces, marker, rest = line:match("^(%s*)(%d+%.%s+)(.*)$")
+                end
+
+                if spaces and #spaces > 0 then
+                  local num_spaces = #spaces
+                  local level = math.max(1, math.floor((num_spaces + 2) / 4))
+                  local new_indent = string.rep("    ", level)
+                  table.insert(out, new_indent .. marker .. rest)
+                else
+                  table.insert(out, line)
+                end
+              end
+            end
+
+            callback(nil, out)
+          end,
+        },
+      },
+      formatters_by_ft = {
+        markdown = { "markdown_fast" },
+        ["markdown.mdx"] = { "markdown_fast" },
+      },
+    },
+  },
   {
     "mfussenegger/nvim-lint",
     opts = function(_, opts)
