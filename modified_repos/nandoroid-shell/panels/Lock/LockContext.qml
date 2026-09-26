@@ -18,6 +18,11 @@ Scope {
     signal shouldReFocus()
     signal unlocked(var targetAction)
     signal failed()
+    signal activityDetected()
+
+    function notifyActivity() {
+        root.activityDetected()
+    }
 
     property string currentText: ""
     property string maskedText: ""

@@ -28,13 +28,12 @@ Scope {
             for (var j = 0; j < Quickshell.screens.length; ++j) {
                 var monName = Quickshell.screens[j].name
                 var wsId = root.savedWorkspaces[monName]
-                if (wsId !== undefined) {
+                if (wsId !== undefined && wsId < 1000000) {
                     batch.push("dispatch " + HyprlandCompat.dspFocusMonitor(monName))
                     batch.push("dispatch " + HyprlandCompat.dspWorkspace(wsId))
                 }
             }
             if (batch.length > 0) {
-                batch.push("reload")
                 Quickshell.execDetached(HyprlandCompat.batch(batch))
             }
         }
@@ -67,6 +66,56 @@ Scope {
         }
     }
 
+    // Lockscreen Inactivity Sleep State Machine
+    readonly property int lockscreenDimTimeoutMs: 20000       // 20s
+    readonly property int lockscreenDpmsTimeoutMs: 30000      // 30s (6 min total desde inicio de AFK)
+    readonly property int lockscreenSuspendTimeoutMs: 270000  // 4.5 min (10 min total desde inicio de AFK)
+
+    Timer {
+        id: lockscreenDimTimer
+        interval: root.lockscreenDimTimeoutMs
+        repeat: false
+        running: GlobalStates.screenLocked
+        onTriggered: {
+            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "lockscreen-dim"])
+        }
+    }
+
+    Timer {
+        id: lockscreenDpmsTimer
+        interval: root.lockscreenDpmsTimeoutMs
+        repeat: false
+        running: GlobalStates.screenLocked
+        onTriggered: {
+            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "dpms-off"])
+        }
+    }
+
+    Timer {
+        id: lockscreenSuspendTimer
+        interval: root.lockscreenSuspendTimeoutMs
+        repeat: false
+        running: GlobalStates.screenLocked
+        onTriggered: {
+            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "suspend"])
+        }
+    }
+
+    function handleLockscreenActivity() {
+        if (!GlobalStates.screenLocked) return
+        lockscreenDimTimer.restart()
+        lockscreenDpmsTimer.restart()
+        lockscreenSuspendTimer.restart()
+        Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "dpms-on"])
+    }
+
+    Connections {
+        target: LockContext
+        function onActivityDetected() {
+            root.handleLockscreenActivity()
+        }
+    }
+
     // Save workspaces on lock / restore on unlock / re-focus lock screen
     Connections {
         target: GlobalStates
@@ -76,20 +125,29 @@ Scope {
                 var next = {}
                 var batch = [HyprlandCompat.keywordStr("animation", "workspaces", '"1,7,default,slidevert"')]
                 for (var i = 0; i < Quickshell.screens.length; ++i) {
-                    var mon = Quickshell.screens[i].name
-                    var mData = HyprlandData.monitors.find(m => m.name === mon)
-                    var ws = (mData?.activeWorkspace?.id ?? 1)
+                    var screen = Quickshell.screens[i]
+                    var mon = screen.name
+                    var hMon = Hyprland.monitorFor(screen)
+                    var ws = (hMon?.activeWorkspace?.id ?? 1)
+                    if (ws > 1000000) {
+                        ws = root.savedWorkspaces[mon] ?? 1
+                    }
                     next[mon] = ws
                     batch.push("dispatch " + HyprlandCompat.dspFocusMonitor(mon))
                     batch.push("dispatch " + HyprlandCompat.dspWorkspace(2147483647 - ws))
                 }
                 root.savedWorkspaces = next
-                batch.push("reload")
                 Quickshell.execDetached(HyprlandCompat.batch(batch))
                 // Reset auth state and try fingerprint
                 LockContext.reset()
                 LockContext.tryFingerUnlock()
+                lockscreenDimTimer.restart()
+                lockscreenDpmsTimer.restart()
+                lockscreenSuspendTimer.restart()
             } else {
+                lockscreenDimTimer.stop()
+                lockscreenDpmsTimer.stop()
+                lockscreenSuspendTimer.stop()
                 restoreTimer.start()
             }
         }
@@ -111,8 +169,7 @@ Scope {
             }
             // Plain unlock
             GlobalStates.screenLocked = false
-            Quickshell.execDetached(["bash", "-c",
-                `sleep 0.2; hyprctl --batch "dispatch ${HyprlandCompat.dspToggleSpecial()} ; dispatch ${HyprlandCompat.dspToggleSpecial()}"`])
+            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "resume-force"])
             LockContext.reset()
         }
     }
@@ -139,6 +196,10 @@ Scope {
 
         function activate(): void {
             root.lock()
+        }
+
+        function isLocked(): bool {
+            return GlobalStates.screenLocked
         }
 
         function focus(): void {

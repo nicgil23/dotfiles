@@ -19,7 +19,14 @@ Item {
     id: root
     property HyprlandMonitor monitor
     readonly property int workspacesShown: Config.options.workspaces?.max_shown ?? 5
-    readonly property int activeWsId: monitor?.activeWorkspace?.id ?? 1
+    readonly property int rawWsId: monitor?.activeWorkspace?.id ?? 1
+    property int _lastValidWsId: 1
+    onRawWsIdChanged: {
+        if (rawWsId > 0 && rawWsId < 1000000) {
+            _lastValidWsId = rawWsId
+        }
+    }
+    readonly property int activeWsId: (rawWsId > 0 && rawWsId < 1000000) ? rawWsId : _lastValidWsId
     property string activeSpecialName: ""
     property bool isSpecialActive: activeSpecialName !== ""
 

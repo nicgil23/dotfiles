@@ -26,7 +26,7 @@ Item {
                 (root.activeWindow?.appId ?? "Desktop") : (HyprlandData.activeWindow?.class ?? "Desktop")
 
     property string appTitleText: root.focusingThisMonitor && root.activeWindow?.activated ?
-                (root.activeWindow?.title ?? "Overview") : (HyprlandData.activeWindow?.title ?? `Workspace ${monitor?.activeWorkspace?.id ?? 1}`)
+                (root.activeWindow?.title ?? "Overview") : (HyprlandData.activeWindow?.title ?? ((monitor?.activeWorkspace?.id && monitor.activeWorkspace.id < 1000000) ? `Workspace ${monitor.activeWorkspace.id}` : "Desktop"))
 
     property real maxWidth: 400 * Appearance.effectiveScale
 

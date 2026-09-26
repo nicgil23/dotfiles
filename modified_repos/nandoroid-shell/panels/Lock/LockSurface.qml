@@ -72,17 +72,40 @@ MouseArea {
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton
 
+    property real lastKnownMouseX: -1
+    property real lastKnownMouseY: -1
+    property bool mouseInteractionReady: false
+
+    Timer {
+        id: mouseReadyTimer
+        interval: 800
+        running: true
+        onTriggered: root.mouseInteractionReady = true
+    }
+
     onPressed: {
         forceFieldFocus()
+        root.context.notifyActivity()
         root.context.tryFingerUnlock()
     }
-    onPositionChanged: {
+    onPositionChanged: mouse => {
         forceFieldFocus()
         root.context.tryFingerUnlock()
+        if (!root.mouseInteractionReady) {
+            root.lastKnownMouseX = mouse.x
+            root.lastKnownMouseY = mouse.y
+            return
+        }
+        if (root.lastKnownMouseX >= 0 && (Math.abs(mouse.x - root.lastKnownMouseX) > 15 || Math.abs(mouse.y - root.lastKnownMouseY) > 15)) {
+            root.context.notifyActivity()
+            root.lastKnownMouseX = mouse.x
+            root.lastKnownMouseY = mouse.y
+        }
     }
 
     property bool ctrlHeld: false
     Keys.onPressed: event => {
+        root.context.notifyActivity()
         root.context.resetClearTimer()
         if (event.key === Qt.Key_Control) root.ctrlHeld = true
         if (event.key === Qt.Key_Escape)  root.context.currentText = ""
@@ -289,6 +312,7 @@ MouseArea {
         readOnly: root.context.passwordLocked
 
         onTextChanged: {
+            root.context.notifyActivity()
             if (!root.context.passwordLocked)
                 root.context.currentText = text
         }
@@ -297,6 +321,7 @@ MouseArea {
                 root.context.tryUnlock(root.ctrlHeld)
         }
         Keys.onPressed: event => {
+            root.context.notifyActivity()
             if (!root.context.passwordLocked)
                 root.context.resetClearTimer()
         }
