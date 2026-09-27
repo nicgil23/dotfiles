@@ -13,13 +13,21 @@ Singleton {
     property bool hypridleRunning: false
     property bool active: mode !== 0
 
-    // Process to check if hypridle is running
+    function ensureHypridle() {
+        Quickshell.execDetached(["bash", "-c", "pgrep -x hypridle >/dev/null || hypridle"]);
+        root.hypridleRunning = true;
+    }
+
+    // Process to check if hypridle is running and restart it if stopped
     Process {
         id: checkProc
         command: ["pgrep", "-x", "hypridle"]
         running: false
         onExited: exitCode => {
             root.hypridleRunning = (exitCode === 0);
+            if (exitCode !== 0) {
+                root.ensureHypridle();
+            }
         }
     }
 
@@ -43,29 +51,18 @@ Singleton {
 
     function applyMode(targetMode) {
         root.mode = targetMode;
+        root.ensureHypridle();
 
         if (targetMode === 0) {
-            // Normal Mode: turn screen on & restart hypridle
+            // Normal Mode: turn screen on
             Quickshell.execDetached(["hyprctl", "dispatch", "dpms", "on"]);
-            if (!root.hypridleRunning) {
-                Quickshell.execDetached(["hypridle"]);
-                root.hypridleRunning = true;
-            }
         } else if (targetMode === 1) {
-            // Awake Mode: ensure screen is on & stop hypridle
+            // Awake Mode: ensure screen is on (idle inhibited via Caffeine service)
             Quickshell.execDetached(["hyprctl", "dispatch", "dpms", "on"]);
-            if (root.hypridleRunning) {
-                Quickshell.execDetached(["pkill", "-x", "hypridle"]);
-                root.hypridleRunning = false;
-            }
         } else if (targetMode === 2) {
-            // AFK Mode: stop hypridle & turn screen off
+            // AFK Mode: turn screen off (idle inhibited via Caffeine service)
             root.isSwitchingToAfk = true;
             afkGuardTimer.restart();
-            if (root.hypridleRunning) {
-                Quickshell.execDetached(["pkill", "-x", "hypridle"]);
-                root.hypridleRunning = false;
-            }
             Quickshell.execDetached(["hyprctl", "dispatch", "dpms", "off"]);
         }
 

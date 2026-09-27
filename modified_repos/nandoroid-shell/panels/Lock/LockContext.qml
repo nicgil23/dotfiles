@@ -153,6 +153,7 @@ Scope {
     property bool fingerFailed: false   // momentary flash on each failure
     property bool fingerLocked: false   // true after maxFingerAttempts reached
     property bool manualAbort: false
+    property bool fingerHadScanFailure: false
 
     // Password failure and lockout tracking
     property int passwordFailCount: 0
@@ -179,6 +180,7 @@ Scope {
         root.unlockInProgress = false
         root.unlockSuccess = false
         root.fingerFailed = false
+        root.fingerHadScanFailure = false
         stopFingerPam()
     }
 
@@ -206,6 +208,7 @@ Scope {
         root.passwordLocked = false
         root.lockoutTimeRemaining = 0
         root.fingerLocked = false
+        root.fingerHadScanFailure = false
         stopFingerPam()
         
         root.unlockSuccess = true
@@ -239,8 +242,9 @@ Scope {
     property double lastFingerPamStartTime: 0
 
     function tryFingerUnlock() {
-        if (root.fingerprintsConfigured && !root.fingerLocked && !fingerPam.active) {
+        if (root.fingerprintsConfigured && !root.fingerLocked && !fingerPam.active && !fingerRetryTimer.running) {
             root.lastFingerPamStartTime = Date.now()
+            root.fingerHadScanFailure = false
             fingerPam.start()
         }
     }
@@ -328,7 +332,7 @@ Scope {
         repeat: true
         running: GlobalStates.screenLocked && root.fingerprintsConfigured && !root.fingerLocked
         onTriggered: {
-            if (!fingerPam.active) {
+            if (!fingerPam.active && !fingerRetryTimer.running) {
                 root.tryFingerUnlock()
             }
         }
@@ -339,31 +343,45 @@ Scope {
         id: fingerPam
         configDirectory: Quickshell.shellPath("panels/Lock/pam")
         config: "fprintd.conf"
+        onPamMessage: {
+            // pam_fprintd sends error/info messages when a finger scan is attempted but fails to match
+            if (this.message && (this.messageIsError || this.message.toLowerCase().includes("fail") || this.message.toLowerCase().includes("match") || this.message.toLowerCase().includes("not recognized") || this.message.toLowerCase().includes("incorrect"))) {
+                root.fingerHadScanFailure = true
+            }
+        }
         onCompleted: result => {
             if (result === PamResult.Success) {
                 root.handleSuccess()
             } else {
                 if (root.manualAbort) {
                     root.manualAbort = false
+                    root.fingerHadScanFailure = false
                     return
                 }
 
                 var elapsed = Date.now() - root.lastFingerPamStartTime
                 if (elapsed < 500) {
                     // Ignore instant failures caused by daemon restart/initialization
+                    root.fingerHadScanFailure = false
                     fingerRetryTimer.restart()
                     return
                 }
 
-                root.fingerFailCount++
-                root.fingerFailed = true
-                fingerFailResetTimer.restart()
+                // Only penalize and flash error indicator if an actual scan failure/mismatch occurred
+                if (root.fingerHadScanFailure) {
+                    root.fingerHadScanFailure = false
+                    root.fingerFailCount++
+                    root.fingerFailed = true
+                    fingerFailResetTimer.restart()
 
-                if (root.fingerFailCount >= root.maxFingerAttempts) {
-                    root.fingerLocked = true
-                } else {
-                    fingerRetryTimer.restart()
+                    if (root.fingerFailCount >= root.maxFingerAttempts) {
+                        root.fingerLocked = true
+                        return
+                    }
                 }
+
+                // Seamlessly restart listening without treating timeout as a user error
+                fingerRetryTimer.restart()
             }
         }
     }
