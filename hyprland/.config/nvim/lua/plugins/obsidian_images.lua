@@ -1,7 +1,7 @@
 local M = {}
 
 -- Ruta de la carpeta de Anexos en tu bóveda de Obsidian
-local ANEXOS_PATH = vim.fn.expand("/home/hypr/Documents/Obsidian/Obsidian/Capa 1 - 🗑️ Archivo/Anexos")
+local ANEXOS_PATH = vim.fn.expand("~/Documents/Obsidian/Obsidian/Capa 1 - 🗑️ Archivo/Anexos")
 
 ---Asegura que el directorio de anexos existe
 local function ensure_anexos_dir()

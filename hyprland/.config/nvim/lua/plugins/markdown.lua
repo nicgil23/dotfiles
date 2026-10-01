@@ -81,6 +81,11 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.softtabstop = 4
     vim.opt_local.expandtab = true
 
+    -- Corrector ortográfico en español e inglés
+    vim.opt_local.spell = true
+    vim.opt_local.spelllang = { "es", "en" }
+
+
     -- Ctrl + b: Negrita (Insert, Visual y Normal)
     vim.keymap.set("i", "<C-b>", "****<Left><Left>", vim.tbl_extend("force", opts, { desc = "Insertar negrita" }))
     vim.keymap.set("x", "<C-b>", function()

@@ -18,4 +18,8 @@ vim.opt.shiftwidth = 4
 vim.opt.softtabstop = 4
 vim.opt.expandtab = true
 
+-- Idiomas del corrector ortográfico (Español e Inglés)
+vim.opt.spelllang = { "es", "en" }
+
+
 

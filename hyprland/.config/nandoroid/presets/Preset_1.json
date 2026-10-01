@@ -18,7 +18,7 @@
     },
     "autoScale": true,
     "background": {
-      "autoCycleDirectory": "file:///home/hypr/Pictures/wallpapers",
+      "autoCycleDirectory": "~/Pictures/wallpapers",
       "autoCycleEnabled": false,
       "autoCycleInterval": 60,
       "autoCycleOnlyFavorites": true,
@@ -46,7 +46,7 @@
       "showGrid": false,
       "showSnapLines": true,
       "transition": "random",
-      "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png"
+      "wallpaperPath": "~/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png"
     },
     "clock": {
       "analog": {
@@ -252,7 +252,7 @@
     }
   },
   "bar": {
-    "avatar_path": "/home/hypr/dotfiles/hyprland/.config/hypr/img/nerd_emoji.jpg",
+    "avatar_path": "~/.config/hypr/img/nerd_emoji.jpg",
     "distroIcon": "arch-symbolic",
     "networkSpeedInterval": 3000,
     "network_speed_unit": "MB",
@@ -312,7 +312,7 @@
   },
   "lock": {
     "cavaOpacity": 0.15,
-    "fgPreferencesJson": "{\"/home/hypr/Pictures/wallpapers/downloads/wallhaven-x6l7mo.jpg\":true,\"/home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png\":true,\"/home/hypr/Pictures/wallpapers/downloads/Frieren-4.png\":true}",
+    "fgPreferencesJson": "{}",
     "foregroundPath": "",
     "launchOnStartup": false,
     "security": {
@@ -327,7 +327,7 @@
     "showWidgets": true,
     "useHyprlock": false,
     "useSeparateWallpaper": false,
-    "wallpaperPath": "file:///home/hypr/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png",
+    "wallpaperPath": "~/Pictures/wallpapers/downloads/96YOTTEA_on_Pixiv_looking.png",
     "weather": {
       "textColorMode": "adaptive"
     }
@@ -484,8 +484,8 @@
   "screenshot": {
     "autoCopy": true,
     "autoSave": true,
-    "recordPath": "file:///home/hypr/Videos/Recordings",
-    "savePath": "file:///home/hypr/Pictures/Screenshots",
+    "recordPath": "~/Videos/Recordings",
+    "savePath": "~/Pictures/Screenshots",
     "showPreview": true
   },
   "search": {

@@ -2,7 +2,7 @@
 
 # Helper script for Hyprland idle and lockscreen coordination
 
-NANDOROID_DIR="/home/hypr/dotfiles/modified_repos/nandoroid-shell"
+NANDOROID_DIR="$HOME/dotfiles/modified_repos/nandoroid-shell"
 SAVED_BRIGHTNESS_FILE="/tmp/hypr_original_brightness"
 
 is_screen_locked() {

@@ -1,7 +1,8 @@
+import os
 from PIL import Image
 
-img_path = '/home/hypr/.gemini/antigravity-cli/brain/e9254e3e-2711-43c9-9a09-e847c4cc78ea/.user_uploaded/uploaded_media_1788003636765.png'
-out_path = '/home/hypr/dotfiles/hyprland/.config/nvim/anime_header.txt'
+img_path = os.path.expanduser('~/.config/nvim/anime_header.png')
+out_path = os.path.expanduser('~/dotfiles/hyprland/.config/nvim/anime_header.txt')
 
 img = Image.open(img_path)
 

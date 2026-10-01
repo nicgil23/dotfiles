@@ -1,8 +1,8 @@
 local M = {}
 
 -- Ruta base de la bóveda y de las plantillas de Obsidian
-local VAULT_PATH = vim.fn.expand("/home/hypr/Documents/Obsidian")
-local TEMPLATES_PATH = vim.fn.expand("/home/hypr/Documents/Obsidian/Obsidian/Capa 99 - 🍌 Meta/Capa 99.1 - 🧱 PLANTILLAS")
+local VAULT_PATH = vim.fn.expand("~/Documents/Obsidian")
+local TEMPLATES_PATH = vim.fn.expand("~/Documents/Obsidian/Obsidian/Capa 99 - 🍌 Meta/Capa 99.1 - 🧱 PLANTILLAS")
 
 ---Convierte formatos de fecha de Moment.js (utilizados por Templater) a strftime
 ---@param fmt string|nil

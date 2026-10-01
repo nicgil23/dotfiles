@@ -35,3 +35,4 @@ modified_repos/nandoroid-shell/data/app_usage.json
 hyprland/.config/nandoroid/**
 !hyprland/.config/nandoroid/presets/
 !hyprland/.config/nandoroid/presets/**
+hyprland/.config/hypr/nandoroid/user_persistence.conf

@@ -10,6 +10,7 @@ Singleton {
     id: root
 
     property string currentProfile: "daily"
+    property bool hasAutoCpufreq: true
 
     readonly property bool useCustomProfile: (Config.ready && Config.options.powerProfile) ? Config.options.powerProfile.enabled : false
     readonly property string customPath: (Config.ready && Config.options.powerProfile) ? Config.options.powerProfile.customPath : "/tmp/ryzen_mode"
@@ -17,7 +18,7 @@ Singleton {
     // Reactive: PowerProfiles.profileChanged fires on D-Bus signal
     property var _ppProfile: useCustomProfile ? null : PowerProfiles.profile
     on_PpProfileChanged: {
-        if (!useCustomProfile && _ppProfile !== null) {
+        if (!useCustomProfile && !hasAutoCpufreq && _ppProfile !== null && _ppProfile !== undefined) {
             const map = ["daily", "balanced", "performance"];
             const val = map[_ppProfile] || "balanced";
             if (root.currentProfile !== val) root.currentProfile = val;
@@ -38,15 +39,56 @@ Singleton {
         }
     }
 
+    // Process to check current auto-cpufreq profile
+    Process {
+        id: autoCpufreqCheckProc
+        command: ["bash", "-c", "which auto-cpufreq >/dev/null 2>&1 && if [ -f /opt/auto-cpufreq/override.pickle ]; then if grep -qs 'performance' /opt/auto-cpufreq/override.pickle; then echo 'performance'; elif grep -qs 'powersave' /opt/auto-cpufreq/override.pickle; then echo 'daily'; else echo 'balanced'; fi; else echo 'balanced'; fi || echo 'none'"]
+        stdout: SplitParser {
+            onRead: data => {
+                const val = data.trim();
+                if (val === "none") {
+                    root.hasAutoCpufreq = false;
+                } else if (["daily", "balanced", "performance"].includes(val)) {
+                    root.hasAutoCpufreq = true;
+                    if (!root.useCustomProfile && root.currentProfile !== val) {
+                        root.currentProfile = val;
+                    }
+                }
+            }
+        }
+    }
+
+    // Timer to periodically poll auto-cpufreq state
+    Timer {
+        id: pollTimer
+        interval: 3000
+        running: !root.useCustomProfile
+        repeat: true
+        onTriggered: {
+            if (!autoCpufreqCheckProc.running) {
+                autoCpufreqCheckProc.running = true;
+            }
+        }
+    }
+
+    // Delayed check timer for after executing a profile switch
+    Timer {
+        id: postApplyTimer
+        interval: 1000
+        repeat: false
+        onTriggered: {
+            if (!autoCpufreqCheckProc.running) {
+                autoCpufreqCheckProc.running = true;
+            }
+        }
+    }
+
     onUseCustomProfileChanged: {
         if (useCustomProfile) {
             ensureFileExists();
         } else {
             customFileView.path = "";
-            // Read from PowerProfiles immediately
-            const map = ["daily", "balanced", "performance"];
-            const val = map[PowerProfiles.profile] || "balanced";
-            if (root.currentProfile !== val) root.currentProfile = val;
+            checkCurrentProfile();
         }
     }
 
@@ -58,8 +100,21 @@ Singleton {
     }
 
     Component.onCompleted: {
-        if (useCustomProfile)
+        if (useCustomProfile) {
             ensureFileExists();
+        } else {
+            checkCurrentProfile();
+        }
+    }
+
+    function checkCurrentProfile() {
+        if (useCustomProfile) {
+            customFileView.reload();
+        } else {
+            if (!autoCpufreqCheckProc.running) {
+                autoCpufreqCheckProc.running = true;
+            }
+        }
     }
 
     function ensureFileExists() {
@@ -78,10 +133,20 @@ Singleton {
         // Write to custom file if enabled
         if (useCustomProfile) {
             Quickshell.execDetached(["bash", "-c", `echo "${profile}" > "${customPath}"`]);
+        } else if (hasAutoCpufreq) {
+            // Map profile to auto-cpufreq argument
+            const autoCpufreqMap = { "daily": "powersave", "balanced": "reset", "performance": "performance" };
+            const forceArg = autoCpufreqMap[profile] || "reset";
+            
+            // Execute via sudo (if passwordless) or pkexec
+            Quickshell.execDetached(["bash", "-c", `sudo -n /usr/bin/auto-cpufreq --force=${forceArg} || pkexec /usr/bin/auto-cpufreq --force=${forceArg}`]);
+            postApplyTimer.restart();
         } else {
             // Use PowerProfiles D-Bus API
             const map = { "daily": "PowerSaver", "balanced": "Balanced", "performance": "Performance" };
-            PowerProfiles.profile = map[profile] || "Balanced";
+            if (PowerProfiles.profile !== undefined) {
+                PowerProfiles.profile = map[profile] || "Balanced";
+            }
         }
     }
 

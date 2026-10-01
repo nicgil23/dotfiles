@@ -36,9 +36,9 @@ Rectangle {
                 anchors.fill: parent
                 source: {
                     const profPath = Config.options.profile?.avatarPicture;
-                    if (profPath && profPath !== "") return `file://${profPath}`;
+                    if (profPath && profPath !== "") return `file://${Functions.FileUtils.expandHomePath(profPath)}`;
                     const cfgPath = Config.options.bar?.avatar_path;
-                    if (cfgPath && cfgPath !== "") return `file://${cfgPath}`;
+                    if (cfgPath && cfgPath !== "") return `file://${Functions.FileUtils.expandHomePath(cfgPath)}`;
                     if (SystemInfo.userAvatarValid) return "file://" + SystemInfo.userAvatarPath;
                     return "";
                 }

@@ -12,7 +12,7 @@ return {
             "--header-insertion=iwyu",
             "--completion-style=detailed",
             "--function-arg-placeholders",
-            "--fallback-style={BasedOnStyle: LLVM, IndentWidth: 4, TabWidth: 4, UseTab: Never, ColumnLimit: 100}",
+            "--fallback-style={BasedOnStyle: LLVM, IndentWidth: 4, TabWidth: 4, UseTab: Never, ColumnLimit: 100, BreakBeforeBraces: Custom, BraceWrapping: {BeforeElse: true}}",
           },
         },
       },
@@ -30,7 +30,7 @@ return {
       formatters = {
         ["clang-format"] = {
           prepend_args = {
-            "--style={BasedOnStyle: LLVM, IndentWidth: 4, TabWidth: 4, UseTab: Never, ColumnLimit: 100}",
+            "--style={BasedOnStyle: LLVM, IndentWidth: 4, TabWidth: 4, UseTab: Never, ColumnLimit: 100, BreakBeforeBraces: Custom, BraceWrapping: {BeforeElse: true}}",
           },
         },
       },

@@ -66,6 +66,8 @@ Scope {
         }
     }
 
+    readonly property string idleHandlerScript: Directories.home.replace("file://", "") + "/.config/hypr/scripts/idle-handler.sh"
+
     // Lockscreen Inactivity Sleep State Machine
     readonly property int lockscreenDimTimeoutMs: 20000       // 20s
     readonly property int lockscreenDpmsTimeoutMs: 30000      // 30s (6 min total desde inicio de AFK)
@@ -77,7 +79,7 @@ Scope {
         repeat: false
         running: GlobalStates.screenLocked
         onTriggered: {
-            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "lockscreen-dim"])
+            Quickshell.execDetached([root.idleHandlerScript, "lockscreen-dim"])
         }
     }
 
@@ -87,7 +89,7 @@ Scope {
         repeat: false
         running: GlobalStates.screenLocked
         onTriggered: {
-            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "dpms-off"])
+            Quickshell.execDetached([root.idleHandlerScript, "dpms-off"])
         }
     }
 
@@ -97,7 +99,7 @@ Scope {
         repeat: false
         running: GlobalStates.screenLocked
         onTriggered: {
-            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "suspend"])
+            Quickshell.execDetached([root.idleHandlerScript, "suspend"])
         }
     }
 
@@ -106,7 +108,7 @@ Scope {
         lockscreenDimTimer.restart()
         lockscreenDpmsTimer.restart()
         lockscreenSuspendTimer.restart()
-        Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "dpms-on"])
+        Quickshell.execDetached([root.idleHandlerScript, "dpms-on"])
     }
 
     Connections {
@@ -169,7 +171,7 @@ Scope {
             }
             // Plain unlock
             GlobalStates.screenLocked = false
-            Quickshell.execDetached(["/home/hypr/dotfiles/hyprland/.config/hypr/scripts/idle-handler.sh", "resume-force"])
+            Quickshell.execDetached([root.idleHandlerScript, "resume-force"])
             LockContext.reset()
         }
     }

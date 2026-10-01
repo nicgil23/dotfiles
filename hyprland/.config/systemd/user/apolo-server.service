@@ -4,10 +4,10 @@ After=network.target sound.target
 
 [Service]
 Type=simple
-ExecStart=/home/hypr/.local/bin/apolo serve
+ExecStart=%h/.local/bin/apolo serve
 Restart=on-failure
 RestartSec=5
-Environment="PATH=/home/hypr/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
 Environment="PYTHONUNBUFFERED=1"
 
 [Install]
